@@ -83,6 +83,15 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
         if first_chunk_time is None:
             first_chunk_time = time.time()  # 记录第一个流式输出的时间
 
+        # 从 request_output 中提取所需的信息
+        prompt = request_output.prompt
+        prompt_token_ids = request_output.prompt_token_ids
+        prompt_logprobs = request_output.prompt_logprobs
+        outputs = request_output.outputs
+        finished = request_output.finished
+        metrics = request_output.metrics
+        lora_request = request_output.lora_request
+
         text_outputs = [output.text for output in request_output.outputs]
         ret = {"text": text_outputs}
         yield (json.dumps(ret) + "\0").encode("utf-8")
@@ -100,14 +109,14 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
     print(f"First chunk sent at {first_chunk_time_formatted}")
     print(f"Request ended at {end_time_formatted}")
 
-    print("request_id: ", results_generator.request_id)
-    print("prompt: ", results_generator.prompt)
-    print("prompt_token_ids: ", results_generator.prompt_token_ids)
-    print("prompt_logprobs: ", results_generator.prompt_logprobs)
-    print("outputs: ", results_generator.outputs)
-    print("finished: ", results_generator.finished)
-    print("metrics: ", results_generator.metrics)
-    print("lora_request: ", results_generator.lora_request)
+    # 打印 results_generator 的信息，通过 request_output 提取
+    print("prompt: ", prompt)
+    print("prompt_token_ids: ", prompt_token_ids)
+    print("prompt_logprobs: ", prompt_logprobs)
+    print("outputs: ", text_outputs)
+    print("finished: ", finished)
+    print("metrics: ", metrics)
+    print("lora_request: ", lora_request)
 
 
 @router.post("/generate")
