@@ -12,9 +12,11 @@ class WeaviateClient:
     client = weaviate.WeaviateClient(
         embedded_options=EmbeddedOptions(
             additional_env_vars={
-                "ENABLE_MODULES": "backup-filesystem,text2vec-openai,text2vec-cohere,text2vec-huggingface,ref2vec-centroid,generative-openai,qna-openai",
-                "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate"
+                "ENABLE_MODULES": "text2vec-transformers",
+                "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate",
+                "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8000'
             }
         )
         # Add additional options here. For syntax, see the Python client documentation.
     )
+    client.connect()
