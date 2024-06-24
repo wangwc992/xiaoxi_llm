@@ -14,7 +14,7 @@ from app.common.database.weaviate.Knowledge_ik_index_mapper import KnowledgeIkIn
 router = APIRouter(prefix="/chat")
 
 knowledgeIkIndexService = KnowledgeIkIndexMapper()
-engine = VllmClient.llm
+engine = VllmClient.engine
 
 
 @router.get("/health")
