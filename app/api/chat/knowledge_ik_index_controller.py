@@ -1,12 +1,11 @@
 import os
 import json
-from fastapi import Request
-from fastapi.responses import Response, StreamingResponse
-from starlette.responses import StreamingResponse
+from fastapi import Request, APIRouter, Response
+from fastapi.responses import StreamingResponse
+from typing import AsyncGenerator
+
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
-from typing import AsyncGenerator, Any, Coroutine
-from fastapi import APIRouter
 from langchain_core.prompts import PromptTemplate
 
 from app.common.core.langchain_client import VllmClient
@@ -14,6 +13,7 @@ from app.common.database.weaviate.Knowledge_ik_index_mapper import KnowledgeIkIn
 
 router = APIRouter(prefix="/chat")
 
+# 初始化全局服务实例
 knowledgeIkIndexService = KnowledgeIkIndexMapper()
 engine = VllmClient.engine
 
@@ -24,14 +24,22 @@ async def health() -> Response:
     return Response(status_code=200)
 
 
-async def chat(text: str):
+async def generate_prompt(text: str) -> str:
+    """生成包含参考数据的完整 prompt."""
     response_list = knowledgeIkIndexService.search_hybrid(text, 10)
-    reference_data = "\n\n".join([f"reference data{n + 1}: {response_list[n].output}"
+    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].output}"
                                   for n in range(len(response_list))])
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../../prompt/knowledge_prompt.txt')
     template = PromptTemplate.from_file(file_path)
     prompt = template.format(input=text, reference_data=reference_data)
+
+    return prompt
+
+
+async def generate_text(prompt_text: str) -> dict:
+    """生成文本."""
     sampling_params = SamplingParams(
         temperature=0.7,
         top_p=0.8,
@@ -39,33 +47,21 @@ async def chat(text: str):
         max_tokens=2048
     )
     request_id = random_uuid()
-    prompt_text = text
 
-    # 生成文本的过程
     results_generator = engine.generate(prompt_text, sampling_params, request_id)
 
     final_output = None
     async for request_output in results_generator:
-        # 在实际应用中，你需要检查客户端是否断开连接
-        # 这里简化了，假设客户端始终连接
         final_output = request_output
 
     assert final_output is not None
-    print(final_output)
     text_outputs = [output.text for output in final_output.outputs]
-    ret = {"prompt": prompt_text, "reference_data": reference_data, "text": text_outputs}
-    print(ret)
-    return ret  # 输出结果，可以根据需要保存或处理
+    ret = {"prompt": prompt_text, "text": text_outputs}
+    return ret
 
 
-async def chat2(text: str):
-    response_list = knowledgeIkIndexService.search_hybrid(text, 10)
-    reference_data = "\n\n".join([f"reference data{n + 1}: {response_list[n].output}"
-                                  for n in range(len(response_list))])
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, '../../prompt/knowledge_prompt.txt')
-    template = PromptTemplate.from_file(file_path)
-    prompt = template.format(input=text, reference_data=reference_data)
+async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
+    """流式生成文本."""
     sampling_params = SamplingParams(
         temperature=0.7,
         top_p=0.8,
@@ -73,30 +69,25 @@ async def chat2(text: str):
         max_tokens=2048
     )
     request_id = random_uuid()
-    prompt_text = text
 
-    # 生成文本的过程
     results_generator = engine.generate(prompt_text, sampling_params, request_id)
 
-    async def stream_results() -> AsyncGenerator[bytes, None]:
-        async for request_output in results_generator:
-            prompt = request_output.prompt
-            text_outputs = [
-                prompt + output.text for output in request_output.outputs
-            ]
-            ret = {"text": text_outputs}
-            yield (json.dumps(ret) + "\0").encode("utf-8")
-
-    return StreamingResponse(stream_results())
+    async for request_output in results_generator:
+        text_outputs = [output.text for output in request_output.outputs]
+        ret = {"text": text_outputs}
+        yield (json.dumps(ret) + "\0").encode("utf-8")
 
 
 @router.post("/generate")
 async def generate(request: Request) -> Response:
-    # request_dict = await request.json()
-    # prompt = request_dict.pop("prompt")
-    # ret = await chat(prompt)
-    # return Response(content=json.dumps(ret), media_type="application/json")
-
+    """生成文本或流式返回生成的文本."""
     request_dict = await request.json()
     prompt = request_dict.pop("prompt")
-    return chat2(prompt)
+
+    # 调用 chat2 来流式返回结果
+    return StreamingResponse(stream_text(prompt))
+
+    # 如果需要直接返回结果而不是流式返回，则取消注释下面的代码
+    # result = await generate_text(prompt)
+    # return Response(content=json.dumps(result), media_type="application/json")
+
