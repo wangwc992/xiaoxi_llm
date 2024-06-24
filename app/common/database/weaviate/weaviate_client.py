@@ -14,7 +14,7 @@ class WeaviateClient:
             additional_env_vars={
                 "ENABLE_MODULES": "text2vec-transformers",
                 "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate",
-                "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8000'
+                "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8090'
             }
         )
         # Add additional options here. For syntax, see the Python client documentation.
