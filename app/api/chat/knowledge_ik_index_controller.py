@@ -1,5 +1,7 @@
 import os
 import json
+import time
+
 from fastapi import Request, APIRouter, Response
 from fastapi.responses import StreamingResponse
 from typing import AsyncGenerator
@@ -73,11 +75,24 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
     prompt_text = await generate_prompt(prompt_text)
     results_generator = engine.generate(prompt_text, sampling_params, request_id)
 
+    first_chunk_time = None
+    start_time = time.time()  # 记录开始时间
+
     async for request_output in results_generator:
+        if first_chunk_time is None:
+            first_chunk_time = time.time()  # 记录第一个流式输出的时间
+
         text_outputs = [output.text for output in request_output.outputs]
         ret = {"text": text_outputs}
-        print(ret)
         yield (json.dumps(ret) + "\0").encode("utf-8")
+
+    end_time = time.time()  # 记录结束时间
+
+    # 记录时间信息，可以是日志、文件或其他存储形式
+    print(f"Request started at {start_time}")
+    print(f"First chunk sent at {first_chunk_time}")
+    print(f"Request ended at {end_time}")
+    print(results_generator)
 
 
 @router.post("/generate")
