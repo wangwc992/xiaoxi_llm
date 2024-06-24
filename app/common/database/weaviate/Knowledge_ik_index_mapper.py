@@ -4,11 +4,11 @@ from pydantic import BaseModel
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 
 from app.common.database.weaviate.weaviate_client import WeaviateClient
+from app.common.core.langchain_client import Embedding
 
 collections_name = "Knowledge_ik_index"
 
 collections = WeaviateClient.client.collections.get(collections_name)
-
 class KnowledgeIkIndexModel(BaseModel):
     uuid: Optional[str]
     instruction: str
@@ -23,7 +23,7 @@ class KnowledgeIkIndexMapper:
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
             target_vector="instruction",
-            # vector=self.langChain.embedding.embed_query(query),
+            vector=Embedding.embed_query(query),
             # query_properties=["instruction", "output"],
             return_metadata=MetadataQuery(score=True, explain_score=True),
             limit=limit,

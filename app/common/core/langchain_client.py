@@ -9,7 +9,7 @@ from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.usage.usage_lib import UsageContext
 
 
-class embedding:
+class Embedding:
     llm = settings["llm"]
     model_kwargs = {'device': llm["device"]}
     encode_kwargs = {'normalize_embeddings': False}

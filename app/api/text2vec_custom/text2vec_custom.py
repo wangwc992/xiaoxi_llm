@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, HTTPException
 
-from app.common.core.langchain_client import embedding
+from app.common.core.langchain_client import Embedding
 
 router = APIRouter()
 
@@ -37,7 +37,7 @@ def get_vectors(text: str):
         raise HTTPException(status_code=400, detail="No sentences provided")
 
     # 生成向量
-    encoded_vector = embedding.embed_query(text)
+    encoded_vector = Embedding.embed_query(text)
     response = {
         "text": text,
         "vector": encoded_vector,
