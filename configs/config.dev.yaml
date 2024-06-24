@@ -1,7 +1,7 @@
 port: 8000
 
 weaviate:
-  host: "http://urcz27.natappfree.cc"
+  host: "urcz27.natappfree.cc"
 
 llm:
   device: "cpu"
