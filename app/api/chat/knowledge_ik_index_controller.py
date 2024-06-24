@@ -1,6 +1,7 @@
 import os
 import json
 import time
+from datetime import datetime
 
 from fastapi import Request, APIRouter, Response
 from fastapi.responses import StreamingResponse
@@ -88,11 +89,25 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
 
     end_time = time.time()  # 记录结束时间
 
+    # 格式化时间
+    start_time_formatted = datetime.fromtimestamp(start_time).strftime('%H:%M:%S')
+    first_chunk_time_formatted = datetime.fromtimestamp(first_chunk_time).strftime(
+        '%H:%M:%S') if first_chunk_time else 'N/A'
+    end_time_formatted = datetime.fromtimestamp(end_time).strftime('%H:%M:%S')
+
     # 记录时间信息，可以是日志、文件或其他存储形式
-    print(f"Request started at {start_time}")
-    print(f"First chunk sent at {first_chunk_time}")
-    print(f"Request ended at {end_time}")
-    print(results_generator)
+    print(f"Request started at {start_time_formatted}")
+    print(f"First chunk sent at {first_chunk_time_formatted}")
+    print(f"Request ended at {end_time_formatted}")
+
+    print("request_id: ", results_generator.request_id)
+    print("prompt: ", results_generator.prompt)
+    print("prompt_token_ids: ", results_generator.prompt_token_ids)
+    print("prompt_logprobs: ", results_generator.prompt_logprobs)
+    print("outputs: ", results_generator.outputs)
+    print("finished: ", results_generator.finished)
+    print("metrics: ", results_generator.metrics)
+    print("lora_request: ", results_generator.lora_request)
 
 
 @router.post("/generate")
@@ -107,4 +122,3 @@ async def generate(request: Request) -> Response:
     # 如果需要直接返回结果而不是流式返回，则取消注释下面的代码
     # result = await generate_text(prompt)
     # return Response(content=json.dumps(result), media_type="application/json")
-
