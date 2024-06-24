@@ -5,7 +5,7 @@ weaviate:
   port: "80"
 
 llm:
-  device: "cpu"
+  device: "cuda:0"
 #  embedding_path: "D:/LLM/BAAI/bge-large-zh-v1.5"
   embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
 
