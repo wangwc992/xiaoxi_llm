@@ -91,7 +91,7 @@ async def chat2(text: str):
 
 
 @router.post("/generate")
-async def generate(request: Request) -> Coroutine[Any, Any, StreamingResponse]:
+async def generate(request: Request) -> Response:
     # request_dict = await request.json()
     # prompt = request_dict.pop("prompt")
     # ret = await chat(prompt)
