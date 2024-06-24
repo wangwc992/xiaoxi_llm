@@ -29,7 +29,6 @@ async def chat(text: str):
                                   for n in range(len(response_list))])
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../../prompt/knowledge_prompt.txt')
-    config_path = os.path.join(base_dir, '..', '..', 'prompt', 'knowledge_prompt.txt')
     template = PromptTemplate.from_file(file_path)
     prompt = template.format(input=text, reference_data=reference_data)
     sampling_params = SamplingParams(
