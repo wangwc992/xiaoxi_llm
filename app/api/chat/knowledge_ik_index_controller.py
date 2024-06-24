@@ -52,6 +52,7 @@ async def chat(text: str):
     assert final_output is not None
     text_outputs = [output.text for output in final_output.outputs]
     ret = {"reference_data": reference_data, "text": text_outputs}
+    print(ret)
     return ret  # 输出结果，可以根据需要保存或处理
 
 
