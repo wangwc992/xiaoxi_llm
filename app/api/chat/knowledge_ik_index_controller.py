@@ -69,7 +69,8 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
         max_tokens=2048
     )
     request_id = random_uuid()
-
+    # 使用generate_prompt生成完整的prompt
+    prompt_text = await generate_prompt(prompt_text)
     results_generator = engine.generate(prompt_text, sampling_params, request_id)
 
     async for request_output in results_generator:
