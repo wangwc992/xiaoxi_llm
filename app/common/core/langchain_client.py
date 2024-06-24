@@ -30,7 +30,16 @@ class embedding:
 
 
 class VllmClient:
-    llm = settings["vllm"]
-    engine_args = AsyncEngineArgs(llm)
+    model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
+    tensor_parallel_size = 4
+    quantization = "gptq"
+
+    engine_args = {
+        "model": model,
+        "tensor_parallel_size": tensor_parallel_size,
+        "quantization": "gptq"
+    }
+
+    engine_args = AsyncEngineArgs(**engine_args)
     engine = AsyncLLMEngine.from_engine_args(
         engine_args, usage_context=UsageContext.API_SERVER)

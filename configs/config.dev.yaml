@@ -1,7 +1,8 @@
 port: 8000
 
 weaviate:
-  host: "192.168.0.139"
+  host: "https://urcz27.natappfree.cc"
+
 llm:
   device: "cpu"
 #  embedding_path: "D:/LLM/BAAI/bge-large-zh-v1.5"
