@@ -75,6 +75,7 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
     async for request_output in results_generator:
         text_outputs = [output.text for output in request_output.outputs]
         ret = {"text": text_outputs}
+        print(ret)
         yield (json.dumps(ret) + "\0").encode("utf-8")
 
 
