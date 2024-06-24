@@ -1,5 +1,5 @@
 import os
-
+import json
 from fastapi import Request
 from fastapi.responses import Response
 from vllm.sampling_params import SamplingParams
@@ -61,4 +61,4 @@ async def generate(request: Request) -> Response:
     request_dict = await request.json()
     prompt = request_dict.pop("prompt")
     ret = await chat(prompt)
-    return Response(ret)
+    return Response(content=json.dumps(ret), media_type="application/json")
