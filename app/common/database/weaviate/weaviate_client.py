@@ -2,6 +2,7 @@ import weaviate
 from app.common.core.config import settings
 from weaviate.embedded import EmbeddedOptions
 
+
 class WeaviateClient:
     # weaviate_dict = settings["weaviate"]
     # client = weaviate.connect_to_local(
@@ -12,9 +13,9 @@ class WeaviateClient:
     client = weaviate.WeaviateClient(
         embedded_options=EmbeddedOptions(
             additional_env_vars={
-                "ENABLE_MODULES": "text2vec-transformers",
-                "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate",
-                "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8090'
+                # "ENABLE_MODULES": "text2vec-transformers",
+                # "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8090',
+                "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate"
             }
         )
         # Add additional options here. For syntax, see the Python client documentation.
