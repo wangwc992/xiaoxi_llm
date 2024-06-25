@@ -30,7 +30,7 @@ async def health() -> Response:
 async def generate_prompt(text: str) -> str:
     """生成包含参考数据的完整 prompt."""
     response_list = knowledgeIkIndexService.search_hybrid(text, 10)
-    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].output}"
+    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}————{response_list[n].output}"
                                   for n in range(len(response_list))])
 
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -59,7 +59,7 @@ async def generate_text(prompt_text: str) -> dict:
 
     assert final_output is not None
     text_outputs = [output.text for output in final_output.outputs]
-    ret = {"reference_data": reference_data, "text": text_outputs}
+    ret = {"reference_data": reference_data, "text": text_outputs[0]}
     return ret
 
 
@@ -84,32 +84,32 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
         ret = {"text": text_outputs}
         yield (json.dumps(ret) + "\0").encode("utf-8")
 
-    # 格式化各个时间点
-    arrival_time = datetime.fromtimestamp(metrics.arrival_time).strftime('%H:%M:%S')
-    first_scheduled_time = datetime.fromtimestamp(metrics.first_scheduled_time).strftime('%H:%M:%S')
-    first_token_time = datetime.fromtimestamp(metrics.first_token_time).strftime('%H:%M:%S')
-    last_token_time = datetime.fromtimestamp(metrics.last_token_time).strftime('%H:%M:%S')
-    finished_time = datetime.fromtimestamp(metrics.finished_time).strftime('%H:%M:%S')
-
-    # 计算时间间隔
-    time_in_queue = metrics.time_in_queue
-    time_to_first_token = metrics.first_token_time - metrics.first_scheduled_time
-    generation_duration = metrics.last_token_time - metrics.first_token_time
-    total_duration = metrics.finished_time - metrics.arrival_time
-
-    # 一行输出所有信息
-    print(
-        f"到达时间: {arrival_time}, "
-        f"首次调度时间: {first_scheduled_time}, "
-        f"在队列中的时间: {time_in_queue:.3f} 秒, "
-        f"首次生成令牌时间: {first_token_time}, "
-        f"从调度到生成第一个令牌的时间: {time_to_first_token:.3f} 秒, "
-        f"最后一个令牌生成时间: {last_token_time}, "
-        f"生成所有令牌的时间: {generation_duration:.3f} 秒, "
-        f"请求完成时间: {finished_time}, "
-        f"从请求到达到处理完成的总时间: {total_duration:.3f} 秒"
-    )
-    print(f"生成的文本: {text_outputs}")
+    # # 格式化各个时间点
+    # arrival_time = datetime.fromtimestamp(metrics.arrival_time).strftime('%H:%M:%S')
+    # first_scheduled_time = datetime.fromtimestamp(metrics.first_scheduled_time).strftime('%H:%M:%S')
+    # first_token_time = datetime.fromtimestamp(metrics.first_token_time).strftime('%H:%M:%S')
+    # last_token_time = datetime.fromtimestamp(metrics.last_token_time).strftime('%H:%M:%S')
+    # finished_time = datetime.fromtimestamp(metrics.finished_time).strftime('%H:%M:%S')
+    #
+    # # 计算时间间隔
+    # time_in_queue = metrics.time_in_queue
+    # time_to_first_token = metrics.first_token_time - metrics.first_scheduled_time
+    # generation_duration = metrics.last_token_time - metrics.first_token_time
+    # total_duration = metrics.finished_time - metrics.arrival_time
+    #
+    # # 一行输出所有信息
+    # print(
+    #     f"到达时间: {arrival_time}, "
+    #     f"首次调度时间: {first_scheduled_time}, "
+    #     f"在队列中的时间: {time_in_queue:.3f} 秒, "
+    #     f"首次生成令牌时间: {first_token_time}, "
+    #     f"从调度到生成第一个令牌的时间: {time_to_first_token:.3f} 秒, "
+    #     f"最后一个令牌生成时间: {last_token_time}, "
+    #     f"生成所有令牌的时间: {generation_duration:.3f} 秒, "
+    #     f"请求完成时间: {finished_time}, "
+    #     f"从请求到达到处理完成的总时间: {total_duration:.3f} 秒"
+    # )
+    # print(f"生成的文本: {text_outputs}")
 
 
 @router.post("/generate")
@@ -119,8 +119,8 @@ async def generate(request: Request) -> Response:
     prompt = request_dict.pop("prompt")
 
     # 调用 chat2 来流式返回结果
-    # return StreamingResponse(stream_text(prompt))
+    yield StreamingResponse(stream_text(prompt))
 
     # 如果需要直接返回结果而不是流式返回，则取消注释下面的代码
-    result = await generate_text(prompt)
-    return Response(content=json.dumps(result), media_type="application/json")
+    # result = await generate_text(prompt)
+    # return Response(content=json.dumps(result), media_type="application/json")
