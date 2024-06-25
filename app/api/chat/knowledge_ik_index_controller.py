@@ -107,17 +107,17 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
     print(type(metrics))
 
     # 格式化各个时间点
-    arrival_time = datetime.fromtimestamp(metrics['arrival_time']).strftime('%H:%M:%S')
-    first_scheduled_time = datetime.fromtimestamp(metrics['first_scheduled_time']).strftime('%H:%M:%S')
-    first_token_time = datetime.fromtimestamp(metrics['first_token_time']).strftime('%H:%M:%S')
-    last_token_time = datetime.fromtimestamp(metrics['last_token_time']).strftime('%H:%M:%S')
-    finished_time = datetime.fromtimestamp(metrics['finished_time']).strftime('%H:%M:%S')
+    arrival_time = datetime.fromtimestamp(metrics.arrival_time).strftime('%H:%M:%S')
+    first_scheduled_time = datetime.fromtimestamp(metrics.first_scheduled_time).strftime('%H:%M:%S')
+    first_token_time = datetime.fromtimestamp(metrics.first_token_time).strftime('%H:%M:%S')
+    last_token_time = datetime.fromtimestamp(metrics.last_token_time).strftime('%H:%M:%S')
+    finished_time = datetime.fromtimestamp(metrics.finished_time).strftime('%H:%M:%S')
 
     # 计算时间间隔
-    time_in_queue = metrics['time_in_queue']
-    time_to_first_token = metrics['first_token_time'] - metrics['first_scheduled_time']
-    generation_duration = metrics['last_token_time'] - metrics['first_token_time']
-    total_duration = metrics['finished_time'] - metrics['arrival_time']
+    time_in_queue = metrics.time_in_queue
+    time_to_first_token = metrics.first_token_time - metrics.first_scheduled_time
+    generation_duration = metrics.last_token_time - metrics.first_token_time
+    total_duration = metrics.finished_time - metrics.arrival_time
 
     # 一行输出所有信息
     print(
