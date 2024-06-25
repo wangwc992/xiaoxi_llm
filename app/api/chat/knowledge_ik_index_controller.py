@@ -82,6 +82,38 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
         text_outputs = [output.text for output in request_output.outputs]
         ret = {"text": text_outputs}
         yield (json.dumps(ret) + "\0").encode("utf-8")
+async def stream_text1(prompt_text: str) -> AsyncGenerator[bytes, None]:
+    """流式生成文本."""
+    sampling_params = SamplingParams(
+        temperature=0.7,
+        top_p=0.8,
+        repetition_penalty=1.05,
+        max_tokens=2048
+    )
+    request_id = random_uuid()
+    # 使用generate_prompt生成完整的prompt
+    prompt_text = await generate_prompt(prompt_text)
+    results_generator = engine.generate(prompt_text, sampling_params, request_id)
+
+    # 初始化一个累积器来跟踪已生成的内容
+    generated_text = ""
+
+    async for request_output in results_generator:
+        # 从 request_output 中提取所需的信息
+        current_output_text = "".join([output.text for output in request_output.outputs])
+
+        # 计算新生成的部分
+        new_text = current_output_text[len(generated_text):]
+
+        # 更新累积的内容
+        generated_text = current_output_text
+
+        # 只返回新生成的部分
+        ret = {"text": new_text}
+
+        # 如果有新的内容，才发送
+        if new_text:
+            yield (json.dumps(ret) + "\0").encode("utf-8")
 
 
 @router.post("/generate")
@@ -104,4 +136,12 @@ async def stream(request: Request) -> Response:
     prompt = request_dict.pop("prompt")
 
     # 调用 chat2 来流式返回结果
-    return StreamingResponse(stream_text(prompt), media_type="text/plain")
+    return StreamingResponse(stream_text(prompt))
+@router.post("/stream1")
+async def stream1(request: Request) -> Response:
+    """生成文本或流式返回生成的文本."""
+    request_dict = await request.json()
+    prompt = request_dict.pop("prompt")
+
+    # 调用 chat2 来流式返回结果
+    return StreamingResponse(stream_text1(prompt))
