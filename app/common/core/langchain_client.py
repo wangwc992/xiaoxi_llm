@@ -30,14 +30,15 @@ class Embedding:
 
 
 class VllmClient:
-    model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
-    tensor_parallel_size = 4
-    quantization = "gptq"
+    # model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
+    model = "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
+    # tensor_parallel_size = 4
+    # quantization = "gptq"
 
     engine_args = {
         "model": model,
-        "tensor_parallel_size": tensor_parallel_size,
-        "quantization": "gptq"
+        # "tensor_parallel_size": tensor_parallel_size,
+        # "quantization": "gptq"
     }
 
     engine_args = AsyncEngineArgs(**engine_args)
