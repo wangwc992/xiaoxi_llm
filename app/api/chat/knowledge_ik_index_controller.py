@@ -96,3 +96,12 @@ async def generate(request: Request) -> Response:
     # 如果需要直接返回结果而不是流式返回，则取消注释下面的代码
     result = await generate_text(prompt)
     return Response(content=json.dumps(result), media_type="application/json")
+
+@router.post("/stream")
+async def stream(request: Request) -> Response:
+    """生成文本或流式返回生成的文本."""
+    request_dict = await request.json()
+    prompt = request_dict.pop("prompt")
+
+    # 调用 chat2 来流式返回结果
+    return StreamingResponse(stream_text(prompt))
