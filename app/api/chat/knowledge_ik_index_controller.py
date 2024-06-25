@@ -73,15 +73,20 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
     )
     request_id = random_uuid()
     # 使用generate_prompt生成完整的prompt
-    prompt_text = await generate_prompt(prompt_text)
+    # prompt_text = await generate_prompt(prompt_text)
     results_generator = engine.generate(prompt_text, sampling_params, request_id)
 
 
     async for request_output in results_generator:
+        print(request_output.outputs)
+        print("*"*50)
+        for output in request_output.outputs:
+            print(output)
+            print(output.text)
+            ret = {"text": output.text}
+            yield (json.dumps(ret) + "\0").encode("utf-8")
         # 从 request_output 中提取所需的信息
-        text_outputs = [output.text for output in request_output.outputs]
-        ret = {"text": text_outputs}
-        yield (json.dumps(ret) + "\0").encode("utf-8")
+
 async def stream_text1(prompt_text: str) -> AsyncGenerator[bytes, None]:
     """流式生成文本."""
     sampling_params = SamplingParams(
