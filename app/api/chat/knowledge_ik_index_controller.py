@@ -136,7 +136,7 @@ async def stream(request: Request) -> Response:
     prompt = request_dict.pop("prompt")
 
     # 调用 chat2 来流式返回结果
-    return StreamingResponse(stream_text(prompt))
+    return StreamingResponse(stream_text(prompt), media_type="application/json")
 @router.post("/stream1")
 async def stream1(request: Request) -> Response:
     """生成文本或流式返回生成的文本."""
