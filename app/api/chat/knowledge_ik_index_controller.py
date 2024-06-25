@@ -103,6 +103,9 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
     print(f"First chunk sent at {first_chunk_time_formatted}")
     print(f"Request ended at {end_time_formatted}")
 
+    print(metrics)
+    print(type(metrics))
+
     # 格式化各个时间点
     arrival_time = datetime.fromtimestamp(metrics['arrival_time']).strftime('%H:%M:%S')
     first_scheduled_time = datetime.fromtimestamp(metrics['first_scheduled_time']).strftime('%H:%M:%S')
