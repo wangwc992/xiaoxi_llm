@@ -84,13 +84,7 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
             first_chunk_time = time.time()  # 记录第一个流式输出的时间
 
         # 从 request_output 中提取所需的信息
-        prompt = request_output.prompt
-        prompt_token_ids = request_output.prompt_token_ids
-        prompt_logprobs = request_output.prompt_logprobs
-        outputs = request_output.outputs
-        finished = request_output.finished
         metrics = request_output.metrics
-        lora_request = request_output.lora_request
 
         text_outputs = [output.text for output in request_output.outputs]
         ret = {"text": text_outputs}
@@ -109,14 +103,31 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
     print(f"First chunk sent at {first_chunk_time_formatted}")
     print(f"Request ended at {end_time_formatted}")
 
-    # 打印 results_generator 的信息，通过 request_output 提取
-    print("prompt: ", prompt)
-    print("prompt_token_ids: ", prompt_token_ids)
-    print("prompt_logprobs: ", prompt_logprobs)
-    print("outputs: ", text_outputs)
-    print("finished: ", finished)
-    print("metrics: ", metrics)
-    print("lora_request: ", lora_request)
+    # 格式化各个时间点
+    arrival_time = datetime.fromtimestamp(metrics['arrival_time']).strftime('%H:%M:%S')
+    first_scheduled_time = datetime.fromtimestamp(metrics['first_scheduled_time']).strftime('%H:%M:%S')
+    first_token_time = datetime.fromtimestamp(metrics['first_token_time']).strftime('%H:%M:%S')
+    last_token_time = datetime.fromtimestamp(metrics['last_token_time']).strftime('%H:%M:%S')
+    finished_time = datetime.fromtimestamp(metrics['finished_time']).strftime('%H:%M:%S')
+
+    # 计算时间间隔
+    time_in_queue = metrics['time_in_queue']
+    time_to_first_token = metrics['first_token_time'] - metrics['first_scheduled_time']
+    generation_duration = metrics['last_token_time'] - metrics['first_token_time']
+    total_duration = metrics['finished_time'] - metrics['arrival_time']
+
+    # 一行输出所有信息
+    print(
+        f"到达时间: {arrival_time}, "
+        f"首次调度时间: {first_scheduled_time}, "
+        f"在队列中的时间: {time_in_queue:.3f} 秒, "
+        f"首次生成令牌时间: {first_token_time}, "
+        f"从调度到生成第一个令牌的时间: {time_to_first_token:.3f} 秒, "
+        f"最后一个令牌生成时间: {last_token_time}, "
+        f"生成所有令牌的时间: {generation_duration:.3f} 秒, "
+        f"请求完成时间: {finished_time}, "
+        f"从请求到达到处理完成的总时间: {total_duration:.3f} 秒"
+    )
 
 
 @router.post("/generate")
