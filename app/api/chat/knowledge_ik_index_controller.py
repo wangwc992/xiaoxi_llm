@@ -50,8 +50,8 @@ async def generate_text(prompt_text: str) -> dict:
         max_tokens=2048
     )
     request_id = random_uuid()
-
-    results_generator = engine.generate(prompt_text, sampling_params, request_id)
+    reference_data = await generate_prompt(prompt_text)
+    results_generator = engine.generate(reference_data, sampling_params, request_id)
 
     final_output = None
     async for request_output in results_generator:
@@ -59,7 +59,7 @@ async def generate_text(prompt_text: str) -> dict:
 
     assert final_output is not None
     text_outputs = [output.text for output in final_output.outputs]
-    ret = {"prompt": prompt_text, "text": text_outputs}
+    ret = {"reference_data": reference_data, "text": text_outputs}
     return ret
 
 
@@ -119,8 +119,8 @@ async def generate(request: Request) -> Response:
     prompt = request_dict.pop("prompt")
 
     # 调用 chat2 来流式返回结果
-    return StreamingResponse(stream_text(prompt))
+    # return StreamingResponse(stream_text(prompt))
 
     # 如果需要直接返回结果而不是流式返回，则取消注释下面的代码
-    # result = await generate_text(prompt)
-    # return Response(content=json.dumps(result), media_type="application/json")
+    result = await generate_text(prompt)
+    return Response(content=json.dumps(result), media_type="application/json")
