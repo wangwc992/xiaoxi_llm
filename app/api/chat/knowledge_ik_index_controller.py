@@ -149,6 +149,7 @@ async def stream(request: Request) -> Response:
     return StreamingResponse(stream_text(prompt), media_type="application/json")
 @router.post("/stream1")
 async def stream1(request: Request) -> Response:
+    global sampling_params
     """生成文本或流式返回生成的文本."""
     request_dict = await request.json()
     prompt = request_dict.pop("prompt")
