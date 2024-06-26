@@ -118,7 +118,7 @@ async def stream_text1(prompt_text: str) -> AsyncGenerator[bytes, None]:
 
         # 如果有新的内容，才发送
         if new_text:
-            yield (json.dumps(ret) + "\0").encode("utf-8")
+            yield new_text
 
 
 @router.post("/generate")
