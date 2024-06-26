@@ -19,7 +19,12 @@ router = APIRouter(prefix="/chat")
 # 初始化全局服务实例
 knowledgeIkIndexService = KnowledgeIkIndexMapper()
 engine = VllmClient.engine
-
+sampling_params = SamplingParams(
+        temperature=0.3,
+        top_p=0.9,
+        repetition_penalty=1.05,
+        max_tokens=2048
+    )
 
 @router.get("/health")
 async def health() -> Response:
@@ -89,12 +94,12 @@ async def stream_text(prompt_text: str) -> AsyncGenerator[bytes, None]:
 
 async def stream_text1(prompt_text: str) -> AsyncGenerator[bytes, None]:
     """流式生成文本."""
-    sampling_params = SamplingParams(
-        temperature=0.7,
-        top_p=0.8,
-        repetition_penalty=1.05,
-        max_tokens=2048
-    )
+    # sampling_params = SamplingParams(
+    #     temperature=0.3,
+    #     top_p=0.9,
+    #     repetition_penalty=1.05,
+    #     max_tokens=2048
+    # )
     request_id = random_uuid()
     # 使用generate_prompt生成完整的prompt
     prompt_text = await generate_prompt(prompt_text)
@@ -147,6 +152,8 @@ async def stream1(request: Request) -> Response:
     """生成文本或流式返回生成的文本."""
     request_dict = await request.json()
     prompt = request_dict.pop("prompt")
+
+    sampling_params = SamplingParams(**request_dict)
 
     # 调用 chat2 来流式返回结果
     return StreamingResponse(stream_text1(prompt))
