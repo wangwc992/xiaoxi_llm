@@ -53,14 +53,14 @@ tools = [
     intelligent_calibration
 ]
 
-llm_with_tools = llm_chain.bind_tools(tools) | {
-    "functions": JsonOutputToolsParser(),
-    "text": StrOutputParser()
-}
+# llm_with_tools = llm_chain.bind_tools(tools) | {
+#     "functions": JsonOutputToolsParser(),
+#     "text": StrOutputParser()
+# }
 # 运行异步主函数
 
 if __name__ == "__main__":
-    result = llm_with_tools.invoke("我想去留学，推荐学校和专业")
-    print(result)
+    # result = llm_with_tools.invoke("我想去留学，推荐学校和专业")
+    # print(result)
     for i in range(10):
         asyncio.run(main())
