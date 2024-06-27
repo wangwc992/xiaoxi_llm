@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],  # 允许所有头部，包括自定义的头部
 )
 
-app.include_router(knowledge_ik_index_controller.router)
+# app.include_router(knowledge_ik_index_controller.router)
 app.include_router(encode.router)
 
 if __name__ == '__main__':
