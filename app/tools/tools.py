@@ -4,7 +4,7 @@ from pydantic import ValidationError
 from typing import Optional, Dict, Any
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from app.tools.school.check_school import search_school
+from app.tools.school.check_school import search_school, details, information_consultant
 
 
 class Action(BaseModel):
@@ -46,5 +46,17 @@ def exec_action(tools, action: Action) -> str:
 check_school_tool = StructuredTool.from_function(
     func=search_school,
     name="searchSchool",
-    description="判断是否想留学，根据学生提供的信息，查询学校信息",
+    description="判断用户的意图，是否需要查询数据库以获取关于指定条件的学校和专业的信息"
+)
+
+details_tool = StructuredTool.from_function(
+    func=details,
+    name="details",
+    description="查询学校，专业的详细信息"
+)
+
+information_consultant_tool = StructuredTool.from_function(
+    func=information_consultant,
+    name="informationConsultant",
+    description="没有命中其他的function calling时，调用这个function",
 )

@@ -47,4 +47,5 @@ class Embedding:
 
 
 class LangChain:
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.3)  # 默认是gpt-3.5-turbo
+    # llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.3)  # 默认是gpt-3.5-turbo
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)  # 默认是gpt-3.5-turbo
