@@ -6,8 +6,8 @@ weaviate:
 
 llm:
   device: "cuda:0"
-  embedding_path: "D:/LLM/BAAI/bge-large-zh-v1.5"
-#  embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
+#  embedding_path: "D:/LLM/BAAI/bge-large-zh-v1.5"
+  embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
 
 vllm:
   model: "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
