@@ -1,6 +1,5 @@
 import weaviate
 from app.common.core.config import settings
-from weaviate.embedded import EmbeddedOptions
 
 
 class WeaviateClient:

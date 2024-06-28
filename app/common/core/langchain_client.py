@@ -1,6 +1,8 @@
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import List
 
+from langchain_openai import ChatOpenAI
+
 from app.common.core.config import settings
 
 
@@ -8,6 +10,21 @@ from app.common.core.config import settings
 # from vllm.engine.async_llm_engine import AsyncLLMEngine
 # from vllm.usage.usage_lib import UsageContext
 
+# class VllmClient:
+#     model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
+#     # model = "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
+#     tensor_parallel_size = 4
+#     quantization = "gptq"
+#
+#     engine_args = {
+#         "model": model,
+#         "tensor_parallel_size": tensor_parallel_size,
+#         "quantization": "gptq"
+#     }
+#
+#     engine_args = AsyncEngineArgs(**engine_args)
+#     engine = AsyncLLMEngine.from_engine_args(
+#         engine_args, usage_context=UsageContext.API_SERVER)
 
 class Embedding:
     llm = settings["llm"]
@@ -29,18 +46,5 @@ class Embedding:
         return cls.embedding.embed_documents(texts)
 
 
-# class VllmClient:
-#     model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
-#     # model = "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
-#     tensor_parallel_size = 4
-#     quantization = "gptq"
-#
-#     engine_args = {
-#         "model": model,
-#         "tensor_parallel_size": tensor_parallel_size,
-#         "quantization": "gptq"
-#     }
-#
-#     engine_args = AsyncEngineArgs(**engine_args)
-#     engine = AsyncLLMEngine.from_engine_args(
-#         engine_args, usage_context=UsageContext.API_SERVER)
+class LangChain:
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.3)  # 默认是gpt-3.5-turbo
