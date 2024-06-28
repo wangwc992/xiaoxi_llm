@@ -3,7 +3,6 @@ from typing import List
 
 from app.common.core.config import settings
 
-
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.usage.usage_lib import UsageContext
@@ -38,6 +37,7 @@ class VllmClient:
     engine_args = {
         "model": model,
         "tensor_parallel_size": tensor_parallel_size,
+        "gpu_memory_utilization": 0.9
         # "quantization": "gptq"
     }
 
