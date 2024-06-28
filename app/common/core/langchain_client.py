@@ -38,7 +38,6 @@ class VllmClient:
     engine_args = {
         "model": model,
         "tensor_parallel_size": tensor_parallel_size,
-        "gpu_memory_utilization": 0.9,
         "max_model_len": max_model_len
         # "quantization": "gptq"
     }
