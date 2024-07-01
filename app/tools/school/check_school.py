@@ -1,4 +1,7 @@
+from typing import Optional
+
 from langchain_core.pydantic_v1 import BaseModel, Field
+from app.common.database.mysql.school.zn_school_department_project_mapper import ZnSchoolDepartmentProject
 
 
 class CheckSchool(BaseModel):
@@ -17,16 +20,30 @@ class CheckSchool(BaseModel):
        - 如果用户提供的输入信息足够完整和具体，可以直接使用这些信息而无需额外的数据库查询。
        - 如果用户的输入信息不完整或需要进一步验证，该类的实例化对象可以指示系统从数据库中检索所需的详细信息。
        """
-    country_name: str = Field(description="国家名称")
-    school_name: str = Field(description="学校名称")
-    major_name: str = Field(description="专业名称")
-    gpa_req: int = Field(description="GPA要求")
-    academic_degree: str = Field(description="学位")
+    country_name: Optional[str] = Field(description="国家名称")
+    school_name: Optional[str] = Field(description="学校名称")
+    major_name: Optional[str] = Field(description="专业名称")
+    gpa_req: Optional[int] = Field(description="GPA要求")
+    academic_degree: Optional[str] = Field(description="学位")
 
 
 async def search_school(check_school: CheckSchool):
+    ZnSchoolDepartmentProject.select_by_check_school(check_school)
     print(check_school.dict())
-async def details(text:str):
+
+
+async def details(text: str):
     print(text)
-async def information_consultant(text:str):
+
+
+async def information_consultant(text: str):
     print(text)
+
+import asyncio
+
+async def main():
+    check_school = CheckSchool(country_name="澳大利亚", school_name="悉尼大学", major_name="", gpa_req=3.5, academic_degree="本科")
+    await search_school(check_school)
+
+if __name__ == '__main__':
+    asyncio.run(main())
