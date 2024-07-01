@@ -2,6 +2,9 @@ import MySQLdb
 import MySQLdb.cursors
 from typing import Any, Dict, List, Type
 from app.common.core.config import settings
+from app.common.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class MySQLConnect:
@@ -39,8 +42,7 @@ class MySQLConnect:
         """执行 SQL 语句，带有自动重连功能"""
         cls.check_connection()
         # 打印 执行的sql
-        print("Executing query:", cls.__cur.mogrify(sql, params))
-
+        logger.info("Executing query: %s", cls.__cur.mogrify(sql, params))
         try:
             cls.__cur.execute(sql, params)
         except MySQLdb.Error as e:
