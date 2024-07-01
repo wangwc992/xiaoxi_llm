@@ -7,23 +7,25 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, Huma
 from app.common.core.langchain_client import LangChain
 from app.tools.tools import check_school_tool, details_tool, information_consultant_tool
 
-llm = LangChain.llm
 
+
+tools = [check_school_tool, details_tool, information_consultant_tool]
+llm_with_tools = LangChain(tools=tools)
 if __name__ == "__main__":
-    tools = [check_school_tool, details_tool, information_consultant_tool]
-    llm_with_tools = llm.bind_tools(tools=tools) | {
-                         "functions": JsonOutputToolsParser(),
-                         "text": StrOutputParser()
-                     }
-    # result = llm_with_tools.invoke("想去悉尼大学留学")
-    # print(result)
+    # tools = [check_school_tool, details_tool, information_consultant_tool]
+    # llm_with_tools = llm.bind_tools(tools=tools) | {
+    #                      "functions": JsonOutputToolsParser(),
+    #                      "text": StrOutputParser()
+    #                  }
+    result = llm_with_tools.invoke_tools("想去悉尼大学留学")
+    print(result)
     chat_history = ChatMessageHistory()
     chat_history.add_user_message("想去悉尼大学留学")
-    # chat_history.add_ai_message(str(result.get("functions")))
+    chat_history.add_ai_message(str(result.get("functions")))
     chat_history.add_user_message("gpa3.5,留学的学位是本科")
-    # result = llm_with_tools.invoke(chat_history.messages)
-    # print(result)
-    # chat_history.add_ai_message(str(result.get("functions")))
+    result = llm_with_tools.invoke(chat_history.messages)
+    print(result)
+    chat_history.add_ai_message(str(result.get("functions")))
     chat_history.add_user_message('''根据上下文用户的输入，想去悉尼大学留学，gpa3.5，留学的学位是本科，从以下专业中选择合适的推荐专业：
     悉尼大学	The University of Sydney	教学硕士（中等）	Master of Teaching (Secondary)  学位博士  gpa要求4.5    
     悉尼大学	The University of Sydney	护理学士（高级研究）	Bachelor of Nursing (Advanced Studies)  学位本科  gpa要求3.5    

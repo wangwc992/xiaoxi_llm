@@ -1,7 +1,9 @@
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import List
 
 from langchain_openai import ChatOpenAI
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.output_parsers.openai_tools import JsonOutputToolsParser
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 from app.common.core.config import settings
 
@@ -47,5 +49,22 @@ class Embedding:
 
 
 class LangChain:
-    # llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.3)  # 默认是gpt-3.5-turbo
-    llm = ChatOpenAI(model="gpt-4o", temperature=0.7)  # 默认是gpt-3.5-turbo
+
+    def __init__(self, tools: list, model="gpt-4o"):
+        self.llm = ChatOpenAI(model=model, temperature=0.7)  # 默认是gpt-3.5-turbo
+        self.llm_with_tools = self.llm.bind_tools(tools=tools) | {
+            "functions": JsonOutputToolsParser(),
+            "text": StrOutputParser()
+        }
+
+    def invoke(self, prompt: str) -> str:
+        result = self.llm.invoke(prompt)
+        return result
+
+    def invoke_tools(self, prompt: str) -> str:
+        result = self.llm_with_tools.invoke(prompt)
+        text = result.get("text")
+        if text:
+            return text
+
+        functions =  str(result.get("functions"))
