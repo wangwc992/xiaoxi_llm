@@ -41,6 +41,7 @@ async def search_school(check_school: CheckSchool):
             degree_type=zn_school_department_project['degree_type']
         )
         check_school_list.append(check_school)
+    print(check_school_list)
     return check_school_list
 
 

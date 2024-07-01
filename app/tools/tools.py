@@ -1,3 +1,5 @@
+import asyncio
+
 from langchain_core.tools import StructuredTool, BaseTool
 from pydantic import ValidationError
 
@@ -8,7 +10,7 @@ from app.tools.school.check_school import search_school, details, information_co
 
 
 class Action(BaseModel):
-    name: str = Field(description="Tool name")
+    type: str = Field(description="Tool name")
     args: Optional[Dict[str, Any]] = Field(description="Tool input arguments, containing arguments names and values")
 
 
@@ -19,18 +21,18 @@ def __find_tool(tools: list, tool_name: str) -> Optional[BaseTool]:
     return None
 
 
-def exec_action(tools, action: Action) -> str:
+async def exec_action(tools, action: Action) -> str:
     # 查找工具
-    tool = __find_tool(tools, action.name)
+    tool = __find_tool(tools, action.type)
     if tool is None:
         observation = (
-            f"Error: 找不到工具或指令 '{action.name}'. "
+            f"Error: 找不到工具或指令 '{action.type}'. "
             f"请从提供的工具/指令列表中选择，请确保按对顶格式输出。"
         )
     else:
         try:
             # 执行工具
-            observation = tool.run(action.args)
+            observation = await tool.run(action.args)
         except ValidationError as e:
             # 工具的入参异常
             observation = (
