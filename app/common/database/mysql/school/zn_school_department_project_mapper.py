@@ -154,29 +154,38 @@ class ZnSchoolDepartmentProject(MySQLConnect, BaseModel):
     weight: Optional[int] = Field(None, description="排序权重（23.7-24.1申请数）")
 
     @classmethod
-    def select_by_check_school(cls, check_school):
-        sql = 'select * from zn_school_department_project zsdp inner join zn_school_info zsi on zsdp.school_id = zsi.id where '
-        if check_school.country_name:
-            sql += 'country_name = %s and '
-        if check_school.school_name:
-            sql += '(zsi.chinese_name like %s or zsi.english_name like %s) and '
-        if check_school.major_name:
-            sql += '(zsdp.chinese_name like %s or zsdp.english_name like %s) and '
-        if check_school.academic_degree:
-            sql += 'degree_level = %s and '
+    def select_by_check_school(cls, check_school: object) -> object:
+        """
 
-        sql = sql[:-4]
+        :rtype: object
+        """
+        conditions = []
         params = []
-        if check_school.school_name:
-            params.append(check_school.country_name)
-        if check_school.school_name:
-            params.append('%' + check_school.school_name + '%')
-            params.append('%' + check_school.school_name + '%')
-        if check_school.major_name:
-            params.append('%' + check_school.major_name + '%')
-            params.append('%' + check_school.major_name + '%')
-        if check_school.academic_degree:
-            params.append(check_school.academic_degree)
 
-        #         使用父类的方法
-        return cls.execute_all(sql, cls, tuple(params))
+        if check_school.country_name:
+            conditions.append('country_name = %s')
+            params.append(check_school.country_name)
+
+        if check_school.school_name:
+            conditions.append('(zsi.chinese_name like %s or zsi.english_name like %s)')
+            params.extend(['%' + check_school.school_name + '%'] * 2)
+
+        if check_school.major_name:
+            conditions.append('(zsdp.chinese_name like %s or zsdp.english_name like %s)')
+            params.extend(['%' + check_school.major_name + '%'] * 2)
+
+        if check_school.degree_type:
+            conditions.append('degree_level = %s')
+            params.append(check_school.degree_type)
+
+        sql = ('select '
+               'zsdp.chinese_name as major_chinese_name,'
+               'zsdp.english_name as major_english_name,'
+               'zsdp.degree_type,'
+               'zsi.chinese_name as school_chinese_name,'
+               'zsi.english_name as school_english_name,'
+               'zsi.country_name '
+               ' from zn_school_department_project zsdp inner join zn_school_info zsi on zsdp.school_id = zsi.id where ') + ' and '.join(
+            conditions)
+
+        return cls.execute_all2dict(sql, tuple(params))

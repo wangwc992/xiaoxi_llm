@@ -46,7 +46,7 @@ class MySQLConnect:
         try:
             cls.__cur.execute(sql, params)
         except MySQLdb.Error as e:
-            print(f"Error executing query: {e}")
+            logger.error("Error executing query: %s", e)
             cls.connect()  # 尝试重新连接
             cls.__cur.execute(sql, params)  # 再次尝试执行
 
@@ -90,13 +90,28 @@ class MySQLConnect:
         return cls.fetchone()
 
     @classmethod
-    def execute_all(cls, sql: str, bean: Type, params: tuple = ()) -> List[Any]:
+    def execute_all(cls, sql: str, bean: Type, params: tuple = (), limit=10) -> List[Any]:
         """执行 SQL 语句并返回所有结果"""
+        # 如果 limit 为 None，则不限制查询数量
+        if limit is not None:
+            sql += f' limit {limit}'
         cls.execute(sql, params)
         result = cls.fetchall()
         if not result:
             return None
         return cls.dict_list2bean_list(result, bean)
+
+    @classmethod
+    def execute_all2dict(cls, sql: str, params: tuple = (), limit=10) -> List[Dict[str, Any]]:
+        """执行 SQL 语句并返回所有结果"""
+        # 如果 limit 为 None，则不限制查询数量
+        if limit is not None:
+            sql += f' limit {limit}'
+        cls.execute(sql, params)
+        result = cls.fetchall()
+        if not result:
+            return None
+        return result
 
     @classmethod
     def select_by_id(cls, table_name: str, id: Any, bean: Type) -> Any:

@@ -24,12 +24,24 @@ class CheckSchool(BaseModel):
     school_name: Optional[str] = Field(description="学校名称")
     major_name: Optional[str] = Field(description="专业名称")
     gpa_req: Optional[int] = Field(description="GPA要求")
-    academic_degree: Optional[str] = Field(description="学位")
+    degree_type: Optional[str] = Field(description="学位")
 
 
 async def search_school(check_school: CheckSchool):
-    ZnSchoolDepartmentProject.select_by_check_school(check_school)
-    print(check_school.dict())
+    zn_school_department_project_dict = ZnSchoolDepartmentProject.select_by_check_school(check_school)
+    # 遍历赋值的方式转换为CheckSchool对象列表
+    check_school_list = []
+    for zn_school_department_project in zn_school_department_project_dict:
+        check_school = CheckSchool(
+            country_name=zn_school_department_project['country_name'],
+            school_name=zn_school_department_project['school_chinese_name'] + "/" + zn_school_department_project[
+                'school_english_name'],
+            major_name=zn_school_department_project['major_chinese_name'] + "/" + zn_school_department_project[
+                'major_english_name'],
+            degree_type=zn_school_department_project['degree_type']
+        )
+        check_school_list.append(check_school)
+    return check_school_list
 
 
 async def details(text: str):
@@ -39,11 +51,15 @@ async def details(text: str):
 async def information_consultant(text: str):
     print(text)
 
+
 import asyncio
 
+
 async def main():
-    check_school = CheckSchool(country_name="澳大利亚", school_name="悉尼大学", major_name="", gpa_req=3.5, academic_degree="本科")
+    check_school = CheckSchool(country_name="澳大利亚", school_name="悉尼大学", major_name="", gpa_req=3.5,
+                               academic_degree="本科")
     await search_school(check_school)
+
 
 if __name__ == '__main__':
     asyncio.run(main())
