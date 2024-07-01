@@ -1,5 +1,7 @@
+import os
 from typing import Optional
 
+from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from app.common.database.mysql.school.zn_school_department_project_mapper import ZnSchoolDepartmentProject
 
@@ -41,7 +43,8 @@ async def search_school(check_school: CheckSchool):
             degree_type=zn_school_department_project['degree_type']
         )
         check_school_list.append(check_school)
-    print(check_school_list)
+    template = reference_data = await generate_prompt("search_school.txt")
+    prompt = template.format(check_school_info=check_school, check_school_list=check_school_list)
     return check_school_list
 
 
@@ -51,6 +54,14 @@ async def details(text: str):
 
 async def information_consultant(text: str):
     print(text)
+
+
+async def generate_prompt(text: str) -> PromptTemplate:
+    """生成包含参考数据的完整 prompt."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, '../../prompt/'+text)
+    template = PromptTemplate.from_file(file_path)
+    return template
 
 
 import asyncio
