@@ -29,7 +29,7 @@ class CheckSchool(BaseModel):
     degree_type: Optional[str] = Field(description="学位")
 
 
-async def search_school(check_school: CheckSchool):
+def search_school(check_school: CheckSchool):
     zn_school_department_project_dict = ZnSchoolDepartmentProject.select_by_check_school(check_school)
     # 遍历赋值的方式转换为CheckSchool对象列表
     check_school_list = []
@@ -43,9 +43,9 @@ async def search_school(check_school: CheckSchool):
             degree_type=zn_school_department_project['degree_type']
         )
         check_school_list.append(check_school)
-    template = reference_data = await generate_prompt("search_school.txt")
+    template = generate_prompt("search_school.txt")
     prompt = template.format(check_school_info=check_school, check_school_list=check_school_list)
-    return check_school_list
+    return prompt
 
 
 async def details(text: str):
@@ -56,22 +56,9 @@ async def information_consultant(text: str):
     print(text)
 
 
-async def generate_prompt(text: str) -> PromptTemplate:
+def generate_prompt(text: str) -> PromptTemplate:
     """生成包含参考数据的完整 prompt."""
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, '../../prompt/'+text)
+    file_path = os.path.join(base_dir, '../../prompt/' + text)
     template = PromptTemplate.from_file(file_path)
     return template
-
-
-import asyncio
-
-
-async def main():
-    check_school = CheckSchool(country_name="澳大利亚", school_name="悉尼大学", major_name="", gpa_req=3.5,
-                               academic_degree="本科")
-    await search_school(check_school)
-
-
-if __name__ == '__main__':
-    asyncio.run(main())

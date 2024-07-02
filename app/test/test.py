@@ -19,8 +19,8 @@ if chat_message_history is None:
 chat_message_history.add_user_message(prompt)
 
 result = llm_with_tools.invoke_tools(chat_message_history.messages)
-text = result.content
-result = result.additional_kwargs.get("tool_calls")[0]
+
+text = result.get("text")
 if text:
     chat_message_history.add_ai_message(text)
     print(text)
@@ -43,7 +43,7 @@ else:
     functions_tool = Action(**functions_calling)
     calling_str = exec_action(tools, functions_tool)
 
-
+    chat_message_history.add_message(result)
 
     tool_message = ToolMessage(content=calling_str, tool_call_id=functions_calling.get("id"))
     chat_message_history.add_message(tool_message)

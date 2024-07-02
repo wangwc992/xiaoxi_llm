@@ -52,25 +52,17 @@ class Embedding:
 
 class LangChain:
 
-    def __init__(self, tools: list, model="gpt-4o"):
+    def __init__(self, tools: list = None, model="gpt-3.5-turbo"):
         self.tools = tools
         self.llm = ChatOpenAI(model=model, temperature=0.7)  # 默认是gpt-3.5-turbo
-        self.llm_with_tools = self.llm.bind_tools(tools=tools) | {
-            "functions": JsonOutputToolsParser(),
-            "text": StrOutputParser()
-        }
+        if tools:
+            self.llm_with_tools = self.llm.bind_tools(tools=tools)
 
     def invoke(self, input: Input) -> str:
         result = self.llm.invoke(input)
         return result
 
-    async def invoke_tools(self, input: Input) -> str:
-        result = self.llm_with_tools.invoke(input)
-        text = result.get("text")
-        if text:
-            return text
-        # {'args': {'check_school': {'country_name': '澳大利亚', 'school_name': '悉尼大学'}}, 'type': 'searchSchool'}
-        functions_tool = result.get("functions")[0]
-        # 转成Action对象
-        functions_tool = Action(**functions_tool)
-        return await exec_action(self.tools, functions_tool)
+    def invoke_tools(self, input: Input) -> dict:
+        x = self.llm_with_tools.invoke(input)
+        return x
+

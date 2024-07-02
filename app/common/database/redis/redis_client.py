@@ -1,8 +1,12 @@
 import redis
 import time
+import pickle
+from typing import Any, Type
 
 from app.common.core.config import settings  # 假设 settings 包含 Redis 配置
 from app.common.utils.logging import get_logger  # 假设 get_logger 是日志记录函数
+
+CHAT_MESSAGE_HISTORY = "chat:message:history:"
 
 # 从配置文件加载 Redis 设置
 redis_dict = settings["redis"]
@@ -63,6 +67,52 @@ def delete_key(key):
     logger.info(f"已删除键 {key}")
 
 
+# 使用 Pickle 存储对象的方法
+@retry_on_failure
+def set_object(key: str, obj: Any, expire: int = None):
+    """
+    使用 Pickle 将对象存储在 Redis 中。
+
+    :param key: Redis 键
+    :param obj: 要存储的 Python 对象
+    :param expire: 过期时间（以秒为单位）
+    """
+    pickled_obj = pickle.dumps(obj)  # 使用 Pickle 序列化对象
+    redis_client.set(key, pickled_obj)
+    if expire:
+        redis_client.expire(key, expire)
+    logger.info(f"已将对象存储在键 {key} 下，过期时间为 {expire} 秒")
+
+
+# 使用 Pickle 获取对象的方法
+# 使用 Pickle 获取对象的方法
+@retry_on_failure
+def get_object(key: str, obj_type: Type[Any] = None) -> Any:
+    """
+    从 Redis 中获取对象并反序列化。
+
+    :param key: Redis 键
+    :param obj_type: 期望返回的对象类型（如果需要）
+    :return: 反序列化后的 Python 对象，如果键不存在则返回 None
+    """
+    pickled_obj = redis_client.get(key)
+    if pickled_obj:
+        obj = pickle.loads(pickled_obj)  # 使用 Pickle 反序列化对象
+        if obj_type and isinstance(obj, obj_type):
+            return obj  # 返回指定类型的对象
+        return obj  # 返回反序列化后的对象
+    return None
+
+@retry_on_failure
+def delete_object(key: str):
+    """
+    删除 Redis 中的对象。
+
+    :param key: Redis 键
+    """
+    redis_client.delete(key)
+    logger.info(f"已删除键 {key}")
+
 # 哈希操作
 @retry_on_failure
 def set_hash(key, field, value, expire=None):
@@ -109,28 +159,29 @@ def remove_from_set(key, *values):
     redis_client.srem(key, *values)
     logger.info(f"已从集合键 {key} 中移除值 {values}")
 
+
 # 示例使用
-# if __name__ == "__main__":
-#     try:
-#         # 测试连接
-#         redis_client.ping()
-#         logger.info("连接成功！")
-#
-#         # 示例：字符串操作
-#         set_string("example_key", "example_value", expire=60)
-#         print(f'获取到的字符串值: {get_string("example_key")}')
-#         delete_key("example_key")
-#
-#         # 示例：哈希操作
-#         set_hash("example_hash", "field1", "value1")
-#         print(f'获取到的哈希字段值: {get_hash_field("example_hash", "field1")}')
-#         print(f'获取到的整个哈希: {get_hash_all("example_hash")}')
-#         delete_hash_field("example_hash", "field1")
-#
-#         # 示例：集合操作
-#         add_to_set("example_set", "value1", "value2", "value3")
-#         print(f'获取到的集合成员: {get_set_members("example_set")}')
-#         remove_from_set("example_set", "value1")
-#
-#     except redis.ConnectionError as e:
-#         logger.error(f"最终连接失败: {e}")
+if __name__ == "__main__":
+    try:
+        # 测试连接
+        redis_client.ping()
+        logger.info("连接成功！")
+
+        # 示例：字符串操作
+        set_string("example_key", "example_value", expire=60)
+        print(f'获取到的字符串值: {get_string("example_key")}')
+        # delete_key("example_key")
+
+        # 示例：哈希操作
+        set_hash("example_hash", "field1", "value1")
+        print(f'获取到的哈希字段值: {get_hash_field("example_hash", "field1")}')
+        print(f'获取到的整个哈希: {get_hash_all("example_hash")}')
+        # delete_hash_field("example_hash", "field1")
+
+        # 示例：集合操作
+        add_to_set("example_set", "value1", "value2", "value3")
+        print(f'获取到的集合成员: {get_set_members("example_set")}')
+        # remove_from_set("example_set", "value1")
+
+    except redis.ConnectionError as e:
+        logger.error(f"最终连接失败: {e}")

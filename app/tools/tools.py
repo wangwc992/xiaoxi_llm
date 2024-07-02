@@ -14,16 +14,16 @@ class Action(BaseModel):
     args: Optional[Dict[str, Any]] = Field(description="Tool input arguments, containing arguments names and values")
 
 
-def __find_tool(tools: list, tool_name: str) -> Optional[BaseTool]:
+def find_tool(tools: list, tool_name: str) -> Optional[BaseTool]:
     for tool in tools:
         if tool.name == tool_name:
             return tool
     return None
 
 
-async def exec_action(tools, action: Action) -> str:
+def exec_action(tools, action: Action) -> str:
     # 查找工具
-    tool = __find_tool(tools, action.type)
+    tool = find_tool(tools, action.type)
     if tool is None:
         observation = (
             f"Error: 找不到工具或指令 '{action.type}'. "
@@ -32,7 +32,7 @@ async def exec_action(tools, action: Action) -> str:
     else:
         try:
             # 执行工具
-            observation = await tool.run(action.args)
+            observation = tool.run(action.args)
         except ValidationError as e:
             # 工具的入参异常
             observation = (
