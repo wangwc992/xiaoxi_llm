@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.api.chat import knowledge_ik_index_controller
+from app.api.chat import chat_gpt
 from app.api.text2vec_custom import text2vec_custom as encode
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],  # 允许所有头部，包括自定义的头部
 )
 
-# app.include_router(knowledge_ik_index_controller.router)
+app.include_router(chat_gpt.router)
 app.include_router(encode.router)
 
 if __name__ == '__main__':

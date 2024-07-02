@@ -1,12 +1,14 @@
 port: 8000
 
 weaviate:
-  host: "192.168.0.139"
-  port: "8080"
+  host: "nysvnu.natappfree.cc"
+  port: "80"
 
 llm:
+#  device: "cuda:0"
   device: "cpu"
   embedding_path: "D:/LLM/BAAI/bge-large-zh-v1.5"
+#  embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
 
 vllm:
   model: "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"

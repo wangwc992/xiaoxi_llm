@@ -10,7 +10,7 @@ from app.tools.school.check_school import search_school, details, information_co
 
 
 class Action(BaseModel):
-    type: str = Field(description="Tool name")
+    name: str = Field(description="Tool name")
     args: Optional[Dict[str, Any]] = Field(description="Tool input arguments, containing arguments names and values")
 
 
@@ -23,10 +23,10 @@ def find_tool(tools: list, tool_name: str) -> Optional[BaseTool]:
 
 def exec_action(tools, action: Action) -> str:
     # 查找工具
-    tool = find_tool(tools, action.type)
+    tool = find_tool(tools, action.name)
     if tool is None:
         observation = (
-            f"Error: 找不到工具或指令 '{action.type}'. "
+            f"Error: 找不到工具或指令 '{action.name}'. "
             f"请从提供的工具/指令列表中选择，请确保按对顶格式输出。"
         )
     else:

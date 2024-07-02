@@ -4,6 +4,7 @@ from typing import Optional
 from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from app.common.database.mysql.school.zn_school_department_project_mapper import ZnSchoolDepartmentProject
+from app.common.database.weaviate.Knowledge_ik_index_mapper import KnowledgeIkIndexMapper
 
 
 class CheckSchool(BaseModel):
@@ -22,11 +23,11 @@ class CheckSchool(BaseModel):
        - 如果用户提供的输入信息足够完整和具体，可以直接使用这些信息而无需额外的数据库查询。
        - 如果用户的输入信息不完整或需要进一步验证，该类的实例化对象可以指示系统从数据库中检索所需的详细信息。
        """
-    country_name: Optional[str] = Field(description="国家名称")
-    school_name: Optional[str] = Field(description="学校名称")
+    country_name: Optional[str] = Field(description="国家名称(中文)")
+    school_name: Optional[str] = Field(description="学校名称(中文)")
     major_name: Optional[str] = Field(description="专业名称")
     gpa_req: Optional[int] = Field(description="GPA要求")
-    degree_type: Optional[str] = Field(description="学位")
+    degree_type: Optional[str] = Field(description="学位(中文)")
 
 
 def search_school(check_school: CheckSchool):
@@ -48,8 +49,9 @@ def search_school(check_school: CheckSchool):
     return prompt
 
 
-async def details(text: str):
-    print(text)
+def details(text: str):
+    prompt = KnowledgeIkIndexMapper.generate_prompt(text)
+    return prompt
 
 
 async def information_consultant(text: str):
