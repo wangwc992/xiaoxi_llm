@@ -9,19 +9,11 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, Huma
 from app.common.core.langchain_client import LangChain
 from app.tools.tools import check_school_tool, details_tool, information_consultant_tool
 
-
-
 tools = [check_school_tool, details_tool, information_consultant_tool]
 llm_with_tools = LangChain(tools=tools)
 
+
 def chat_gpt():
-    # tools = [check_school_tool, details_tool, information_consultant_tool]
-    # llm_with_tools = llm.bind_tools(tools=tools) | {
-    #                      "functions": JsonOutputToolsParser(),
-    #                      "text": StrOutputParser()
-    #                  }
-    # result = llm_with_tools.invoke_tools("想去悉尼大学留学")
-    # print(result)
     chat_history = ChatMessageHistory()
     chat_history.add_user_message("想去悉尼大学留学")
     chat_history.add_user_message("gpa3.5,留学的学位是本科")
@@ -44,5 +36,7 @@ def chat_gpt():
     # print(llm_with_tools.invoke("悉尼大学的免申请费动态"))
     # print(llm_with_tools.invoke("悉尼大学热门的专业"))
     # print(llm_with_tools.invoke("周杰伦的个人资料"))
+
+
 if __name__ == "__main__":
     chat_gpt()

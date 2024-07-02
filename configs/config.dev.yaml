@@ -23,3 +23,14 @@ mysql:
   password: "mirandA123!@#"
   database: "test_xxlxdb"
 
+redis:
+  # 连接到Redis服务器的配置
+  host: "192.168.0.188"
+  port: 6379
+  db: 12
+  password: "aoji123!@#"
+  # 最大重试次数和重试间隔（秒）
+  max_retries: 5
+  retry_delay: 3
+
+
