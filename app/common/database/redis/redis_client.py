@@ -103,6 +103,7 @@ def get_object(key: str, obj_type: Type[Any] = None) -> Any:
         return obj  # 返回反序列化后的对象
     return None
 
+
 @retry_on_failure
 def delete_object(key: str):
     """
@@ -112,6 +113,7 @@ def delete_object(key: str):
     """
     redis_client.delete(key)
     logger.info(f"已删除键 {key}")
+
 
 # 哈希操作
 @retry_on_failure

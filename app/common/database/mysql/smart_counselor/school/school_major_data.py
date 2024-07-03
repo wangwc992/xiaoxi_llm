@@ -90,7 +90,8 @@ class ChatSchoolMajorData(BaseModel):
     background_country: Optional[str] = Field(description="背景国家")
     background_school: Optional[str] = Field(description="背景毕业院校")
 
-def search_school_major(chatSchoolMajorData: ChatSchoolMajorData) :
+
+def search_school_major(chatSchoolMajorData: ChatSchoolMajorData):
     '''查询学校专业数据'''
     # 查询条件
     condition = []

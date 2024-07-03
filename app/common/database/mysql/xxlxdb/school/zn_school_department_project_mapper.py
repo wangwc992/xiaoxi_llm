@@ -78,7 +78,6 @@ from datetime import datetime
 
 # 创建实体类
 from typing import Optional
-from langchain_core.pydantic_v1 import Field
 from langchain_core.pydantic_v1 import BaseModel, Field
 
 from app.common.database.mysql.mysql_client import MySQLConnect, xxlxdb

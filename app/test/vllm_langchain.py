@@ -1,5 +1,6 @@
 from langchain_community.llms import VLLM
 import asyncio
+
 llm = VLLM(
     model="/root/autodl-tmp/llm/Qwen2-7B-Instruct",
     trust_remote_code=True,  # mandatory for hf models
@@ -25,8 +26,10 @@ question = "Who was the US president in the year the first Pokemon game was rele
 
 print(llm_chain.invoke(question))
 
+
 async def main():
     print(llm_chain.acall(question))
+
 
 if __name__ == "__main__":
     # result = llm_with_tools.invoke("我想去留学，推荐学校和专业")

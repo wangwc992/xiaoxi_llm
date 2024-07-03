@@ -132,6 +132,7 @@ class MySQLConnect:
 
         return self.dict_list2bean_list(result, bean)
 
+
 xxlxdb = MySQLConnect("xxlxdb")
 smart_counselor = MySQLConnect("smart_counselor")
 

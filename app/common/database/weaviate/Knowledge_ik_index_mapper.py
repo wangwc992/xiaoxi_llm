@@ -1,7 +1,5 @@
-import os
 from typing import Optional
 
-from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 
