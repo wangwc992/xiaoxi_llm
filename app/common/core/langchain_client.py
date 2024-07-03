@@ -3,6 +3,7 @@ from typing import List
 from langchain_core.runnables.utils import Input
 from langchain_openai import ChatOpenAI
 from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langfuse.decorators import observe, langfuse_context
 
 from app.common.core.config import settings
 
@@ -33,12 +34,19 @@ class LangChain:
         self.tools = tools
         self.llm = ChatOpenAI(model=model, temperature=0.7)  # 默认是gpt-3.5-turbo
         if tools:
-            self.llm_with_tools = self.llm.bind_tools(tools=tools)
+            self.llm_with_tools = self.llm.bind_tools(tools=tools,tool_choice="required")
 
     def invoke(self, input: Input) -> str:
         result = self.llm.invoke(input)
         return result
 
+    # @observe()
     def invoke_tools(self, input: Input) -> dict:
-        x = self.llm_with_tools.invoke(input)
+        # langfuse_context.update_current_trace(
+        #     user_id="`",
+        # )
+        # langfuse_handler = langfuse_context.get_current_langchain_handler()
+
+        # x = self.llm_with_tools.invoke(input=input, config={"callbacks": [langfuse_handler]})
+        x = self.llm_with_tools.invoke(input=input)
         return x

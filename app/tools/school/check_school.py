@@ -5,35 +5,29 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from app.common.database.mysql.school.zn_school_department_project_mapper import ZnSchoolDepartmentProject
 from app.common.database.weaviate.Knowledge_ik_index_mapper import KnowledgeIkIndexMapper
+from app.prompt.prompt_load import generate_prompt
 
 
 class CheckSchool(BaseModel):
-    """
-       CheckSchool 是一个数据验证和解析类，用于确定是否需要查询数据库以获取关于指定学校和专业的详细信息。
 
-       属性:
-       - country_name (str): 国家名称，用于指定查询的国家。
-       - school_name (str): 学校名称，用于指定查询的学校。
-       - major_name (str): 专业名称，用于指定查询的专业。
-       - gpa_req (int): GPA 要求，用于确定特定专业的入学 GPA 要求。
-       - academic_degree (str): 学位类型，用于指定查询的学位（如本科、硕士、博士）。
+    country_name: Optional[str] = Field(description="意向国家(中文)")
+    school_name: Optional[str] = Field(description="意向学校名称(中文)")
+    major_name: Optional[str] = Field(description="意向专业名称")
+    gpa_req: Optional[int] = Field(description="最低 GPA 要求")
+    degree_type: Optional[str] = Field(description="查询的学位类型（如本科、硕士、博士）")
+    #     背景学历，背景国家，背景毕业院校
+    background_degree: Optional[str] = Field(description="背景学历")
+    background_country: Optional[str] = Field(description="背景国家")
+    background_school: Optional[str] = Field(description="背景毕业院校")
 
-       功能:
-       - 该类通过验证用户的输入来帮助系统判断是否需要进行数据库查询。
-       - 如果用户提供的输入信息足够完整和具体，可以直接使用这些信息而无需额外的数据库查询。
-       - 如果用户的输入信息不完整或需要进一步验证，该类的实例化对象可以指示系统从数据库中检索所需的详细信息。
-       """
-    country_name: Optional[str] = Field(description="国家名称(中文)")
-    school_name: Optional[str] = Field(description="学校名称(中文)")
-    major_name: Optional[str] = Field(description="专业名称")
-    gpa_req: Optional[int] = Field(description="GPA要求")
-    degree_type: Optional[str] = Field(description="学位(中文)")
 
 
 def search_school(check_school: CheckSchool):
     zn_school_department_project_dict = ZnSchoolDepartmentProject.select_by_check_school(check_school)
     # 遍历赋值的方式转换为CheckSchool对象列表
     check_school_list = []
+    if zn_school_department_project_dict is None:
+        return "没有找到符合条件的学校和专业信息"
     for zn_school_department_project in zn_school_department_project_dict:
         check_school = CheckSchool(
             country_name=zn_school_department_project['country_name'],
@@ -53,14 +47,12 @@ def details(text: str):
     prompt = KnowledgeIkIndexMapper.generate_prompt(text)
     return prompt
 
+def student_matriculate_case(text: str):
+    prompt = KnowledgeIkIndexMapper.generate_prompt(text)
+    return prompt
+
 
 async def information_consultant(text: str):
     print(text)
 
 
-def generate_prompt(text: str) -> PromptTemplate:
-    """生成包含参考数据的完整 prompt."""
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, '../../prompt/' + text)
-    template = PromptTemplate.from_file(file_path)
-    return template

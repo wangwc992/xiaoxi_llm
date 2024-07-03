@@ -59,3 +59,7 @@ async def stream(request: Request) -> Response:
     redis_client.set_object(chat_message_history_key, chat_message_history)
 
     return result.content
+
+
+if __name__ == "__main__":
+    stream()

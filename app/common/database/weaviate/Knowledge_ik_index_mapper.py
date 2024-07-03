@@ -8,6 +8,7 @@ from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from app.common.database.weaviate.weaviate_client import WeaviateClient
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
+from app.prompt.prompt_load import generate_prompt
 
 collections_name = "Knowledge_ik_index"
 
@@ -49,9 +50,7 @@ class KnowledgeIkIndexMapper:
              for n in range(len(response_list))])
         logger.info(reference_data)
 
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(base_dir, '../../../prompt/knowledge_prompt.txt')
-        template = PromptTemplate.from_file(file_path)
+        template = generate_prompt("knowledge_prompt.txt")
         prompt = template.format(input=text, reference_data=reference_data)
 
         return prompt

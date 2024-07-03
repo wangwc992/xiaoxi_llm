@@ -1,73 +1,47 @@
-class ObjectFormatter:
-    @staticmethod
-    def format_object(obj):
-        """
-      将对象的所有属性值取出，用 "——" 拼接成字符串。
+from app.common.core.langchain_client import LangChain
+from app.tools.tools import check_school_tool, details_tool, information_consultant_tool
 
-      :param obj: 需要格式化的对象
-      :return: 拼接好的字符串
-      """
-        # 获取对象所有的属性名和值
-        attributes = [getattr(obj, attr) for attr in dir(obj) if
-                      not callable(getattr(obj, attr)) and not attr.startswith("__")]
+tools = [check_school_tool, details_tool, information_consultant_tool]
+llm_with_tools = LangChain(tools=tools)
+query = [
+    # 原始问题
+    "悉尼大学的计算机专业怎么样？",
+    "悉尼大学金融专业？",
+    "悉尼大学免申请费详情？",
+    "清华毕业 GPA 3.5 想去悉尼大学金融专业有什么推荐？",
+    "GPA 3.5 可以申请悉尼大学金融专业吗？",
+    "悉尼大学本科计算机专业？",
+    "我本科学历",
+    "悉尼大学的计算机专业有哪些？",
+    "悉尼排名前十的计算机专业",
+    "悉尼大学本科计算机专业？",
 
-        # 过滤掉 None 值
-        attributes = [str(attr) for attr in attributes if attr is not None]
-
-        # 使用 "——" 拼接
-        return "——".join(attributes)
-
-    @staticmethod
-    def format_objects(objects):
-        """
-      格式化一个对象列表的信息。
-
-      :param objects: 对象列表
-      :return: 每个对象拼接好的字符串列表
-      """
-        return [ObjectFormatter.format_object(obj) for obj in objects]
-
-
-# 示例 CheckSchool 类
-class CheckSchool:
-    def __init__(self, country_name, school_name, major_name, gpa_req, degree_type):
-        self.country_name = country_name
-        self.school_name = school_name
-        self.major_name = major_name
-        self.gpa_req = gpa_req
-        self.degree_type = degree_type
-
-
-# 示例使用：
-schools = [
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='口腔健康学士/Bachelor of Oral Health', gpa_req=None, degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='心理学学士/Bachelor of Psychology', gpa_req=None, degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='高级研究学士（荣誉）/Bachelor of Advanced Studies (Honours)', gpa_req=None,
-                degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='音乐学士/Bachelor of Music', gpa_req=None, degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='文学学士（荣誉）/Bachelor of Arts (Honours)', gpa_req=None, degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='项目管理学士/Bachelor of Project Management', gpa_req=None, degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='视觉艺术学士/Bachelor of Visual Arts', gpa_req=None, degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='项目管理学士（荣誉）/Bachelor of Project Management (Honours)', gpa_req=None,
-                degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='经济学学士（荣誉）/Bachelor of Economics (Honours)', gpa_req=None, degree_type='本科'),
-    CheckSchool(country_name='澳大利亚', school_name='悉尼大学/The University of Sydney',
-                major_name='设计计算学士（2022年入学）/Bachelor of Design Computing (2022 entry)', gpa_req=None,
-                degree_type='本科')
+    # 扩展问题列表
+    "悉尼大学的计算机专业怎么样？",
+    "悉尼大学金融专业？",
+    "悉尼大学免申请费详情？",
+    "清华毕业 GPA 3.5 想去悉尼大学金融专业有什么推荐？",
+    "GPA 3.5 可以申请悉尼大学金融专业吗？",
+    "悉尼大学本科计算机专业？",
+    "我本科学历",
+    "悉尼大学的计算机专业有那些",
+    "悉尼排名前十的计算机专业",
+    "悉尼大学 本科 计算机专业？",
+    "悉尼大学的计算机专业有那些？",
+    "悉尼大学的学费是多少？",
+    "GPA 3.0 可以申请悉尼大学的计算机科学专业吗？",
+    "我有两年的工作经验，想申请悉尼大学的计算机硕士，有什么建议吗？",
+    "悉尼大学有哪些热门专业？",
+    "悉尼大学和墨尔本大学的计算机专业哪个好？",
+    "悉尼大学本科国际学生的入学要求是什么？",
+    "如何申请悉尼大学的奖学金？",
+    "我想了解悉尼大学的宿舍情况",
+    "悉尼大学的计算机专业就业前景怎么样？",
+    "悉尼大学的计算机科学硕士项目如何？",
+    "悉尼大学本科计算机专业有哪些课程？"
 ]
 
-# 使用工具类格式化对象
-formatted_schools = ObjectFormatter.format_objects(schools)
-
-# 打印结果
-for formatted_school in formatted_schools:
-    print(formatted_school)
+for q in query:
+    result = llm_with_tools.invoke_tools(q)
+    invoked_tools = [tool.get("name") for tool in result.tool_calls]
+    print(q, invoked_tools)
