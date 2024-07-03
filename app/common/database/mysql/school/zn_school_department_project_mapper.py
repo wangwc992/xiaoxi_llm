@@ -81,7 +81,7 @@ from typing import Optional
 from langchain_core.pydantic_v1 import Field
 from pydantic import BaseModel
 
-from app.common.database.mysql.mysql_client import MySQLConnect
+from app.common.database.mysql.mysql_client import MySQLConnect, xxlxdb
 
 
 class ZnSchoolDepartmentProject(MySQLConnect, BaseModel):
@@ -188,4 +188,4 @@ class ZnSchoolDepartmentProject(MySQLConnect, BaseModel):
                ' from zn_school_department_project zsdp inner join zn_school_info zsi on zsdp.school_id = zsi.id where ') + ' and '.join(
             conditions)
 
-        return cls.execute_all2dict(sql, tuple(params))
+        return xxlxdb.execute_all2dict(sql, tuple(params))

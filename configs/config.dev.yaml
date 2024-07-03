@@ -15,11 +15,18 @@ vllm:
   seed: 42
 
 mysql:
-  host: "192.168.0.137"
-  port: 3306
-  user: "root"
-  password: "mirandA123!@#"
-  database: "test_xxlxdb"
+  xxlxdb:
+    host: "192.168.0.137"
+    port: 3306
+    user: "root"
+    password: "mirandA123!@#"
+    database: "test_xxlxdb"
+  smart_counselor:
+    host: "192.168.0.137"
+    port: 3306
+    user: "root"
+    password: "mirandA123!@#"
+    database: "test_smart_counselor"
 
 redis:
   # 连接到Redis服务器的配置
