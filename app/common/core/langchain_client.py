@@ -49,6 +49,4 @@ class LangChain:
         )
         langfuse_handler = langfuse_context.get_current_langchain_handler()
 
-        x = self.llm_with_tools.invoke(input=input, config={"callbacks": [langfuse_handler]})
-        x = self.llm_with_tools.invoke(input=input)
-        return x
+        return self.llm_with_tools.invoke(input=input, config={"callbacks": [langfuse_handler]})

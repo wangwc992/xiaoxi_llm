@@ -26,3 +26,23 @@ class ObjectFormatter:
       :return: 每个对象拼接好的字符串列表
       """
         return [ObjectFormatter.format_object(obj) for obj in objects]
+
+    @staticmethod
+    def format_dict(dict: dict) -> str:
+        """
+      格式化一个字典的信息。值 使用 "——" 拼接成字符串。
+
+        :param dict: 字典
+        :return: 拼接好的字符串
+        """
+        return "—".join([f"{key}: {value}" for key, value in dict.items()])
+
+    @staticmethod
+    def format_dicts(dicts: list) -> list[str]:
+        """
+      格式化一个字典列表的信息。
+
+      :param dicts: 字典列表
+      :return: 每个字典拼接好的字符串列表
+      """
+        return [ObjectFormatter.format_dict(dict) for dict in dicts]
