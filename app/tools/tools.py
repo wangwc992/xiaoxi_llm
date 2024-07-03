@@ -46,40 +46,33 @@ def exec_action(tools, action: Action) -> str:
 check_school_tool = StructuredTool.from_function(
     func=search_school,
     name="searchSchool",
-    description=(
-        "The `searchSchool` tool is designed to identify whether the user has provided specific information "
-        "about their target study abroad institutions or programs. It evaluates the user's input to determine "
-        "if there is a clear mention of the country, school, or major they are interested in. "
-        "If the user specifies detailed and concrete information (e.g., country name, school name, major), "
-        "the tool can directly proceed to check these details. "
-        "Examples: 'Bachelor's in Computer Science at the University of Sydney', 'I have an undergraduate degree'."
-    )
+    description='''
+    This tool is used to gather detailed information about various educational institutions and their academic programs. It helps users search for schools, explore available majors and courses, understand specific program details, and check admission requirements. Use this tool to:
+
+Find out what academic programs (e.g., majors, minors, specializations) are offered by different schools.
+Get detailed descriptions of particular programs, including information about the curriculum and course offerings.
+Evaluate the suitability of certain institutions for your academic and career goals.
+Compare admission criteria for specific programs at various schools.This tool is used to gather detailed information about various educational institutions and their academic programs. It helps users search for schools, explore available majors and courses, understand specific program details, and check admission requirements. Use this tool to:
+
+Find out what academic programs (e.g., majors, minors, specializations) are offered by different schools.
+Get detailed descriptions of particular programs, including information about the curriculum and course offerings.
+Evaluate the suitability of certain institutions for your academic and career goals.
+Compare admission criteria for specific programs at various schools.
+    '''
 )
 
 details_tool = StructuredTool.from_function(
     func=details,
     name="details",
-    description=(
-        "The `details` tool provides detailed explanations and information based on specific queries about "
-        "universities, programs, and application requirements. It offers in-depth responses to user inquiries "
-        "regarding course structures, program characteristics, application requirements, fee waivers, and GPA thresholds. "
-        "Examples: 'How is the Computer Science program at the University of Sydney?', 'Details on the Financial program at the University of Sydney', "
-        "'Does the University of Sydney waive application fees?', 'Advice for a Tsinghua graduate with a GPA of 3.5 applying to the University of Sydney's Financial program', "
-        "'Can a GPA of 3.5 qualify for the University of Sydney's Financial program?'."
-    )
+    description='''
+    This tool provides comprehensive details about specific aspects of educational institutions. It covers topics like tuition fees, application processes, campus facilities, scholarships, and more. It is particularly useful for users seeking in-depth information on specific queries related to the logistics and details of studying at particular institutions
+    '''
 )
 
 student_matriculate_case_tool = StructuredTool.from_function(
     func=student_matriculate_case,
     name="studentMatriculateCase",
-    description=(
-        "The `details` tool provides detailed explanations and information based on specific queries about "
-        "universities, programs, and application requirements. It offers in-depth responses to user inquiries "
-        "regarding course structures, program characteristics, application requirements, fee waivers, and GPA thresholds. "
-        "Examples: 'How is the Computer Science program at the University of Sydney?', 'Details on the Financial program at the University of Sydney', "
-        "'Does the University of Sydney waive application fees?', 'Advice for a Tsinghua graduate with a GPA of 3.5 applying to the University of Sydney's Financial program', "
-        "'Can a GPA of 3.5 qualify for the University of Sydney's Financial program?'."
-    )
+    description="()"
 )
 
 information_consultant_tool = StructuredTool.from_function(
