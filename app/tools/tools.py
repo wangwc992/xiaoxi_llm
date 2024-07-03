@@ -46,19 +46,16 @@ def exec_action(tools, action: Action) -> str:
 check_school_tool = StructuredTool.from_function(
     func=search_school,
     name="searchSchool",
-    description='''
-    This tool is used to gather detailed information about various educational institutions and their academic programs. It helps users search for schools, explore available majors and courses, understand specific program details, and check admission requirements. Use this tool to:
+    description=(
+        "Find out what academic programs (e.g., majors, minors, specializations) are offered by different schools."
+        "Get detailed descriptions of particular programs, including information about the curriculum and course offerings."
+        "Evaluate the suitability of certain institutions for your academic and career goals."
+        "Compare admission criteria for specific programs at various schools.This tool is used to gather detailed information about various educational institutions and their academic programs. It helps users search for schools, explore available majors and courses, understand specific program details, and check admission requirements. Use this tool to:"
+        "Find out what academic programs (e.g., majors, minors, specializations) are offered by different schools."
+        "Get detailed descriptions of particular programs, including information about the curriculum and course offerings."
+        "Evaluate the suitability of certain institutions for your academic and career goals."
+        "Compare admission criteria for specific programs at various schools.")
 
-Find out what academic programs (e.g., majors, minors, specializations) are offered by different schools.
-Get detailed descriptions of particular programs, including information about the curriculum and course offerings.
-Evaluate the suitability of certain institutions for your academic and career goals.
-Compare admission criteria for specific programs at various schools.This tool is used to gather detailed information about various educational institutions and their academic programs. It helps users search for schools, explore available majors and courses, understand specific program details, and check admission requirements. Use this tool to:
-
-Find out what academic programs (e.g., majors, minors, specializations) are offered by different schools.
-Get detailed descriptions of particular programs, including information about the curriculum and course offerings.
-Evaluate the suitability of certain institutions for your academic and career goals.
-Compare admission criteria for specific programs at various schools.
-    '''
 )
 
 details_tool = StructuredTool.from_function(

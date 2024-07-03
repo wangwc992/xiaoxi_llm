@@ -22,7 +22,7 @@ router = APIRouter(prefix="/chat")
 
 
 def chat():
-    prompt = "悉尼大学的计算机专业怎么样？"
+    prompt = "悉尼大学的计算机专业"
     member_id = "3"
     # 定义一个全局的上下文变量来存储请求的值
     request_context.set({"member_id": member_id})

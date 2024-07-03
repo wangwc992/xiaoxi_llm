@@ -79,9 +79,21 @@ from datetime import datetime
 # 创建实体类
 from typing import Optional
 from langchain_core.pydantic_v1 import Field
-from pydantic import BaseModel
+from langchain_core.pydantic_v1 import BaseModel, Field
 
 from app.common.database.mysql.mysql_client import MySQLConnect, xxlxdb
+
+
+class CheckSchool(BaseModel):
+    country_name: Optional[str] = Field(description="意向国家(中文)")
+    school_name: Optional[str] = Field(description="意向学校名称(中文)")
+    major_name: Optional[str] = Field(description="意向专业名称")
+    gpa_req: Optional[int] = Field(description="最低 GPA 要求")
+    degree_type: Optional[str] = Field(description="查询的学位类型（如本科、硕士、博士）")
+    #     背景学历，背景国家，背景毕业院校
+    background_degree: Optional[str] = Field(description="背景学历")
+    background_country: Optional[str] = Field(description="背景国家")
+    background_school: Optional[str] = Field(description="背景毕业院校")
 
 
 class ZnSchoolDepartmentProject(MySQLConnect, BaseModel):
