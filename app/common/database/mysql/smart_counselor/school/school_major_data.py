@@ -106,7 +106,7 @@ def search_school_major(chatSchoolMajorData: ChatSchoolMajorData):
     if chatSchoolMajorData.gpa_require:
         condition.append(f"gpa_require = '{chatSchoolMajorData.gpa_require}'")
     if chatSchoolMajorData.school_fee:
-        condition.append(f" = '{chatSchoolMajorData.school_fee}'")
+        condition.append(f"school_fee = '{chatSchoolMajorData.school_fee}'")
     # 拼接查询条件
     where = " and ".join(condition)
     # 查询sql

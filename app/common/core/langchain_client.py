@@ -43,7 +43,7 @@ class LangChain:
 
     @observe()
     def invoke_tools(self, input: Input) -> dict:
-        member_id = request_context.get("member_id", "1")
+        member_id = request_context.get("member_id")
         langfuse_context.update_current_trace(
             user_id=member_id,
         )

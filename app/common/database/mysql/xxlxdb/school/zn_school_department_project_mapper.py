@@ -164,39 +164,39 @@ class ZnSchoolDepartmentProject(MySQLConnect, BaseModel):
     cricos_code: Optional[str] = Field(None, description="澳洲专用")
     weight: Optional[int] = Field(None, description="排序权重（23.7-24.1申请数）")
 
-    @classmethod
-    def select_by_check_school(cls, check_school: object) -> object:
-        """
 
-        :rtype: object
-        """
-        conditions = []
-        params = []
+def select_by_check_school(check_school: object) -> object:
+    """
 
-        if check_school.country_name:
-            conditions.append('country_name = %s')
-            params.append(check_school.country_name)
+    :rtype: object
+    """
+    conditions = []
+    params = []
 
-        if check_school.school_name:
-            conditions.append('(zsi.chinese_name like %s or zsi.english_name like %s)')
-            params.extend(['%' + check_school.school_name + '%'] * 2)
+    if check_school.country_name:
+        conditions.append('country_name = %s')
+        params.append(check_school.country_name)
 
-        if check_school.major_name:
-            conditions.append('(zsdp.chinese_name like %s or zsdp.english_name like %s)')
-            params.extend(['%' + check_school.major_name + '%'] * 2)
+    if check_school.school_name:
+        conditions.append('(zsi.chinese_name like %s or zsi.english_name like %s)')
+        params.extend(['%' + check_school.school_name + '%'] * 2)
 
-        if check_school.degree_type:
-            conditions.append('degree_level = %s')
-            params.append(check_school.degree_type)
+    if check_school.major_name:
+        conditions.append('(zsdp.chinese_name like %s or zsdp.english_name like %s)')
+        params.extend(['%' + check_school.major_name + '%'] * 2)
 
-        sql = ('select '
-               'zsdp.chinese_name as major_chinese_name,'
-               'zsdp.english_name as major_english_name,'
-               'zsdp.degree_type,'
-               'zsi.chinese_name as school_chinese_name,'
-               'zsi.english_name as school_english_name,'
-               'zsi.country_name '
-               ' from zn_school_department_project zsdp inner join zn_school_info zsi on zsdp.school_id = zsi.id where ') + ' and '.join(
-            conditions)
+    if check_school.degree_type:
+        conditions.append('degree_level = %s')
+        params.append(check_school.degree_type)
 
-        return xxlxdb.execute_all2dict(sql, tuple(params))
+    sql = ('select '
+           'zsdp.chinese_name as major_chinese_name,'
+           'zsdp.english_name as major_english_name,'
+           'zsdp.degree_type,'
+           'zsi.chinese_name as school_chinese_name,'
+           'zsi.english_name as school_english_name,'
+           'zsi.country_name '
+           ' from zn_school_department_project zsdp inner join zn_school_info zsi on zsdp.school_id = zsi.id where ') + ' and '.join(
+        conditions)
+
+    return xxlxdb.execute_all2dict(sql, tuple(params))
