@@ -8,7 +8,7 @@ from app.api.openai import api_server
 from app.api.text2vec_custom import text2vec_custom as encode
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.common.core.langchain_client import openai_serving_chat, VllmClient, initialize_vllm_client
+from app.common.core.langchain_client import VllmClient, initialize_vllm_client
 
 _running_tasks = set()
 
