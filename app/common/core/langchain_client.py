@@ -1,3 +1,5 @@
+import asyncio
+
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import List
 
@@ -6,7 +8,8 @@ from app.common.core.config import settings
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.usage.usage_lib import UsageContext
-
+from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
+from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
 
 class Embedding:
     llm = settings["llm"]
@@ -44,3 +47,14 @@ class VllmClient:
     engine_args = AsyncEngineArgs(**engine_args)
     engine = AsyncLLMEngine.from_engine_args(
         engine_args, usage_context=UsageContext.API_SERVER)
+
+    model_config = asyncio.run(engine.get_model_config())
+
+    openai_serving_chat = OpenAIServingChat(engine, model_config,
+                                            model,
+                                            "assistant")
+    openai_serving_completion = OpenAIServingCompletion(
+        engine, model_config, model)
+
+openai_serving_chat = VllmClient.openai_serving_chat
+openai_serving_completion = VllmClient.openai_serving_completion

@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 
 from app.api.chat import knowledge_ik_index_controller
+from app.api.openai import api_server
 from app.api.text2vec_custom import text2vec_custom as encode
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.common.core.langchain_client import openai_serving_chat
 
 app = FastAPI()
 
@@ -17,8 +20,9 @@ app.add_middleware(
 
 app.include_router(knowledge_ik_index_controller.router)
 app.include_router(encode.router)
+app.include_router(api_server.router)
 
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app, host='0.0.0.0', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=6006)
