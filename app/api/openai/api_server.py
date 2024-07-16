@@ -32,7 +32,7 @@ from vllm.logger import init_logger
 from vllm.usage.usage_lib import UsageContext
 from vllm.version import __version__ as VLLM_VERSION
 
-from app.common.core.langchain_client import Embedding, openai_serving_chat, openai_serving_completion
+from app.common.core.langchain_client import Embedding, VllmClient
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
@@ -44,6 +44,8 @@ _running_tasks: Set[asyncio.Task] = set()
 
 router = APIRouter()
 
+openai_serving_chat = VllmClient.get_openai_serving_chat()
+openai_serving_completion = VllmClient.get_openai_serving_completion()
 
 @router.exception_handler(RequestValidationError)
 async def validation_exception_handler(_, exc):
