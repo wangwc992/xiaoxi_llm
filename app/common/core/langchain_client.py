@@ -1,10 +1,7 @@
 import asyncio
-
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from typing import List
-
 from app.common.core.config import settings
-
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.engine.async_llm_engine import AsyncLLMEngine
 from vllm.usage.usage_lib import UsageContext
@@ -32,29 +29,24 @@ class Embedding:
 
 
 class VllmClient:
-    # model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
     model = "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
-    # tensor_parallel_size = 2
-    # quantization = "gptq"
-
     engine_args = {
         "model": model,
-        # "tensor_parallel_size": tensor_parallel_size,
-        # "max_model_len": 26000,
-        # "quantization": quantization
     }
 
     engine_args = AsyncEngineArgs(**engine_args)
-    engine = AsyncLLMEngine.from_engine_args(
-        engine_args, usage_context=UsageContext.API_SERVER)
+    engine = None
+    model_config = None
+    openai_serving_chat = None
+    openai_serving_completion = None
 
-    model_config = asyncio.run(engine.get_model_config())
+    @classmethod
+    async def initialize(cls):
+        cls.engine = AsyncLLMEngine.from_engine_args(
+            cls.engine_args, usage_context=UsageContext.API_SERVER)
+        cls.model_config = await cls.engine.get_model_config()
+        cls.openai_serving_chat = OpenAIServingChat(
+            cls.engine, cls.model_config, cls.model, "assistant")
+        cls.openai_serving_completion = OpenAIServingCompletion(
+            cls.engine, cls.model_config, cls.model)
 
-    openai_serving_chat = OpenAIServingChat(engine, model_config,
-                                            model,
-                                            "assistant")
-    openai_serving_completion = OpenAIServingCompletion(
-        engine, model_config, model)
-
-openai_serving_chat = VllmClient.openai_serving_chat
-openai_serving_completion = VllmClient.openai_serving_completion

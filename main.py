@@ -1,3 +1,6 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.api.chat import knowledge_ik_index_controller
@@ -5,9 +8,29 @@ from app.api.openai import api_server
 from app.api.text2vec_custom import text2vec_custom as encode
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.common.core.langchain_client import openai_serving_chat
+from app.common.core.langchain_client import openai_serving_chat, VllmClient
 
-app = FastAPI()
+_running_tasks = set()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await VllmClient.initialize()
+
+    async def _force_log():
+        while True:
+            await asyncio.sleep(10)
+            await VllmClient.engine.do_log_stats()
+
+    if not VllmClient.engine_args.disable_log_stats:
+        task = asyncio.create_task(_force_log())
+        _running_tasks.add(task)
+        task.add_done_callback(_running_tasks.remove)
+
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 # 配置 CORS 中间件
 app.add_middleware(
