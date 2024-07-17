@@ -17,20 +17,21 @@ _running_tasks = set()
 async def lifespan(app: FastAPI):
     await VllmClient.initialize()
 
-    async def _force_log():
-        while True:
-            await asyncio.sleep(10)
-            await VllmClient.engine.do_log_stats()
-
-    if not VllmClient.engine_args.disable_log_stats:
-        task = asyncio.create_task(_force_log())
-        _running_tasks.add(task)
-        task.add_done_callback(_running_tasks.remove)
+    # async def _force_log():
+    #     while True:
+    #         await asyncio.sleep(10)
+    #         await VllmClient.engine.do_log_stats()
+    #
+    # if not VllmClient.engine_args.disable_log_stats:
+    #     task = asyncio.create_task(_force_log())
+    #     _running_tasks.add(task)
+    #     task.add_done_callback(_running_tasks.remove)
 
     yield
 
-
 app = FastAPI(lifespan=lifespan)
+
+# app = FastAPI()
 
 # 配置 CORS 中间件
 app.add_middleware(
@@ -47,6 +48,4 @@ app.include_router(api_server.router)
 
 if __name__ == '__main__':
     import uvicorn
-
-    initialize_vllm_client()
     uvicorn.run(app, host='0.0.0.0', port=6006)
