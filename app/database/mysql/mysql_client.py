@@ -22,6 +22,18 @@ class MySQLConnect:
         )
         self.__cur = self.conn.cursor()
 
+    def connect(self):
+        """连接数据库"""
+        self.conn = MySQLdb.connect(
+            host=self.mysql_dict["host"],
+            user=self.mysql_dict["user"],
+            passwd=self.mysql_dict["password"],
+            database=self.mysql_dict["database"],
+            port=self.mysql_dict["port"],
+            cursorclass=MySQLdb.cursors.DictCursor  # 使用字典游标类
+        )
+        self.__cur = self.conn.cursor()
+
     def check_connection(self):
         """检查连接状态，如果断开则重新连接"""
         try:

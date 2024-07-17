@@ -34,7 +34,7 @@ from datetime import datetime
 from typing import Optional
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from app.database.mysql.mysql_client import MySQLConnect, xxlxdb
+from app.database.mysql.mysql_client import xxlxdb
 
 
 class KnowledgeInfo(BaseModel):
@@ -65,7 +65,13 @@ class KnowledgeInfo(BaseModel):
     audit_id: Optional[int] = Field(None, description="审批ID，驳回副本关联用")
     share_num: int = Field(None, description="分享数")
 
-def search_weaviate_data():
-    sql = "SELECT * FROM `t_knowledge_info`"
-    return xxlxdb.execute_all2dict(sql)
+t_knowledge_info = "t_knowledge_info"
 
+def search_weaviate_data(startup_status=1, type=1, limit=10):
+    query_fields = "id,country,school,class,name,founder,replyerTime,content,startup_status"
+    sql = f"SELECT {query_fields} FROM {t_knowledge_info} where startup_status = {startup_status} and type = {type}"
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+if __name__ == '__main__':
+    print(search_weaviate_data(limit=1))

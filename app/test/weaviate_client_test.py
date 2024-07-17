@@ -1,8 +1,18 @@
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
 from app.database.weaviate.weaviate_client import WeaviateClient
 
-knowledgeBase = KnowledgeBaseWeaviate()
+knowledgeBase = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
 
-knowledgeBase.create_collection()
+# print(knowledgeBase.get_collection_config())
+#
+#
+# knowledgeBase.weaviate_client.delete_collection_name(knowledgeBase.collections_name)
+#
+# knowledgeBase.create_collection()
+#
+# WeaviateClient.collections_list_all()
+#
+# knowledgeBase.weaviate_client.get_collection_config()
 
-WeaviateClient.collections_list_all()
+
+print(knowledgeBase.search_id('7b8721e4-cfd0-49e4-97e5-eb4696dabb10'))
