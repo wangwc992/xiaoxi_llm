@@ -9,6 +9,7 @@ from vllm.usage.usage_lib import UsageContext
 from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
 from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
 
+
 class Embedding:
     llm = settings["llm"]
     model_kwargs = {'device': llm["device"]}
@@ -37,21 +38,38 @@ class VllmClient:
 
     engine_args = AsyncEngineArgs(**engine_args)
     engine = AsyncLLMEngine.from_engine_args(engine_args, usage_context=UsageContext.API_SERVER)
+    model_config = None
+    openai_serving_chat = None
+    openai_serving_completion = None
 
     @classmethod
     async def initialize(cls):
         cls.model_config = await cls.engine.get_model_config()
         cls.openai_serving_chat = OpenAIServingChat(cls.engine, cls.model_config, cls.model, "assistant")
-        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.model)
+        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.model,None)
 
     @classmethod
-    def get_openai_serving_chat(cls):
+    async def get_openai_serving_chat(cls):
+        print("initialize 1","*" * 100)
+        if cls.openai_serving_chat is None:
+            await cls.initialize()
         return cls.openai_serving_chat
 
     @classmethod
-    def get_openai_serving_completion(cls):
+    async def get_openai_serving_completion(cls):
+        print("initialize 2","*" * 100)
+        if cls.openai_serving_completion is None:
+            await cls.initialize()
         return cls.openai_serving_completion
+
 
 # Ensure async initialization is called properly in the main application
 async def initialize_vllm_client():
     await VllmClient.initialize()
+
+# These need to be awaited in an async context
+async def get_openai_serving_chat():
+    return await VllmClient.get_openai_serving_chat()
+
+async def get_openai_serving_completion():
+    return await VllmClient.get_openai_serving_completion()

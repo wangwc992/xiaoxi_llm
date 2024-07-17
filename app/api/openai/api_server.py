@@ -1,38 +1,21 @@
 import asyncio
-import importlib
-import inspect
-import re
 import tiktoken
-from contextlib import asynccontextmanager
 from http import HTTPStatus
-from typing import Optional, Set, List
+from typing import Set
 
-import fastapi
-import uvicorn
 from fastapi import Request, APIRouter
 from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response, StreamingResponse
-from prometheus_client import make_asgi_app
-from starlette.routing import Mount
-
-import vllm.envs as envs
-from vllm.engine.arg_utils import AsyncEngineArgs
-from vllm.engine.async_llm_engine import AsyncLLMEngine
-from vllm.entrypoints.openai.cli_args import make_arg_parser
 from vllm.entrypoints.openai.protocol import (ChatCompletionRequest,
                                               ChatCompletionResponse,
                                               CompletionRequest,
                                               EmbeddingRequest, ErrorResponse,
                                               EmbeddingResponse, EmbeddingResponseData)
-from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
-from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
 from vllm.entrypoints.openai.serving_embedding import OpenAIServingEmbedding
 from vllm.logger import init_logger
-from vllm.usage.usage_lib import UsageContext
 from vllm.version import __version__ as VLLM_VERSION
 
-from app.common.core.langchain_client import Embedding, VllmClient
+from app.common.core.langchain_client import Embedding, get_openai_serving_chat, get_openai_serving_completion
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
@@ -44,24 +27,18 @@ _running_tasks: Set[asyncio.Task] = set()
 
 router = APIRouter()
 
-openai_serving_chat = VllmClient.get_openai_serving_chat()
-openai_serving_completion = VllmClient.get_openai_serving_completion()
-
-@router.exception_handler(RequestValidationError)
-async def validation_exception_handler(_, exc):
-    err = openai_serving_chat.create_error_response(message=str(exc))
-    return JSONResponse(err.model_dump(), status_code=HTTPStatus.BAD_REQUEST)
-
 
 @router.get("/health")
 async def health() -> Response:
     """Health check."""
+    openai_serving_chat = await get_openai_serving_chat()
     await openai_serving_chat.engine.check_health()
     return Response(status_code=200)
 
 
 @router.get("/v1/models")
 async def show_available_models():
+    openai_serving_chat = await get_openai_serving_chat()
     models = await openai_serving_chat.show_available_models()
     return JSONResponse(content=models.model_dump())
 
@@ -75,6 +52,7 @@ async def show_version():
 @router.post("/v1/chat/completions")
 async def create_chat_completion(request: ChatCompletionRequest,
                                  raw_request: Request):
+    openai_serving_chat = await get_openai_serving_chat()
     generator = await openai_serving_chat.create_chat_completion(
         request, raw_request)
     if isinstance(generator, ErrorResponse):
@@ -90,6 +68,7 @@ async def create_chat_completion(request: ChatCompletionRequest,
 
 @router.post("/v1/completions")
 async def create_completion(request: CompletionRequest, raw_request: Request):
+    openai_serving_completion = await get_openai_serving_completion()
     generator = await openai_serving_completion.create_completion(
         request, raw_request)
     if isinstance(generator, ErrorResponse):
