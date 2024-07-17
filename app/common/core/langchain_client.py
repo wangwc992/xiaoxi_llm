@@ -11,7 +11,7 @@ from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
 
 
 class Embedding:
-    llm = settings["llm"]
+    llm = settings["embedding"]
     model_kwargs = {'device': llm["device"]}
     encode_kwargs = {'normalize_embeddings': False}
 
