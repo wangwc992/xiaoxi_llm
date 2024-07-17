@@ -1,4 +1,7 @@
 import weaviate
+from weaviate.collections.classes.config import Configure
+from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
+
 from app.common.core.config import settings
 from weaviate.embedded import EmbeddedOptions
 
@@ -10,6 +13,7 @@ class WeaviateClient:
         port=weaviate_dict["port"],
         headers={"X-Huggingface-Api-Key": "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"}
     )
+
     # client = weaviate.WeaviateClient(
     #     embedded_options=EmbeddedOptions(
     #         additional_env_vars={
@@ -21,6 +25,10 @@ class WeaviateClient:
     # )
     # client.connect()
 
+    def __init__(self, collections_name):
+        self.collections_name = collections_name
+        self.collections = self.client.collections.get(collections_name)
+
     @classmethod
     def collections_list_all(cls):
         '''列出Weaviate数据库中的所有集合'''
@@ -30,9 +38,13 @@ class WeaviateClient:
         return collections
 
     @classmethod
-    def get_collection_config(cls):
+    def exists(cls, collection_name):
+        '''判断集合是否存在'''
+        return cls.client.collections.exists(collection_name)
+
+    def get_collection_config(self):
         '''获取集合配置'''
-        articles_config = cls.client.config.get()
+        articles_config = self.collections.config.get()
         print(articles_config)
 
     @classmethod
@@ -40,60 +52,48 @@ class WeaviateClient:
         '''删除集合'''
         cls.client.collections.delete(collection_name)
 
-    @classmethod
-    def create_collection(cls, collections_name, properties):
+    def create_collection(self, properties):
         '''创建集合'''
-        cls.client.collections.create(
-            collections_name,
-            vector_index_config=Configure.VectorIndex.hnsw(),
-            properties=properties
-        )
+        if not self.exists(self.collections_name):
+            self.client.collections.create(
+                self.collections_name,
+                vector_index_config=Configure.VectorIndex.hnsw(),
+                properties=properties
+            )
 
-    @classmethod
-    def insert_data(cls, collections_name, properties, vec):
+    def insert_data(self, properties, vec):
         '''插入数据'''
-        collections = cls.client.collections.get(collections_name)
         # 返回uuid列表
-        return jeopardy.data.insert(properties=properties, vector=vec)
+        return self.collections.data.insert(properties=properties, vector=vec)
 
-    @classmethod
-    def basth_insert_data(cls, collections_name, properties_list: list, vecs: list):
+    def basth_insert_data(self, properties_list: list, vecs: list):
         '''批量插入数据'''
-        collections = cls.client.collections.get(collections_name)
         uuid_list = []
-        with collection.batch.dynamic() as batch:
+        with self.collections.batch.dynamic() as batch:
             for properties in properties_list:
                 uuid = batch.add_object(properties=properties, vector=vecs.pop(0))  # 从vecs中取出一个向量
                 uuid_list.append(uuid)
         return uuid_list
 
-    @classmethod
-    def update_data(cls, uuid, update_data):
-        collections = cls.client.collections.get(collections_name)
-        collections.data.update(
+    def update_data(self, uuid, update_data):
+        self.collections.data.update(
             uuid=uuid,
             properties=update_data
         )
 
-    @classmethod
-    def update_data(cls, uuid, collections_name, properties, vec):
-        collections = cls.client.collections.get(collections_name)
-        collections.data.update(
+    def update_data(self, uuid, properties, vec):
+        self.collections.data.update(
             uuid=uuid,
             properties=properties,
             vector=vec
         )
 
-    @classmethod
-    def search_id(cls, uuid):
-        collections = cls.client.collections.get(collections_name)
-        data_object = collections.query.fetch_object_by_id(uuid)
+    def search_id(self, uuid):
+        data_object = self.collections.query.fetch_object_by_id(uuid)
         print(data_object.properties)
 
-    @classmethod
-    def query_data(cls, collections_name, query, vec):
-        collections = cls.client.collections.get(collections_name)
-        response = collections.query.hybrid(
+    def hybrid_data(self, query, vec, limit=10):
+        response = self.collections.query.hybrid(
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
             target_vector="instruction",
@@ -102,11 +102,10 @@ class WeaviateClient:
             limit=10,
         )
 
-    @classmethod
-    def delete_data(cls, collections_name, uuid):
+    def delete_data(self, uuid):
         '''删除数据'''
-        collections = cls.client.collections.get(collections_name)
-        collections.delete(uuid)
+        self.collections.delete(uuid)
+
 
 if __name__ == '__main__':
     WeaviateClient.collections_list_all()
