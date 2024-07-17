@@ -1,10 +1,8 @@
 import asyncio
 import tiktoken
-from http import HTTPStatus
 from typing import Set
 
 from fastapi import Request, APIRouter
-from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from vllm.entrypoints.openai.protocol import (ChatCompletionRequest,
                                               ChatCompletionResponse,

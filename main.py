@@ -1,14 +1,13 @@
-import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.chat import knowledge_ik_index_controller
+from app.api.knowledge import knowledge_ik_index_controller
 from app.api.openai import api_server
 from app.api.text2vec_custom import text2vec_custom as encode
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.common.core.langchain_client import VllmClient, initialize_vllm_client
+from app.common.core.langchain_client import VllmClient
 
 _running_tasks = set()
 

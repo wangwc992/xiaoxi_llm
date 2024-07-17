@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 
-from app.common.database.weaviate.weaviate_client import WeaviateClient
+from app.database.weaviate.weaviate_client import WeaviateClient
 from app.common.core.langchain_client import Embedding
 
 collections_name = "Knowledge_ik_index"
