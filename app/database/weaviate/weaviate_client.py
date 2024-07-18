@@ -1,30 +1,37 @@
+import os
+
 import weaviate
+from dotenv import load_dotenv
 from weaviate.collections.classes.config import Configure
-from weaviate.collections.classes.filters import Filter
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
+from weaviate.embedded import EmbeddedOptions
 
 from app.common.core.config import settings
-from weaviate.embedded import EmbeddedOptions
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class WeaviateClient:
-    weaviate_dict = settings["weaviate"]
-    client = weaviate.connect_to_local(
-        host=weaviate_dict["host"],
-        port=weaviate_dict["port"],
-        headers={"X-Huggingface-Api-Key": "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"}
-    )
-
-    # client = weaviate.WeaviateClient(
-    #     embedded_options=EmbeddedOptions(
-    #         additional_env_vars={
-    #             # "ENABLE_MODULES": "text2vec-transformers",
-    #             # "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8090',
-    #             "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate"
-    #         }
-    #     )
-    # )
-    # client.connect()
+    app_env = os.getenv('APP_ENV', 'dev')
+    if app_env == 'dev':
+        weaviate_dict = settings["weaviate"]
+        client = weaviate.connect_to_local(
+            host=weaviate_dict["host"],
+            port=weaviate_dict["port"],
+            headers={"X-Huggingface-Api-Key": "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"}
+        )
+    else:
+        client = weaviate.WeaviateClient(
+            embedded_options=EmbeddedOptions(
+                additional_env_vars={
+                    # "ENABLE_MODULES": "text2vec-transformers",
+                    # "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8090',
+                    "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate"
+                }
+            )
+        )
+        client.connect()
 
     def __init__(self, collections_name):
         self.collections_name = collections_name

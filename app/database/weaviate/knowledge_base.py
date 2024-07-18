@@ -55,7 +55,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             response_list.append(knowledge_base)
         return response_list
 
-    def delete_data_by_id(self, database: str, id: str):
+    def delete_data_by_id(self, id: str, database: str):
         '''根据id删除Weaviate数据库中的数据'''
         self.collection.data.delete_many(
             where=Filter.by_property("db_id").equal(id) & Filter.by_property("database").equal(database)
