@@ -46,3 +46,17 @@ class ObjectFormatter:
       :return: 每个字典拼接好的字符串列表
       """
         return [ObjectFormatter.format_dict(dict) for dict in dicts]
+
+    @staticmethod
+    def dict_to_object(dict: dict, obj_class):
+        """
+      将字典转换成对象。
+
+      :param dict: 字典
+      :param obj_class: 对象类
+      :return: 对象
+      """
+        obj = obj_class()
+        for key, value in dict.items():
+            setattr(obj, key, value)
+        return obj

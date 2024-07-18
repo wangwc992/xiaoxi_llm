@@ -1,5 +1,6 @@
 import weaviate
 from weaviate.collections.classes.config import Configure
+from weaviate.collections.classes.filters import Filter
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 
 from app.common.core.config import settings
@@ -27,7 +28,7 @@ class WeaviateClient:
 
     def __init__(self, collections_name):
         self.collections_name = collections_name
-        self.collections = self.client.collections.get(collections_name)
+        self.collection = self.client.collections.get(collections_name)
 
     @classmethod
     def collections_list_all(cls):
@@ -44,7 +45,7 @@ class WeaviateClient:
 
     def get_collection_config(self):
         '''获取集合配置'''
-        articles_config = self.collections.config.get()
+        articles_config = self.collection.config.get()
         print(articles_config)
 
     @classmethod
@@ -64,36 +65,36 @@ class WeaviateClient:
     def insert_data(self, properties, vec):
         '''插入数据'''
         # 返回uuid列表
-        return self.collections.data.insert(properties=properties, vector=vec)
+        return self.collection.data.insert(properties=properties, vector=vec)
 
     def basth_insert_data(self, properties_list: list, vecs: list):
         '''批量插入数据'''
         uuid_list = []
-        with self.collections.batch.dynamic() as batch:
+        with self.collection.batch.dynamic() as batch:
             for properties in properties_list:
                 uuid = batch.add_object(properties=properties, vector=vecs.pop(0))  # 从vecs中取出一个向量
                 uuid_list.append(uuid)
         return uuid_list
 
-    def update_data(self, uuid, update_data):
-        self.collections.data.update(
+    def update_data_by_uuid(self, uuid, update_data):
+        self.collection.data.update(
             uuid=uuid,
             properties=update_data
         )
 
     def update_data(self, uuid, properties, vec):
-        self.collections.data.update(
+        self.collection.data.update(
             uuid=uuid,
             properties=properties,
             vector=vec
         )
 
     def search_id(self, uuid):
-        data_object = self.collections.query.fetch_object_by_id(uuid)
+        data_object = self.collection.query.fetch_object_by_id(uuid)
         print(data_object.properties)
 
     def hybrid_data(self, query, vec, limit=10):
-        response = self.collections.query.hybrid(
+        response = self.collection.query.hybrid(
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
             target_vector="instruction",
@@ -104,7 +105,7 @@ class WeaviateClient:
 
     def delete_data(self, uuid):
         '''删除数据'''
-        self.collections.delete(uuid)
+        self.collection.delete(uuid)
 
 
 if __name__ == '__main__':

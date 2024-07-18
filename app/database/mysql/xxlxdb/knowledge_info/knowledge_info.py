@@ -65,11 +65,13 @@ class KnowledgeInfo(BaseModel):
     audit_id: Optional[int] = Field(None, description="审批ID，驳回副本关联用")
     share_num: int = Field(None, description="分享数")
 
+
 t_knowledge_info = "t_knowledge_info"
 
-def search_weaviate_data(startup_status=1, type=1, limit=10):
+
+def search_weaviate_data(id=0, startup_status=1, type=1, limit=10):
     query_fields = "id,country,school,class,name,founder,replyerTime,content,startup_status"
-    sql = f"SELECT {query_fields} FROM {t_knowledge_info} where startup_status = {startup_status} and type = {type}"
+    sql = f"SELECT {query_fields} FROM {t_knowledge_info} where startup_status = {startup_status} and type = {type} and id > {id}"
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
