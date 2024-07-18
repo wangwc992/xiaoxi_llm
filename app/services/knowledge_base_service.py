@@ -21,8 +21,25 @@ def insert_t_knowledge_info_data():
 
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
-    pass
-
+    limit = 300
+    id = 0
+    while True:
+        knowledge_info_dict_list = search_weaviate_data(id, limit=limit)
+        if not knowledge_info_dict_list:
+            break
+        id = knowledge_info_dict_list[-1].get("id")
+        knowledge_base_model = [{
+            "database": t_knowledge_info,
+            "db_id": str(knowledge_info.get("id")),
+            "instruction": knowledge_info.get("country") + " " + knowledge_info.get(
+                "school") + " " + knowledge_info.get(
+                "class") + " " + knowledge_info.get("name"),
+            "input": "",
+            "output": knowledge_info.get("founder") + " " + knowledge_info.get("replyerTime").strftime(
+                "%Y-%m-%d %H:%M:%S") + " " + HtmlUtils.replace_link_with_url(knowledge_info.get("content")),
+            "state": knowledge_info["startup_status"]
+        } for knowledge_info in knowledge_info_dict_list]
+        insert_weaviate_data_all(knowledge_base_model)
 
 def insert_institution_information_data():
     '''小希平台院校资讯
@@ -170,37 +187,17 @@ def insert_major_library01_data():
     pass
 
 
-def insert_weaviate_data_all():
+def insert_weaviate_data_all(knowledge_base_model: list):
     '''
     将t_knowledge_info表的全部数据插入weaviate数据
     :return:
     '''
-    limit = 5
-    id = 0
-    while True:
-        knowledge_info_dict_list = search_weaviate_data(id, limit=limit)
-        if not knowledge_info_dict_list:
-            break
-        id = knowledge_info_dict_list[-1].get("id")
-        knowledge_base_model = [{
-            "database": t_knowledge_info,
-            "db_id": str(knowledge_info.get("id")),
-            "instruction": knowledge_info.get("country") + " " + knowledge_info.get(
-                "school") + " " + knowledge_info.get(
-                "class") + " " + knowledge_info.get("name"),
-            "input": "",
-            "output": knowledge_info.get("founder") + " " + knowledge_info.get("replyerTime").strftime(
-                "%Y-%m-%d %H:%M:%S") + " " + HtmlUtils.replace_link_with_url(knowledge_info.get("content")),
-            "state": knowledge_info["startup_status"]
-        } for knowledge_info in knowledge_info_dict_list]
+    texts = [doc['instruction'] for doc in knowledge_base_model]
 
-        texts = [doc['instruction'] for doc in knowledge_base_model]
+    doc_vecs = Embedding.embed_documents(texts)
 
-        doc_vecs = Embedding.embed_documents(texts)
-
-        uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
-        logger.info("插入大于%s的%s条的数据%s" % (id, limit, uuid_list))
-        break
+    uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
+    logger.info("插入大于%s的%s条的数据%s" % (id, len(knowledge_base_model), uuid_list))
 
 
 def clear_all_data(database: str):
@@ -242,7 +239,7 @@ def update_weaviate_data_by_id(id: str, properties: dict):
 
 if __name__ == '__main__':
     database = "t_knowledge_info"
-    insert_weaviate_data_all()
+    insert_t_knowledge_info_data()
     # clear_all_data(database)
     # delete_weaviate_data_by_id("155")
     # search_weaviate_data_by_query("英国", 10)
