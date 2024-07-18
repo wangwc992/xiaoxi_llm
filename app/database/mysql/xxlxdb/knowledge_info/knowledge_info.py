@@ -34,7 +34,7 @@ from datetime import datetime
 from typing import Optional
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from app.database.mysql.mysql_client import xxlxdb
+from app.database.mysql.mysql_client import xxlxdb, smart_counselor
 
 
 class KnowledgeInfo(BaseModel):
@@ -66,14 +66,49 @@ class KnowledgeInfo(BaseModel):
     share_num: int = Field(None, description="分享数")
 
 
-t_knowledge_info = "t_knowledge_info"
-
-
 def search_weaviate_data(id=0, startup_status=1, type=1, limit=10):
-    query_fields = "id,country,school,class,name,founder,replyerTime,content,startup_status"
-    sql = f"SELECT {query_fields} FROM {t_knowledge_info} where startup_status = {startup_status} and type = {type} and id > {id}"
+    sql = f"SELECT id, country, school, class, name, founder, replyerTime, content, startup_status FROM t_knowledge_info where startup_status = {startup_status} and type = {type} and id > {id}"
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
+def search_weaviate_data_by_id(id: int = 0, limit: int = 10):
+    '''小希平台院校资讯'''
+    sql = f'''SELECT 
+        nm.id AS notice_id,
+        si.english_name AS school_english_name,
+        si.name AS school_name,
+        nm.create_time AS notice_create_time,
+        CASE 
+            WHEN nm.category = 1 THEN '培训材料'
+            WHEN nm.category = 2 THEN '申请指南'
+            WHEN nm.category = 3 THEN '奖学金'
+            WHEN nm.category = 4 THEN '活动预告'
+            WHEN nm.category = 5 THEN '简报'
+            ELSE '未知类别'
+        END AS notice_category,
+        nm.name AS notice_title,
+        nm.summary AS notice_summary,
+        ac.name AS attachment_name,
+        ac.url AS attachment_url 
+    FROM 
+        notice_message nm 
+    LEFT JOIN 
+        school_notice_relation snr ON snr.notice_id = nm.id AND snr.delete_status = 0 
+    LEFT JOIN 
+        school_info si ON si.id = snr.school_id 
+    LEFT JOIN 
+        content_student_visibility csv ON csv.associated_id = nm.id AND csv.delete_status = 0 AND csv.type = 1 
+    LEFT JOIN 
+        content_wechat_visibility cwv ON cwv.associated_id = nm.id AND cwv.delete_status = 0 AND cwv.type = 1 
+    LEFT JOIN 
+        content_visibility cv ON cv.associated_id = nm.id AND cv.delete_status = 0 AND cv.type = 1 
+    LEFT JOIN 
+        attachment_collection ac ON ac.associate_id = nm.id AND ac.delete_status = 0 
+    WHERE 
+        nm.delete_status = 0 AND nm.type IN (1,2,3) AND nm.id > {id}
+    '''
+    return smart_counselor.execute_all2dict(sql=sql, limit=limit)
+
+
 if __name__ == '__main__':
-    print(search_weaviate_data(limit=1))
+    print(search_weaviate_data_by_id())

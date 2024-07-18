@@ -1,7 +1,7 @@
 from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
-from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_weaviate_data, t_knowledge_info
+from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_weaviate_data
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
 
 knowledge_base_weaviate = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
@@ -29,7 +29,7 @@ def insert_t_knowledge_info_data():
             break
         id = knowledge_info_dict_list[-1].get("id")
         knowledge_base_model = [{
-            "database": t_knowledge_info,
+            "database": "t_knowledge_info",
             "db_id": str(knowledge_info.get("id")),
             "instruction": knowledge_info.get("country") + " " + knowledge_info.get(
                 "school") + " " + knowledge_info.get(

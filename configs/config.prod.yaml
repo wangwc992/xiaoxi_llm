@@ -17,17 +17,17 @@ vllm:
 
 mysql:
   xxlxdb:
-    host: "192.168.0.137"
-    port: 3306
-    user: "root"
-    password: "mirandA123!@#"
-    database: "test_xxlxdb"
+    host: "120.92.116.101"
+    port: 9200
+    user: "read"
+    password: "Xxedu_only_Read123!@#"
+    database: "xxlxdb"
   smart_counselor:
-    host: "192.168.0.137"
-    port: 3306
-    user: "root"
-    password: "mirandA123!@#"
-    database: "test_smart_counselor"
+    host: "120.92.116.101"
+    port: 9200
+    user: "read"
+    password: "Xxedu_only_Read123!@#"
+    database: "smart_counselor"
 
 redis:
   host: "192.168.0.188"

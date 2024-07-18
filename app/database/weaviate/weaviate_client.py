@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from weaviate.collections.classes.config import Configure
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from weaviate.embedded import EmbeddedOptions
-
+import weaviate.classes as wvc
 from app.common.core.config import settings
 
 # Load environment variables from .env file
@@ -115,6 +115,8 @@ class WeaviateClient:
         self.collection.delete(uuid)
 
 
+
+
 if __name__ == '__main__':
     WeaviateClient.collections_list_all()
     # WeaviateClient.get_collection_config()
@@ -126,3 +128,4 @@ if __name__ == '__main__':
     # WeaviateClient.search_id("uuid")
     # WeaviateClient.query_data("jeopardy", "query", vec)
     # WeaviateClient.delete_data("jeopardy", "uuid")
+
