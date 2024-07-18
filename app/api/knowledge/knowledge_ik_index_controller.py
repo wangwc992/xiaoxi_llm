@@ -10,7 +10,7 @@ from vllm.utils import random_uuid
 from langchain_core.prompts import PromptTemplate
 
 from app.common.core.langchain_client import VllmClient
-from app.database.weaviate.Knowledge_ik_index_mapper import KnowledgeIkIndexMapper
+from app.database.weaviate.knowledge_ik_index_mapper import KnowledgeIkIndexMapper
 
 router = APIRouter(prefix="/chat")
 

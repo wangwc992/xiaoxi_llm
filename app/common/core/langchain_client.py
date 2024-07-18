@@ -45,7 +45,7 @@ class VllmClient:
     async def initialize(cls):
         cls.model_config = await cls.engine.get_model_config()
         cls.openai_serving_chat = OpenAIServingChat(cls.engine, cls.model_config, cls.model, "assistant")
-        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.model,None)
+        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.model, None)
 
     @classmethod
     def get_openai_serving_chat(cls):
@@ -60,9 +60,11 @@ class VllmClient:
 async def initialize_vllm_client():
     await VllmClient.initialize()
 
+
 # These need to be awaited in an async context
 def get_openai_serving_chat():
     return VllmClient.get_openai_serving_chat()
+
 
 def get_openai_serving_completion():
     return VllmClient.get_openai_serving_completion()

@@ -41,6 +41,7 @@ def insert_t_knowledge_info_data():
         } for knowledge_info in knowledge_info_dict_list]
         insert_weaviate_data_all(knowledge_base_model)
 
+
 def insert_institution_information_data():
     '''小希平台院校资讯
     a、标题信息：
