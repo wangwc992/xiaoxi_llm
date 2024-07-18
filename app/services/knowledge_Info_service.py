@@ -16,7 +16,7 @@ def insert_weaviate_data_all():
 
     knowledge_base_model = [{
         "database": t_knowledge_info,
-        "db_id": knowledge_info.get("id"),
+        "db_id": str(knowledge_info.get("id")),
         "instruction": knowledge_info.get("country") + " " + knowledge_info.get("school") + " " + knowledge_info.get(
             "class") + " " + knowledge_info.get("name"),
         "input": "",
@@ -29,9 +29,9 @@ def insert_weaviate_data_all():
 
     doc_vecs = Embedding.embed_documents(texts)
 
-    uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
-
-    print(uuid_list)
+    # uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
+    # print(uuid_list)
+    print(knowledge_base_weaviate.insert_data(knowledge_base_model[0], doc_vecs[0]))
 
 
 if __name__ == '__main__':
