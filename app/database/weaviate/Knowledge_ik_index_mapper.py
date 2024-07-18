@@ -8,7 +8,7 @@ from app.common.core.langchain_client import Embedding
 
 collections_name = "Knowledge_ik_index"
 
-collections = WeaviateClient.client.collection.get(collections_name)
+collections = WeaviateClient.client.collections.get(collections_name)
 class KnowledgeIkIndexModel(BaseModel):
     uuid: Optional[str]
     instruction: str
