@@ -242,8 +242,8 @@ def update_weaviate_data_by_id(id: str, properties: dict):
 
 if __name__ == '__main__':
     database = "t_knowledge_info"
-    # insert_weaviate_data_all()
-    clear_all_data(database)
+    insert_weaviate_data_all()
+    # clear_all_data(database)
     # delete_weaviate_data_by_id("155")
     # search_weaviate_data_by_query("英国", 10)
     # update_weaviate_data_by_id("7e08b804-8b7c-47f8-a92b-29256d274266", {
