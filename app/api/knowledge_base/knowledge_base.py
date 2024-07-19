@@ -24,7 +24,7 @@ async def generate(request: ChatCompletionRequest, raw_request: Request):
 
     chat_message_history.add_user_message("悉尼大学的计算机专业")
     message_list = [{"role": message.type, "content": message.content} for message in
-                    chat_message_history.get_messages()]
+                    chat_message_history.messages]
     request.messages = message_list
 
     return await create_chat_completion(request, raw_request)
