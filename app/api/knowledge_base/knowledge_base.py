@@ -15,12 +15,12 @@ async def generate(request: ChatCompletionRequest, raw_request: Request):
     member_id = raw_request.headers.get("Authorization")
 
     # 获取用户历史消息
-    chat_message_history_key = redis_client.CHAT_MESSAGE_HISTORY = f"chat:message:history:{member_id}"
-    chat_message_history = redis_client.get_object(chat_message_history_key, ChatMessageHistory)
-    if chat_message_history is None:
-        chat_message_history = ChatMessageHistory()
-        system = SystemMessage(content="你是小希留学顾问助手")
-        chat_message_history.add_message(system)
+    # chat_message_history_key = redis_client.CHAT_MESSAGE_HISTORY = f"chat:message:history:{member_id}"
+    # chat_message_history = redis_client.get_object(chat_message_history_key, ChatMessageHistory)
+    # if chat_message_history is None:
+    chat_message_history = ChatMessageHistory()
+    system = SystemMessage(content="你是小希留学顾问助手")
+    chat_message_history.add_message(system)
 
     chat_message_history.add_user_message("悉尼大学的计算机专业")
     request.messages = chat_message_history.messages
