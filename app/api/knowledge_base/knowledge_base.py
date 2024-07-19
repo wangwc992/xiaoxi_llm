@@ -2,13 +2,13 @@ import os
 import json
 
 from fastapi import Request, APIRouter
-from fastapi.responses import JSONResponse, Response, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from langchain_core.messages import SystemMessage
-from langchain_core.prompts import PromptTemplate
 from pydantic import BaseModel
-from vllm.entrypoints.openai.protocol import ChatCompletionRequest
 from app.api.openai.api_server import create_chat_completion
+from app.common.utils.logging import get_logger
 from app.database.redis.redis_client import redis_client
+from vllm.entrypoints.openai.protocol import ChatCompletionRequest
 
 from langchain_community.chat_message_histories import ChatMessageHistory
 
