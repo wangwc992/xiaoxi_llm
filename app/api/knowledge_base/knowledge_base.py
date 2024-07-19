@@ -7,7 +7,7 @@ from app.api.openai.api_server import create_chat_completion
 router = (APIRouter(prefix="/chat"))
 
 
-@router.get("/v1/chat/completions")
+@router.post("/v1/chat/completions")
 async def generate(request: ChatCompletionRequest,
                    raw_request: Request):
     """生成文本或流式返回生成的文本."""
