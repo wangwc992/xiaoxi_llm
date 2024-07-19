@@ -17,6 +17,7 @@ class MyChatCompletionRequestModel(BaseModel):
     # 根据 ChatCompletionRequest 定义模型字段
     query: str
     stream: bool
+    model: str
 
 
 @router.post("/v1/chat/completions", response_model=None)
@@ -48,7 +49,8 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     # template = PromptTemplate.from_file(file_path)
     # prompt = template.format(input=query, reference_data=reference_data)
 
-    request = ChatCompletionRequest(prompt=request.query, messages=message_list, stream=request.stream)
+    request = ChatCompletionRequest(messages=message_list, stream=request.stream,
+                                    model=request.model)
     request.messages = message_list
 
     # 添加用户消息，保存历史消息
