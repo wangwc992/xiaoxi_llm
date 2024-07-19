@@ -24,4 +24,5 @@ async def generate(request: ChatCompletionRequest, raw_request: Request):
 
     chat_message_history.add_user_message("悉尼大学的计算机专业")
     request.messages = chat_message_history.messages
+    print(request.dict())
     return await create_chat_completion(request, raw_request)
