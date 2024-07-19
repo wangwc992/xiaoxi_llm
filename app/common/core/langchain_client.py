@@ -68,3 +68,4 @@ def get_openai_serving_chat():
 
 def get_openai_serving_completion():
     return VllmClient.get_openai_serving_completion()
+
