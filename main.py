@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.api.knowledge import knowledge_ik_index_controller
 from app.api.openai import api_server
+from app.api.knowledge_base import knowledge_base
 from app.api.text2vec_custom import text2vec_custom as encode
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -44,6 +45,7 @@ app.add_middleware(
 app.include_router(knowledge_ik_index_controller.router)
 app.include_router(encode.router)
 app.include_router(api_server.router)
+app.include_router(knowledge_base.router)
 
 if __name__ == '__main__':
     import uvicorn
