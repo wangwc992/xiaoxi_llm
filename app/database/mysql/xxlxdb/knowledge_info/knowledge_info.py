@@ -66,12 +66,12 @@ class KnowledgeInfo(BaseModel):
     share_num: int = Field(None, description="分享数")
 
 
-def search_weaviate_data(id=0, startup_status=1, type=1, limit=10):
+def search_knowledge_info_data(id=0, startup_status=1, type=1, limit=10):
     sql = f"SELECT id, country, school, class, name, founder, replyerTime, content, startup_status FROM t_knowledge_info where startup_status = {startup_status} and type = {type} and id > {id}"
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
-def search_weaviate_data_by_id(id: int = 0, limit: int = 10):
+def search_notice_message_data(id: int = 0, limit: int = 10):
     '''小希平台院校资讯'''
     sql = f'''SELECT 
         nm.id AS notice_id,
@@ -111,4 +111,4 @@ def search_weaviate_data_by_id(id: int = 0, limit: int = 10):
 
 
 if __name__ == '__main__':
-    print(search_weaviate_data_by_id())
+    print(search_notice_message_data())
