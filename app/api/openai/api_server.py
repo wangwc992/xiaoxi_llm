@@ -4,6 +4,7 @@ from typing import Set, Optional
 
 from fastapi import Request, APIRouter
 from fastapi.responses import JSONResponse, Response, StreamingResponse
+from langfuse.decorators import observe, langfuse_context
 from vllm.entrypoints.openai.protocol import (ChatCompletionRequest,
                                               ChatCompletionResponse,
                                               CompletionRequest,

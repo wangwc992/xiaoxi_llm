@@ -1,9 +1,12 @@
 import os
 import json
+from typing import Optional, Union
 
 from fastapi import Request, APIRouter
 from fastapi.responses import JSONResponse, StreamingResponse
 from langchain_core.messages import SystemMessage
+from langfuse.decorators import observe, langfuse_context
+from langfuse.model import ModelUsage
 from pydantic import BaseModel
 from app.api.openai.api_server import create_chat_completion
 from app.common.utils.logging import get_logger
@@ -23,6 +26,11 @@ class MyChatCompletionRequestModel(BaseModel):
     model: str
 
 
+output = ''
+usage: Optional[Union[BaseModel, ModelUsage]] = None
+
+
+
 @router.post("/v1/chat/completions", response_model=None)
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     """生成文本或流式返回生成的文本."""
@@ -31,7 +39,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
 
     # 获取用户历史消息
     chat_message_history_key = redis_client.CHAT_MESSAGE_HISTORY = f"chat:message:history:{member_id}"
-    chat_message_history = redis_client.get_object(chat_message_history_key, ChatMessageHistory)
+    # chat_message_history = redis_client.get_object(chat_message_history_key, ChatMessageHistory)
     # if chat_message_history is None:
     chat_message_history = ChatMessageHistory()
     system = SystemMessage(content="你是小希留学顾问助手")
@@ -63,21 +71,30 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     # 返回结果
     return result
 
-
+@observe()
 async def save_message(chat_message_history, chat_message_history_key, result):
     '''保存消息到聊天历史记录'''
-    content = ''
+    global output
+    global usage
+    result_content = ''
     # 处理 JSONResponse
     if isinstance(result, JSONResponse):
         result_body = result.body
         result_content = json.loads(result_body.decode('utf-8'))
         loger.info(f"result_content: {result_content}")
-        content += result_content.get('choices')[0].get('message').get('content')
+        output += result_content.get('choices')[0].get('message').get('content')
+        usage_or = result_content.get('usage')
+        if usage_or:
+            # {'prompt_tokens': 31, 'total_tokens': 472, 'completion_tokens': 441}
+            usage = ModelUsage(input=usage_or.get('prompt_tokens'), output=usage_or.get('completion_tokens'),
+                               total=usage_or.get('total_tokens'))
+            loger.info(f"usage: {usage}")
 
     # 处理 StreamingResponse
     # 处理 StreamingResponse
     elif isinstance(result, StreamingResponse):
         async for chunk in result.body_iterator:
+            loger.info(f"chunk: {chunk}")
             # 检查 chunk 是否为空或者是特殊标记
             if chunk.strip() == "data: [DONE]" or not chunk.strip():
                 continue
@@ -90,10 +107,18 @@ async def save_message(chat_message_history, chat_message_history_key, result):
                 if chunk_data.get('choices')[0].get('finish_reason') != 'stop':
                     delta_content = chunk_data.get('choices')[0].get('delta').get('content')
                     if delta_content:  # 检查 content 是否为 None
-                        content += delta_content
+                        output += delta_content
+
             except json.JSONDecodeError as e:
                 loger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
+    langfuse_context.update_current_observation(
+        user_id="1234",
+        metadata={"test": "test value"},
+        input=chat_message_history.messages,
+        output=result_content,
+        usage=usage
+    )
     #     # 添加 AI 消息到聊天历史记录
     # chat_message_history.add_ai_message(content)
     # # 聊天历史记录保存到 Redis
