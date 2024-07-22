@@ -94,7 +94,7 @@ async def save_message(chat_message_history, chat_message_history_key, result):
             except json.JSONDecodeError as e:
                 loger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
-        # 添加 AI 消息到聊天历史记录
-    chat_message_history.add_ai_message(content)
-    # 聊天历史记录保存到 Redis
-    redis_client.set_object(chat_message_history_key, chat_message_history)
+    #     # 添加 AI 消息到聊天历史记录
+    # chat_message_history.add_ai_message(content)
+    # # 聊天历史记录保存到 Redis
+    # redis_client.set_object(chat_message_history_key, chat_message_history)
