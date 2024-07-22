@@ -16,7 +16,7 @@ from vllm.entrypoints.openai.protocol import (ChatCompletionRequest, StreamOptio
 from langchain_community.chat_message_histories import ChatMessageHistory
 
 router = APIRouter(prefix="/chat")
-loger = get_logger(__name__)
+logger = get_logger(__name__)
 
 
 class MyChatCompletionRequestModel(BaseModel):
@@ -69,7 +69,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     # 记录结束时间
     end_time = datetime.now()
 
-    loger.info(f"start_time: {start_time}, end_time: {end_time}")
+    logger.info(f"start_time: {start_time}, end_time: {end_time}")
     # 保存消息到聊天历史记录
     message_dict = await extract_message(result)
 
@@ -106,19 +106,19 @@ async def extract_message(result):
     if isinstance(result, JSONResponse):
         result_body = result.body
         result_content = json.loads(result_body.decode('utf-8'))
-        loger.info(f"result_content: {result_content}")
+        logger.info(f"result_content: {result_content}")
         output += result_content.get('choices')[0].get('message').get('content')
         usage_or = result_content.get('usage')
         if usage_or:
             # {'prompt_tokens': 31, 'total_tokens': 472, 'completion_tokens': 441}
             usage = ModelUsage(input=usage_or.get('prompt_tokens'), output=usage_or.get('completion_tokens'),
                                total=usage_or.get('total_tokens'), unit='TOKENS')
-            loger.info(f"usage: {usage}")
+            logger.info(f"usage: {usage}")
 
     # 处理 StreamingResponse
     elif isinstance(result, StreamingResponse):
         async for chunk in result.body_iterator:
-            loger.info(f"chunk: {chunk}")
+            logger.info(f"chunk: {chunk}")
             # 检查 chunk 是否为空或者是特殊标记
             if chunk.strip() == "data: [DONE]" or not chunk.strip():
                 continue
@@ -139,9 +139,9 @@ async def extract_message(result):
                         usage = ModelUsage(input=usage_or.get('prompt_tokens'),
                                            output=usage_or.get('completion_tokens'),
                                            total=usage_or.get('total_tokens'), unit='TOKENS')
-                        loger.info(f"usage: {usage}")
+                        logger.info(f"usage: {usage}")
             except json.JSONDecodeError as e:
-                loger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
+                logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
     return {
         "output": output,
         "usage": usage
