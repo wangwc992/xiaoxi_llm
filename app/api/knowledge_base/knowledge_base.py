@@ -71,6 +71,7 @@ async def save_message(chat_message_history, chat_message_history_key, result):
     if isinstance(result, JSONResponse):
         result_body = result.body
         result_content = json.loads(result_body.decode('utf-8'))
+        loger.info(f"result_content: {result_content}")
         content += result_content.get('choices')[0].get('message').get('content')
 
     # 处理 StreamingResponse
