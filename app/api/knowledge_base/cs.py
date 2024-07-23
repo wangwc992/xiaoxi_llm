@@ -27,7 +27,7 @@ class MyChatCompletionRequestModel(BaseModel):
 
 
 @router.post("/v1/chat/completions", response_model=None)
-async def generate(request: MyChatCompletionRequestModel, raw_request: Request,background_tasks: BackgroundTasks):
+async def generate(request: MyChatCompletionRequestModel, raw_request: Request, background_tasks: BackgroundTasks):
     """生成文本或流式返回生成的文本."""
     usage: Optional[Union[BaseModel, ModelUsage]] = None
     # 记录开始时间
@@ -73,15 +73,17 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request,b
     if isinstance(result, StreamingResponse):
         # 启动一个后台任务来处理消息提取和保存
         background_tasks.add_task(
-            process_after_response, result, chat_message_history, chat_message_history_key, member_id, message_list, start_time)
+            process_after_response, result, chat_message_history, chat_message_history_key, member_id, message_list,
+            start_time)
         return result
     else:
-        message_dict = await extract_message(result)
-        await process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id, message_list, start_time)
+        await process_after_response(result, chat_message_history, chat_message_history_key, member_id,
+                                     message_list, start_time)
         return result
 
 
-async def process_after_response(result, chat_message_history, chat_message_history_key, member_id, message_list, start_time):
+async def process_after_response(result, chat_message_history, chat_message_history_key, member_id, message_list,
+                                 start_time):
     message_dict = await extract_message(result)
     # 记录结束时间
     end_time = datetime.now()
@@ -93,8 +95,9 @@ async def process_after_response(result, chat_message_history, chat_message_hist
     # 聊天历史记录保存到 Redis
     set_object(chat_message_history_key, chat_message_history)
 
-    # 使用 Langfuse 保存消息
-    await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time, end_time)
+    # 使用  保存消息
+    await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
+                        end_time)
 
 
 @observe()
@@ -114,6 +117,7 @@ async def extract_message(result):
     '''保存消息到聊天历史记录'''
     output = ''
     usage = None
+    logger.info(f"result:{result}")
     # 处理 JSONResponse
     if isinstance(result, JSONResponse):
         result_body = result.body
@@ -154,6 +158,7 @@ async def extract_message(result):
                         logger.info(f"usage: {usage}")
             except json.JSONDecodeError as e:
                 logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
+    logger.info(f"Extracted message - output: {output}, usage: {usage}")
     return {
         "output": output,
         "usage": usage
