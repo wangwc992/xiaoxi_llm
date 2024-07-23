@@ -1,10 +1,25 @@
 import logging
 import os
 import sys
+from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 RUNNING_LOG = "running_log.txt"
 
+class MillisecondFormatter(logging.Formatter):
+    r"""
+    自定义 Formatter，用于毫秒级日志记录。
+    """
+
+    def formatTime(self, record, datefmt=None):
+        ct = self.converter(record.created)
+        dt = datetime.fromtimestamp(record.created)
+        if datefmt:
+            s = dt.strftime(datefmt)
+        else:
+            t = dt.strftime("%Y-%m-%d %H:%M:%S")
+            s = f"{t},{int(record.msecs):03d}"
+        return s
 
 class LoggerHandler(logging.Handler):
     r"""
@@ -13,8 +28,8 @@ class LoggerHandler(logging.Handler):
 
     def __init__(self, output_dir: str) -> None:
         super().__init__()
-        formatter = logging.Formatter(
-            fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s", datefmt="%Y-%d-%m %H:%M:%S"
+        formatter = MillisecondFormatter(
+            fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
         )
         self.setLevel(logging.INFO)
         self.setFormatter(formatter)
@@ -46,8 +61,8 @@ def get_logger(name: str) -> logging.Logger:
     r"""
     Gets a standard logger with a stream hander to stdout.
     """
-    formatter = logging.Formatter(
-        fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s", datefmt="%Y-%d-%m %H:%M:%S"
+    formatter = MillisecondFormatter(
+        fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
