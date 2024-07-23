@@ -1,5 +1,7 @@
 import os
 import json
+
+from io import BytesIO
 from typing import Optional, Union
 from datetime import datetime
 from fastapi import Request, APIRouter, BackgroundTasks
@@ -70,12 +72,21 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
     result = await create_chat_completion(chat_request, raw_request)
 
     # 返回结果，不等待后续处理
+    # 处理流式响应
     if isinstance(result, StreamingResponse):
+        # 读取流式响应的数据
+        stream_data = BytesIO()
+        async for chunk in result.body_iterator:
+            stream_data.write(chunk.encode('utf-8'))  # 将字符串转换为字节并写入
+        stream_data.seek(0)  # 重置流的位置
+
         # 启动一个后台任务来处理消息提取和保存
         background_tasks.add_task(
-            process_after_response, result, chat_message_history, chat_message_history_key, member_id, message_list,
-            start_time)
-        return result
+            process_after_response, stream_data, chat_message_history, chat_message_history_key, member_id,
+            message_list, start_time)
+
+        # 返回流式响应
+        return StreamingResponse(stream_data, media_type="application/json")
     else:
         await process_after_response(result, chat_message_history, chat_message_history_key, member_id,
                                      message_list, start_time)
@@ -117,9 +128,10 @@ async def extract_message(result):
     '''保存消息到聊天历史记录'''
     output = ''
     usage = None
-    logger.info(f"result:{result}")
+    logger.info(f"result:{result}, type:{type(result)}")
     # 处理 JSONResponse
     if isinstance(result, JSONResponse):
+        logger.info(f"非流式输出")
         result_body = result.body
         result_content = json.loads(result_body.decode('utf-8'))
         logger.info(f"result_content: {result_content}")
@@ -133,6 +145,7 @@ async def extract_message(result):
 
     # 处理 StreamingResponse
     elif isinstance(result, StreamingResponse):
+        logger.info(f"流式输出")
         async for chunk in result.body_iterator:
             logger.info(f"chunk: {chunk}")
             # 检查 chunk 是否为空或者是特殊标记
