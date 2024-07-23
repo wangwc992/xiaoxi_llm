@@ -38,45 +38,47 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
 
     # 获取用户历史消息
     chat_message_history_key = redis_client.CHAT_MESSAGE_HISTORY = f"chat:message:history:{member_id}"
-    # chat_message_history = redis_client.get_object(chat_message_history_key, ChatMessageHistory)
-    # if chat_message_history is None:
-    chat_message_history = ChatMessageHistory()
-    system = SystemMessage(content="你是小希留学顾问助手")
-    chat_message_history.add_message(system)
+    chat_message_history = redis_client.get_object(chat_message_history_key, ChatMessageHistory)
+    if chat_message_history is None:
+        chat_message_history = ChatMessageHistory()
+        system = SystemMessage(content="你是小希留学顾问助手")
+        chat_message_history.add_message(system)
 
     chat_message_history.add_user_message(request.query)
     message_list = [{"role": message.type, "content": message.content} for message in
                     chat_message_history.messages]
 
     # 加载参考数据
-    # response_list = load_reference_data(text, 10)
-    # reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}————{response_list[n].output}"
-    #                               for n in range(len(response_list))])
+    response_list = load_reference_data(text, 10)
+    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}————{response_list[n].output}"
+                                  for n in range(len(response_list))])
 
     # 加载prompt
-    # base_dir = os.path.dirname(os.path.abspath(__file__))
-    # file_path = os.path.join(base_dir, '../../prompt/knowledge_prompt.txt')
-    # template = PromptTemplate.from_file(file_path)
-    # prompt = template.format(input=query, reference_data=reference_data)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, '../../prompt/knowledge_prompt.txt')
+    template = PromptTemplate.from_file(file_path)
+    prompt = template.format(input=query, reference_data=reference_data)
 
     # 创建 ChatCompletionRequest 对象
     stream_options = StreamOptions(include_usage=True)
-    request = ChatCompletionRequest(messages=message_list, stream=request.stream, model=request.model,stream_options=stream_options)
+    request = ChatCompletionRequest(messages=message_list, stream=request.stream, model=request.model,
+                                    stream_options=stream_options)
     request.messages = message_list
 
     # 调用 create_chat_completion 并获取结果
     result = await create_chat_completion(request, raw_request)
+
+    # 保存消息到聊天历史记录
+    await extract_message(result)
+
     # 记录结束时间
     end_time = datetime.now()
-
     logger.info(f"start_time: {start_time}, end_time: {end_time}")
-    # 保存消息到聊天历史记录
-    message_dict = await extract_message(result)
-
+    logger.info(f"result: {result}")
     #     # 添加 AI 消息到聊天历史记录
-    # chat_message_history.add_ai_message(message_dict.get('output'))
+    chat_message_history.add_ai_message(message_dict.get('output'))
     # # 聊天历史记录保存到 Redis
-    # redis_client.set_object(chat_message_history_key, chat_message_history)
+    redis_client.set_object(chat_message_history_key, chat_message_history)
 
     # 使用 Langfuse 保存消息
     await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
