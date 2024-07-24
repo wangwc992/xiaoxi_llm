@@ -2,7 +2,7 @@ from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
-    search_notice_message_data,search_school_info_basic_data
+    search_notice_message_data,search_school_info_basic_data,search_school_info_ranking_data
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
 from app.utils.FileOCR.FileToText import FileToText
 
@@ -120,23 +120,27 @@ def insert_college_library01_data():
     knowledge_base_model = [{
         "database": "zn_school_info",
         "db_id": str(school_info.get('id', '')),
-        "instruction": (school_info.get('chinese_name', '') + " " +
-                        school_info.get('english_name', '') + " " +
-                        school_info.get('school_abbreviations', '') + "的基本信息"),
-
+        "instruction": (
+            (school_info.get('chinese_name', '') + " " +
+             school_info.get('english_name', '') + " " +
+             school_info.get('school_abbreviations', '') + "的基本信息").strip()
+        ),
         "input": "",
-        "output": ("院校中文名：" + (school_info.get('chinese_name', '') or '') + " " +
-                   "院校英文名：" + (school_info.get('english_name', '') or '') + " " +
-                   "所属国家：" + (school_info.get('country_name', '') or '') + " " +
-                   "所属地区：" + (school_info.get('city_path', '') or '') + " " +
-                   "官网地址：" + (school_info.get('website', '') or '') + " " +
-                   "申请费支付维度：" + (school_info.get("fee_dimension")) + " " +
-                   "申请周期-算法统计：" + (school_info.get("apply_cycle_algorithm")) + " " +
-                   "申请周期-人工配置：" + (school_info.get("apply_cycle_manual")) + " "
-                   ),
-        "keyword": get_string(school_info.get("chinese_name", '') or '',
-                              school_info.get("english_name", '') or '',
-                              school_info.get("school_abbreviations", '') or ''),
+        "output": (
+                (f"院校中文名：{school_info.get('chinese_name', '')} " if school_info.get('chinese_name') else '') +
+                (f"院校英文名：{school_info.get('english_name', '')} " if school_info.get('english_name') else '') +
+                (f"所属国家：{school_info.get('country_name', '')} " if school_info.get('country_name') else '') +
+                (f"所属地区：{school_info.get('city_path', '')} " if school_info.get('city_path') else '') +
+                (f"官网地址：{school_info.get('website', '')} " if school_info.get('website') else '') +
+                (f"申请费支付维度：{school_info.get('fee_dimension', '')} " if school_info.get('fee_dimension') else '') +
+                (f"申请周期-算法统计：{school_info.get('apply_cycle_algorithm', '')} " if school_info.get('apply_cycle_algorithm') else '') +
+                (f"申请周期-人工配置：{school_info.get('apply_cycle_manual', '')} " if school_info.get('apply_cycle_manual') else '')
+        ).strip(),
+        "keyword": get_string(
+            school_info.get("chinese_name", '') or '',
+            school_info.get("english_name", '') or '',
+            school_info.get("school_abbreviations", '') or ''
+        ),
         "file_info": "",
     } for school_info in school_info_basic]
     insert_weaviate_data_all(knowledge_base_model)
@@ -149,7 +153,8 @@ def insert_college_library02_data():
     b、内容信息：
     【世界USNEWS排名：】【世界泰晤士排名：】【世界QS排名：】【地区USNEWS排名：】【地区泰晤士排名：】【地区QS排名：】
     '''
-    pass
+    school_info_basic = search_school_info_ranking_data(id=start_id, limit=limit)
+
 
 
 def insert_college_library03_data():
