@@ -2,20 +2,28 @@ from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
-    search_notice_message_data
+    search_notice_message_data,search_school_info_basic_data
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
+from app.utils.FileOCR.FileToText import FileToText
 
 knowledge_base_weaviate = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
 
 logger = get_logger(__name__)
-
+file_to_text = FileToText()
 # 查询起始id
 start_id = 0
 
 # 每次查询条数
-limit = 3
+limit = 1
 
+def get_string(*string_list):
+    text = " ".join([str(s) for s in string_list if s])
+    return text
 
+# 拿出富文本中A标签和img标签的链接，我会传入一个字符串的富文本
+def get_file_info(file_url):
+    file_info = file_to_text.urlToText(file_url)
+    return file_info
 def insert_t_knowledge_info_data():
     '''知识库
     1、问答/文件相关知识库内容洗入向量库时注意事项：
@@ -36,15 +44,23 @@ def insert_t_knowledge_info_data():
         start_id = knowledge_info_dict_list[-1].get("id")
         knowledge_base_model = [{
             "database": "t_knowledge_info",
-            "db_id": str(knowledge_info.get("id")),
-            "instruction": knowledge_info.get("country") + " " + knowledge_info.get(
-                "school") + " " + knowledge_info.get(
-                "class") + " " + knowledge_info.get("name"),
+            "db_id": str(knowledge_info.get("id", '') or ''),
+            "instruction": get_string(knowledge_info.get("country", '') or '',
+                                      knowledge_info.get("school", '') or '',
+                                      knowledge_info.get("class", '') or '',
+                                      "的以下问题",
+                                      knowledge_info.get("name", '') or ''),
             "input": "",
-            "output": knowledge_info.get("founder") + "于" + knowledge_info.get("replyerTime").strftime(
-                "%Y-%m-%d %H:%M:%S") + "回复内容如下：" + HtmlUtils.replace_link_with_url(knowledge_info.get("content")),
-            "state": knowledge_info["startup_status"]
+            "output": ((knowledge_info.get("founder", '') or '') + "于" +
+                       ((knowledge_info.get("replyerTime").strftime("%Y-%m-%d %H:%M:%S"))
+                        if knowledge_info.get("replyerTime") else '') + "回复内容如下：" +
+                       HtmlUtils.replace_link_with_url(knowledge_info.get("content", '') or '')),
+            "keyword": get_string(knowledge_info.get("country", '') or '',
+                                  knowledge_info.get("school", '') or '',
+                                  knowledge_info.get("class", '') or ''),
+            "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get("fileurl") else "",
         } for knowledge_info in knowledge_info_dict_list]
+
         insert_weaviate_data_all(knowledge_base_model)
 
 
@@ -59,19 +75,28 @@ def insert_institution_information_data():
     以下为资料正文中附件{附件内容}。
     '''
     notice_massage_dict_list = search_notice_message_data(id=start_id, limit=limit)
-    print(notice_massage_dict_list)
     knowledge_base_model = [{
         "database": "notice_message",
-        "db_id": str(notice_massage.get('notice_id')),
-        "instruction": notice_massage.get('school_name') + " " + notice_massage.get(
-            'school_english_name') + "于" + notice_massage.get(
-            'notice_create_time').strftime(
-            "%Y-%m-%d %H:%M:%S") + " " + notice_massage.get('notice_category')+ " " + notice_massage.get('notice_title'),
+        "db_id": str(notice_massage.get('notice_id', '')),
+        "instruction": (notice_massage.get('school_name', '') + " " +
+                        notice_massage.get('school_english_name', '') + "于" +
+                        (notice_massage.get('notice_create_time').strftime("%Y-%m-%d %H:%M:%S")
+                         if notice_massage.get('notice_create_time') else '') + " " +
+                        notice_massage.get('notice_category', '') + " " +
+                        notice_massage.get('notice_title', '')),
         "input": "",
-        "output": notice_massage.get('notice_summary') + "于" + notice_massage.get('attachment_name') + "回复内容如下：" + notice_massage.get('attachment_url'),
-        "state": notice_massage["startup_status"]
+        "output": ("以下是咨询正文：" + (notice_massage.get('notice_summary', '') or '') +
+                   "以下是咨询附件：" + (notice_massage.get('attachment_name', '') or '') + " " +
+                   (file_info if (file_info := (file_to_text.urlToText(notice_massage["attachment_url"])
+                                                if notice_massage.get("attachment_url") else '')) else '') +
+                   "以下是正文中的附件：" + (notice_massage.get('notice_title', '') or '')),
+        "keyword": get_string(notice_massage.get("school_name", '') or '',
+                              notice_massage.get("school_english_name", '') or '',
+                              notice_massage.get("class", '') or ''),
+        "file_info": file_info if (file_info := (file_to_text.urlToText(notice_massage["attachment_url"])
+                                                 if notice_massage.get("attachment_url") else '')) else '',
     } for notice_massage in notice_massage_dict_list]
-
+    insert_weaviate_data_all(knowledge_base_model)
 
 def insert_platform_introduction_data():
     '''插入小希平台介绍的全部数据
@@ -91,7 +116,30 @@ def insert_college_library01_data():
     b、内容信息：
     （*仅洗入字段内容不为空的字段，字段为（*我这里仅列出标题））：【*院校中文名：】【*院校英文名：】【*所属国家：】【所属地区：】【*官网地址：】【申请费支付维度：】【申请周期-算法统计：】【申请周期-人工配置：】
         '''
-    pass
+    school_info_basic = search_school_info_basic_data(id=start_id, limit=limit)
+    knowledge_base_model = [{
+        "database": "zn_school_info",
+        "db_id": str(school_info.get('id', '')),
+        "instruction": (school_info.get('chinese_name', '') + " " +
+                        school_info.get('english_name', '') + " " +
+                        school_info.get('school_abbreviations', '') + "的基本信息"),
+
+        "input": "",
+        "output": ("院校中文名：" + (school_info.get('chinese_name', '') or '') + " " +
+                   "院校英文名：" + (school_info.get('english_name', '') or '') + " " +
+                   "所属国家：" + (school_info.get('country_name', '') or '') + " " +
+                   "所属地区：" + (school_info.get('city_path', '') or '') + " " +
+                   "官网地址：" + (school_info.get('website', '') or '') + " " +
+                   "申请费支付维度：" + (school_info.get("fee_dimension")) + " " +
+                   "申请周期-算法统计：" + (school_info.get("apply_cycle_algorithm")) + " " +
+                   "申请周期-人工配置：" + (school_info.get("apply_cycle_manual")) + " "
+                   ),
+        "keyword": get_string(school_info.get("chinese_name", '') or '',
+                              school_info.get("english_name", '') or '',
+                              school_info.get("school_abbreviations", '') or ''),
+        "file_info": "",
+    } for school_info in school_info_basic]
+    insert_weaviate_data_all(knowledge_base_model)
 
 
 def insert_college_library02_data():
@@ -258,8 +306,9 @@ def update_weaviate_data_by_id(id: str, properties: dict):
 
 
 if __name__ == '__main__':
-    database = "t_knowledge_info"
-    # insert_t_knowledge_info_data()
+    #database = "t_knowledge_info"
+    #insert_t_knowledge_info_data()
+
     # clear_all_data(database)
     # delete_weaviate_data_by_id("155")
     # search_weaviate_data_by_query("英国", 10)
@@ -271,4 +320,5 @@ if __name__ == '__main__':
     #     "output": "郝丽君12 2023-03-22 10:22:41 英国本科学历达到58分，是符合USNW要求65%的硕士录取要求的。如分数达不到，可考虑申请GC项目进行过渡。",
     #     "state": 1
     # })
-    insert_institution_information_data()
+    #insert_institution_information_data()
+    insert_college_library01_data()

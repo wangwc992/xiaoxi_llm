@@ -66,8 +66,8 @@ class KnowledgeInfo(BaseModel):
     share_num: int = Field(None, description="分享数")
 
 
-def search_knowledge_info_data(id=0, startup_status=1, type=1, limit=10):
-    sql = f"SELECT id, country, school, class, name, founder, replyerTime, content, startup_status FROM t_knowledge_info where startup_status = {startup_status} and type = {type} and id > {id}"
+def search_knowledge_info_data(id=0, limit=10):
+    sql = f"SELECT id, country, school, class, name, founder, replyerTime, content, fileurl FROM t_knowledge_info where startup_status = 1 and id > {id}"
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
@@ -109,6 +109,28 @@ def search_notice_message_data(id: int = 0, limit: int = 10):
     '''
     return smart_counselor.execute_all2dict(sql=sql, limit=limit)
 
+def search_school_info_basic_data(id: int = 0, limit: int = 10):
+    sql = f'''SELECT 
+        id,
+        chinese_name,
+        english_name,
+        school_abbreviations,
+        country_name,
+        city_path,
+        website,
+        CASE 
+            WHEN fee_dimension = 1 THEN '按院校'
+            WHEN fee_dimension = 2 THEN '按专业'
+            WHEN fee_dimension = 3 THEN '其他'
+            ELSE ''
+        END AS fee_dimension,
+        fee_dimension,
+        apply_cycle_algorithm,
+        apply_cycle_manual
+    FROM 
+        zn_school_info where delete_status = 0 and id > {id}
+    '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 if __name__ == '__main__':
-    print(search_notice_message_data())
+    print(search_school_info_basic_data(5,6))

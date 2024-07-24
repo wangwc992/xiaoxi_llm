@@ -108,6 +108,14 @@ class FileToText:
         doc.close()
         return text
 
+    def urlToText(self, pdf_url):
+        fileType = self.get_file_extension(pdf_url)
+        file = self.download_file(pdf_url)
+        text = self.fileToString(file,fileType)
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+
+
 if __name__ == '__main__':
     fileToText = FileToText()
     #文字型PDF
@@ -127,9 +135,6 @@ if __name__ == '__main__':
 
     #XLSX
     pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/xlsx/2023032018555339603013.xlsx"
+    text = fileToText.urlToText(pdf_url)
 
-    fileType = fileToText.get_file_extension(pdf_url)
-    file = fileToText.download_file(pdf_url)
-    text = fileToText.fileToString(file,fileType)
-    text = re.sub(r'\s+', ' ', text).strip()
     print(text)

@@ -7,12 +7,12 @@ knowledgeBase = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
 #
 #
 # knowledgeBase.weaviate_client.delete_collection_name(knowledgeBase.collections_name)
+# 创建qewn_data_base索引
+knowledgeBase.create_collection()
 #
-# knowledgeBase.create_collection()
-#
-# WeaviateClient.collections_list_all()
+WeaviateClient.collections_list_all()
 #
 # knowledgeBase.weaviate_client.get_collection_config()
 
 
-print(knowledgeBase.search_id('7b8721e4-cfd0-49e4-97e5-eb4696dabb10'))
+#print(knowledgeBase.search_id('7b8721e4-cfd0-49e4-97e5-eb4696dabb10'))
