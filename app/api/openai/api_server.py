@@ -4,6 +4,7 @@ from typing import Set, Optional
 
 from fastapi import Request, APIRouter
 from fastapi.responses import JSONResponse, Response, StreamingResponse
+from langfuse.decorators import observe, langfuse_context
 from vllm.entrypoints.openai.protocol import (ChatCompletionRequest,
                                               ChatCompletionResponse,
                                               CompletionRequest,
@@ -49,7 +50,7 @@ async def show_version():
 
 @router.post("/v1/chat/completions")
 async def create_chat_completion(request: ChatCompletionRequest,
-                                 raw_request:  Optional[Request] = None):
+                                 raw_request:  Request):
     openai_serving_chat = get_openai_serving_chat()
     generator = await openai_serving_chat.create_chat_completion(
         request, raw_request)
