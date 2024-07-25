@@ -61,6 +61,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             where=Filter.by_property("db_id").equal(id) & Filter.by_property("database").equal(database)
         )
 
+knowledge_base_weaviate = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
 
 if __name__ == '__main__':
     knowledgeBase = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
