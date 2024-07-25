@@ -24,7 +24,7 @@ file_to_text = FileToText()
 start_id = 0
 
 # 每次查询条数
-limit = 10
+limit = 2
 
 
 def get_string(*string_list):
@@ -503,7 +503,7 @@ def update_weaviate_data_by_id(id: str, properties: dict):
 
 if __name__ == '__main__':
     # database = "t_knowledge_info"
-    # insert_t_knowledge_info_data()
+    insert_t_knowledge_info_data()
 
     # clear_all_data(database)
     # delete_weaviate_data_by_id("155")
@@ -517,4 +517,4 @@ if __name__ == '__main__':
     #     "state": 1
     # })
     # insert_institution_information_data()
-    insert_major_library02_data()
+    # insert_major_library02_data()

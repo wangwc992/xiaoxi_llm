@@ -83,7 +83,7 @@ class ObjectFormatter:
                 name = list(key_name.keys())[0]
                 value = zn_school_department_project_dict[key_name[name]]
                 if name == 'db_id':
-                    db_id = value
+                    db_id = str(value)
                 elif value:
                     key += f"{name} "
                     key_value += f"{name}：{value}、 "

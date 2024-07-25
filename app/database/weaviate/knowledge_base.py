@@ -33,13 +33,6 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         Property(name='file_info', data_type=DataType.TEXT, description='文件信息')
     ]
 
-    def create_collection(self):
-        self.client.collections.create(
-            self.collections_name,
-            vector_index_config=Configure.VectorIndex.hnsw(),
-            properties=self.properties
-        )
-
     def clear_all_data(self, database: str):
         '''清空Weaviate数据库中的所有数据'''
         self.collection.data.delete_many(
@@ -67,3 +60,9 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         self.collection.data.delete_many(
             where=Filter.by_property("db_id").equal(id) & Filter.by_property("database").equal(database)
         )
+
+
+if __name__ == '__main__':
+    knowledgeBase = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
+    WeaviateClient.delete_collection_name(knowledgeBase.collections_name)
+    knowledgeBase.create_collection(knowledgeBase.properties)
