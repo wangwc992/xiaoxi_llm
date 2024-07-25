@@ -17,21 +17,22 @@ vllm:
 
 mysql:
   xxlxdb:
-    host: "192.168.0.137"
-    port: 3306
-    user: "root"
-    password: "mirandA123!@#"
-    database: "test_xxlxdb"
+    host: "120.92.116.101"
+    port: 9200
+    user: "read"
+    password: "Xxedu_only_Read123!@#"
+    database: "xxlxdb"
   smart_counselor:
-    host: "192.168.0.137"
-    port: 3306
-    user: "root"
-    password: "mirandA123!@#"
-    database: "test_smart_counselor"
-
+    host: "120.92.116.101"
+    port: 9200
+    user: "read"
+    password: "Xxedu_only_Read123!@#"
+    database: "smart_counselor"
+#120.92.38.14
+#58818
 redis:
-  host: "192.168.0.188"
-  port: 6379
+  host: "59.108.41.117"
+  port: 26379
   db: 12
   password: "aoji123!@#"
   max_retries: 5

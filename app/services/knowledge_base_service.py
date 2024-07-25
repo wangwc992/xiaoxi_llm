@@ -5,7 +5,7 @@ from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowl
     search_notice_message_data,search_school_info_basic_data,search_school_info_ranking_data, \
     search_school_info_more_data
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
-from app.utils.FileOCR.FileToText import FileToText
+from app.common.utils.FileToText import FileToText
 
 knowledge_base_weaviate = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
 

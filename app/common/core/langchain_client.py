@@ -68,3 +68,4 @@ class Embedding:
 #
 # def get_openai_serving_completion():
 #     return VllmClient.get_openai_serving_completion()
+

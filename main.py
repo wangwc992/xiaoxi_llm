@@ -49,4 +49,5 @@ app.include_router(knowledge_base.router)
 
 if __name__ == '__main__':
     import uvicorn
+    # uvicorn main:app --host 0.0.0.0 --port 6006
     uvicorn.run(app, host='0.0.0.0', port=6006)

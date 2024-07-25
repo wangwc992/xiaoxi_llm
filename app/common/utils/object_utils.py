@@ -60,3 +60,30 @@ class ObjectFormatter:
         for key, value in dict.items():
             setattr(obj, key, value)
         return obj
+
+    @staticmethod
+    def attribute_concatenation(key_name_list, zn_school_department_project_dict_list):
+        """
+        根据提供的键名列表和字典列表，生成包含格式化输出和指令的字典列表。
+
+        此方法用于将专业信息的各个属性按照特定格式组合成字符串，并为每个属性生成一个指令字符串。
+        指令字符串由属性名组成，用于指示哪些属性被包含在输出中。
+
+        :param key_name_list: 包含键名和对应显示名称的字典列表，例如 [{'所属院系': 'department'}]。
+        :param zn_school_department_project_dict_list: 包含专业信息的字典列表，每个字典代表一个专业的信息。
+        :return: 一个字典列表，每个字典包含两个键：'output' 和 'instruction'。
+                 'output' 键对应的值是格式化后的专业信息字符串，'instruction' 键对应的值是包含所有包含属性名的字符串。
+        """
+        dict_list = []
+        for zn_school_department_project_dict in zn_school_department_project_dict_list:
+            output = ""
+            instruction = ""
+            for key_name in key_name_list:
+                key = list(key_name.keys())[0]
+                value = zn_school_department_project_dict[key_name[key]]
+                if value:
+                    instruction += f"{key} "
+                    output += f"{key}：{value}、 "
+            dict = {"output": output.rstrip("、 "), "instruction": instruction.rstrip()}
+            dict_list.append(dict)
+        return dict_list
