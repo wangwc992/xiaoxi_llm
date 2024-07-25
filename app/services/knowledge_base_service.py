@@ -1,9 +1,11 @@
 from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
+from app.common.utils.object_utils import ObjectFormatter
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
-    search_notice_message_data,search_school_info_basic_data,search_school_info_ranking_data, \
-    search_school_info_more_data
+    search_notice_message_data, search_school_info_basic_data,search_school_info_ranking_data, \
+    search_school_info_more_data, search_zn_school_selection_reason,search_zn_school_recruit_graduate_1, \
+    search_zn_school_recruit_graduate_2,search_zn_school_recruit_art
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
 from app.common.utils.FileToText import FileToText
 
@@ -202,23 +204,29 @@ def insert_college_library03_data():
         "output": (
                 (f"就业率：{school_info.get('employment_rate', '')} " if school_info.get('employment_rate') else '') +
                 (f"毕业薪资：{school_info.get('employment_salary', '')} " if school_info.get('employment_salary') else '') +
-                (f"学生总数量：{school_info.get('total_student', '')} " if school_info.get('total_student') else '') +
-                (f"本科生数量：{school_info.get('undergraduate_student', '')} " if school_info.get('undergraduate_student') else '') +
-                (f"研究生数量：{school_info.get('graduate_student', '')} " if school_info.get('graduate_student') else '') +
-                (f"国际学生比例：{school_info.get('international_student_ratio', '')} " if school_info.get('international_student_ratio') else '') +
-                (f"师生比例：{school_info.get('teacher_student_ratio', '')} " if school_info.get('teacher_student_ratio') else '') +
-                (f"男女比例：{school_info.get('male_female_ratio', '')} " if school_info.get('male_female_ratio') else '') +
+                (f"学生总数量：{school_info.get('student_amount', '')} " if school_info.get('student_amount') else '') +
+                (f"本科生数量：{school_info.get('undergraduate_amount', '')} " if school_info.get('undergraduate_amount') else '') +
+                (f"研究生数量：{school_info.get('graduate_amount', '')} " if school_info.get('graduate_amount') else '') +
+                (f"国际学生比例：{school_info.get('international_ratio', '')} " if school_info.get('international_ratio') else '') +
+                (f"师生比例：{school_info.get('faculty_ratio', '')} " if school_info.get('faculty_ratio') else '') +
+                (f"男女比例：{school_info.get('boy_girl_ratio', '')} " if school_info.get('boy_girl_ratio') else '') +
                 (f"院校简介：{school_info.get('introduction', '')} " if school_info.get('introduction') else '') +
                 (f"院校历史：{school_info.get('history', '')} " if school_info.get('history') else '') +
                 (f"地理位置：{school_info.get('location', '')} " if school_info.get("location") else '') +
-                (f"校园环境：{school_info.get('campus_environment', '')} " if school_info.get('campus_environment') else '') +
-                (f"学校宿舍：{school_info.get('dormitory', '')} " if school_info.get('dormitory') else '') +
+                (f"校园环境：{school_info.get('campus', '')} " if school_info.get('campus') else '') +
+                (f"学校宿舍：{school_info.get('accommodation', '')} " if school_info.get('accommodation') else '') +
                 (f"图书馆：{school_info.get('library', '')} " if school_info.get('library') else '') +
-                (f"学校设施：{school_info.get('facilities', '')} " if school_info.get('facilities') else '') +
-                (f"招生办信息：{school_info.get('enrollment_office_information', '')} " if school_info.get('enrollment_office_information') else '') +
-                (f"防疫信息：{school_info.get('prevention_information', '')} " if school_info.get('prevention_information') else '')
+                (f"学校设施：{school_info.get('installation', '')} " if school_info.get('installation') else '') +
+                (f"招生办信息：{school_info.get('admissions_office', '')} " if school_info.get('admissions_office') else '') +
+                (f"防疫信息：{school_info.get('covid_rule', '')} " if school_info.get('covid_rule') else '')
 
-         )
+         ),
+        "keyword": get_string(
+            school_info.get("chinese_name", '') or '',
+            school_info.get("english_name", '') or '',
+            school_info.get("school_abbreviations", '') or ''
+        ),
+        "file_info": "",
     }for school_info in school_info_more_list]
     insert_weaviate_data_all(knowledge_base_model)
 
@@ -230,7 +238,34 @@ def insert_college_library04_data():
     b、内容信息：
     【择校理由：】【学校特色：】【强势专业：】【热门专业：】【院系设置：】【好评项：】【差评项：】
     '''
-    pass
+    database = "zn_school_selection_reason"
+    zn_school_selection_reason_list = search_zn_school_selection_reason(limit=10)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": str(school_info.get('id', '')),
+        "instruction": (
+            (school_info.get('chinese_name', '') + " " +
+             school_info.get('english_name', '') + " " +
+             school_info.get('school_abbreviations', '') + "的院校择校理由").strip()
+        ),
+        "input": "",
+        "output": (
+                (f"择校理由：{school_info.get('selection_reason', '')} " if school_info.get('selection_reason') else '') +
+                (f"学校特色：{school_info.get('feature', '')} " if school_info.get('feature') else '') +
+                (f"强势专业：{school_info.get('strong_majors', '')} " if school_info.get('strong_majors') else '') +
+                (f"热门专业：{school_info.get('hot_majors', '')} " if school_info.get('hot_majors') else '') +
+                (f"院系设置：{school_info.get('department_major', '')} " if school_info.get('department_major') else '') +
+                (f"好评项：{school_info.get('evaluation_good', '')} " if school_info.get('evaluation_good') else '') +
+                (f"差评项：{school_info.get('evaluation_bad', '')} " if school_info.get('evaluation_bad') else '')
+        ),
+        "keyword": get_string(
+            school_info.get("chinese_name", '') or '',
+            school_info.get("english_name", '') or '',
+            school_info.get("school_abbreviations", '') or ''
+        ),
+        "file_info": "",
+    }for school_info in zn_school_selection_reason_list]
+    insert_weaviate_data_all(knowledge_base_model)
 
 
 def insert_college_library05_data():
@@ -243,7 +278,56 @@ def insert_college_library05_data():
     3、考试要求如下：
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
-    pass
+    database = "zn_school_recruit_graduate_1"
+    search_zn_school_recruit_graduate_1_list = search_zn_school_recruit_graduate_1(limit=10)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": str(school_info.get('id', '')),
+        "instruction": (
+            (school_info.get('chinese_name', '') + " " +
+             school_info.get('english_name', '') + " " +
+             school_info.get('school_abbreviations', '') + "的本科生院校招生信息").strip()
+        ),
+        "input": "",
+        "output": (
+                (f"录取信息如下："
+                 f"【申请简介：{school_info.get('introduction', '')}】" if school_info.get('introduction') else '') +
+                (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
+                (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
+                (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
+                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get('time_apply_deadline') else '') +
+                (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
+
+                (f"\n留学费用如下："
+                 f"【申请费用：{school_info.get('fee_apply', '')}】" if school_info.get('fee_apply') else '') +
+                (f"【学费：{school_info.get('fee_tuition', '')}】" if school_info.get('fee_tuition') else '') +
+                (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
+                (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
+                (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
+                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get('fee_accommodation') else '') +
+                (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
+                (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
+
+                (f"\n考试要求如下："
+                 f"【GPA成绩：{school_info.get('score_gpa', '')}】" if school_info.get('score_gpa') else '') +
+                (f"【ACT成绩：{school_info.get('score_act', '')}】" if school_info.get('score_act') else '') +
+                (f"【SAT成绩：{school_info.get('score_sat', '')}】" if school_info.get('score_sat') else '') +
+                (f"【SAT2成绩：{school_info.get('score_sat2', '')}】" if school_info.get('score_sat2') else '') +
+                (f"【GRE成绩：{school_info.get('score_gre', '')}】" if school_info.get('score_gre') else '') +
+                (f"【GMAT成绩：{school_info.get('score_gmat', '')}】" if school_info.get('score_gmat') else '') +
+                (f"【雅思成绩：{school_info.get('score_ielts', '')}】" if school_info.get('score_ielts') else '') +
+                (f"【托福成绩：{school_info.get('score_toefl', '')}】" if school_info.get('score_toefl') else '') +
+                (f"【native成绩：{school_info.get('score_native', '')}】" if school_info.get('score_native') else '') +
+                (f"【其他成绩：{school_info.get('score_others', '')}】" if school_info.get('score_others') else '') +
+
+                (f"【奖学金：{school_info.get('scholarship', '')}】" if school_info.get('scholarship') else '') +
+                (f"【申请材料：{school_info.get('material', '')}】" if school_info.get('material') else '') +
+                (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
+        )
+
+    }for school_info in search_zn_school_recruit_graduate_1_list]
+    insert_weaviate_data_all(knowledge_base_model)
+
 
 
 def insert_college_library06_data():
@@ -256,23 +340,58 @@ def insert_college_library06_data():
     3、考试要求如下：
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
-    pass
+    database = "zn_school_recruit_graduate_2"
+    search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_graduate_2(limit=10)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": str(school_info.get('id', '')),
+        "instruction": (
+            (school_info.get('chinese_name', '') + " " +
+             school_info.get('english_name', '') + " " +
+             school_info.get('school_abbreviations', '') + "的本科生院校招生信息").strip()
+        ),
+        "input": "",
+        "output": (
+                (f"录取信息如下："
+                 f"【申请简介：{school_info.get('introduction', '')}】" if school_info.get('introduction') else '') +
+                (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
+                (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
+                (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
+                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get('time_apply_deadline') else '') +
+                (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
+
+                (f"\n留学费用如下："
+                 f"【申请费用：{school_info.get('fee_apply', '')}】" if school_info.get('fee_apply') else '') +
+                (f"【学费：{school_info.get('fee_tuition', '')}】" if school_info.get('fee_tuition') else '') +
+                (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
+                (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
+                (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
+                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get('fee_accommodation') else '') +
+                (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
+                (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
+
+                (f"\n考试要求如下："
+                 f"【GPA成绩：{school_info.get('score_gpa', '')}】" if school_info.get('score_gpa') else '') +
+                (f"【ACT成绩：{school_info.get('score_act', '')}】" if school_info.get('score_act') else '') +
+                (f"【SAT成绩：{school_info.get('score_sat', '')}】" if school_info.get('score_sat') else '') +
+                (f"【SAT2成绩：{school_info.get('score_sat2', '')}】" if school_info.get('score_sat2') else '') +
+                (f"【GRE成绩：{school_info.get('score_gre', '')}】" if school_info.get('score_gre') else '') +
+                (f"【GMAT成绩：{school_info.get('score_gmat', '')}】" if school_info.get('score_gmat') else '') +
+                (f"【雅思成绩：{school_info.get('score_ielts', '')}】" if school_info.get('score_ielts') else '') +
+                (f"【托福成绩：{school_info.get('score_toefl', '')}】" if school_info.get('score_toefl') else '') +
+                (f"【native成绩：{school_info.get('score_native', '')}】" if school_info.get('score_native') else '') +
+                (f"【其他成绩：{school_info.get('score_others', '')}】" if school_info.get('score_others') else '') +
+
+                (f"【奖学金：{school_info.get('scholarship', '')}】" if school_info.get('scholarship') else '') +
+                (f"【申请材料：{school_info.get('material', '')}】" if school_info.get('material') else '') +
+                (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
+        )
+
+    }for school_info in search_zn_school_recruit_graduate_2_list]
+    insert_weaviate_data_all(knowledge_base_model)
 
 
 def insert_college_library07_data():
-    '''院校库洗入格式如下
-    a、标题信息：
-    {院校中文名}{院校英文名}{院校简称}的{本科生院校招生信息}如下：
-    b、内容信息：
-    1、录取信息如下：【申请简介：】【录取率：】【申请人数：】【申请学期：】【申请截止时间：】【Offer发放时间：】
-    2、留学费用如下：【申请费用：】【学费：】【书本费：】【生活费：】【交通费：】【住宿费用：】【其他费用：】【总花费：】
-    3、考试要求如下：
-    【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
-    '''
-    pass
-
-
-def insert_college_library08_data():
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{艺术生院校招生信息}如下：
@@ -282,7 +401,57 @@ def insert_college_library08_data():
     3、考试要求如下：
     【研究生专业：】【本科专业：】【研究生雅思成绩：】【本科雅思成绩：】【研究生托福成绩：】【本科托福成绩：】【研究生申请截止日：】【本科申请截止日期：】【研究生申请要求：】【本科申请要求：】【研究生作品集要求：】【本科作品集要求：】
     '''
-    pass
+    database = "zn_school_recruit_art"
+    search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_art(limit=10)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": str(school_info.get('id', '')),
+        "instruction": (
+            (school_info.get('chinese_name', '') + " " +
+             school_info.get('english_name', '') + " " +
+             school_info.get('school_abbreviations', '') + "的本科生院校招生信息").strip()
+        ),
+        "input": "",
+        "output": (
+                (f"录取信息如下："
+                 f"【申请简介：{school_info.get('introduction', '')}】" if school_info.get('introduction') else '') +
+                (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
+                (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
+                (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
+                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get('time_apply_deadline') else '') +
+                (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
+
+                (f"\n留学费用如下："
+                 f"【申请费用：{school_info.get('fee_apply', '')}】" if school_info.get('fee_apply') else '') +
+                (f"【学费：{school_info.get('fee_tuition', '')}】" if school_info.get('fee_tuition') else '') +
+                (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
+                (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
+                (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
+                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get('fee_accommodation') else '') +
+                (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
+                (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
+
+                (f"\n考试要求如下："
+                 f"【GPA成绩：{school_info.get('score_gpa', '')}】" if school_info.get('score_gpa') else '') +
+                (f"【ACT成绩：{school_info.get('score_act', '')}】" if school_info.get('score_act') else '') +
+                (f"【SAT成绩：{school_info.get('score_sat', '')}】" if school_info.get('score_sat') else '') +
+                (f"【SAT2成绩：{school_info.get('score_sat2', '')}】" if school_info.get('score_sat2') else '') +
+                (f"【GRE成绩：{school_info.get('score_gre', '')}】" if school_info.get('score_gre') else '') +
+                (f"【GMAT成绩：{school_info.get('score_gmat', '')}】" if school_info.get('score_gmat') else '') +
+                (f"【雅思成绩：{school_info.get('score_ielts', '')}】" if school_info.get('score_ielts') else '') +
+                (f"【托福成绩：{school_info.get('score_toefl', '')}】" if school_info.get('score_toefl') else '') +
+                (f"【native成绩：{school_info.get('score_native', '')}】" if school_info.get('score_native') else '') +
+                (f"【其他成绩：{school_info.get('score_others', '')}】" if school_info.get('score_others') else '') +
+
+                (f"【奖学金：{school_info.get('scholarship', '')}】" if school_info.get('scholarship') else '') +
+                (f"【申请材料：{school_info.get('material', '')}】" if school_info.get('material') else '') +
+                (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
+        )
+
+    }for school_info in search_zn_school_recruit_graduate_2_list]
+    insert_weaviate_data_all(knowledge_base_model)
+
+
 
 
 def insert_major_library01_data():
@@ -367,8 +536,8 @@ def update_weaviate_data_by_id(id: str, properties: dict):
 
 
 if __name__ == '__main__':
-    #database = "t_knowledge_info"
-    #insert_t_knowledge_info_data()
+    # database = "t_knowledge_info"
+    # insert_t_knowledge_info_data()
 
     # clear_all_data(database)
     # delete_weaviate_data_by_id("155")
@@ -381,6 +550,11 @@ if __name__ == '__main__':
     #     "output": "郝丽君12 2023-03-22 10:22:41 英国本科学历达到58分，是符合USNW要求65%的硕士录取要求的。如分数达不到，可考虑申请GC项目进行过渡。",
     #     "state": 1
     # })
-    #insert_institution_information_data()
+    # insert_institution_information_data()
     # insert_college_library01_data()
-    insert_college_library02_data()
+    # insert_college_library02_data()
+    # insert_college_library03_data()
+    # insert_college_library04_data()
+    # insert_college_library05_data()
+    insert_college_library07_data()
+

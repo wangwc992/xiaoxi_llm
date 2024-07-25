@@ -153,52 +153,22 @@ def search_school_info_ranking_data(id: int = 0, limit: int = 10):
 
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
-# CREATE TABLE `zn_school_intro` (
-#     `id` int(11) NOT NULL AUTO_INCREMENT,
-# `school_id` int(11) DEFAULT NULL COMMENT '院校表ID',
-# `introduction` text COMMENT '院校简介',
-# `international_ratio` varchar(200) DEFAULT NULL COMMENT '国际学生比例',
-# `faculty_ratio` varchar(200) DEFAULT NULL COMMENT '师生比例',
-# `boy_girl_ratio` varchar(200) DEFAULT NULL COMMENT '男女比例',
-# `student_amount` varchar(200) DEFAULT NULL COMMENT '学生总数量',
-# `undergraduate_amount` varchar(200) DEFAULT NULL COMMENT '本科生数量',
-# `graduate_amount` varchar(200) DEFAULT NULL COMMENT '研究生数量',
-# `employment_rate` varchar(200) DEFAULT NULL COMMENT '就业率',
-# `employment_salary` varchar(200) DEFAULT NULL COMMENT '毕业薪资',
-# `history` text COMMENT '院校历史',
-# `location` text COMMENT '地理位置',
-# `campus` text COMMENT '校园环境',
-# `accommodation` text COMMENT '学校宿舍',
-# `library` text COMMENT '图书馆',
-# `installation` text COMMENT '学校设施',
-# `admissions_office` text COMMENT '招生办信息',
-# `covid_rule` text COMMENT '防疫信息',
-# `video_url` varchar(255) DEFAULT NULL COMMENT '介绍视频url',
-# `delete_status` int(1) DEFAULT '0' COMMENT '是否删除  0-未删除,1-已删除',
-# `create_by` int(11) NOT NULL COMMENT '创建人',
-# `update_by` int(11) NOT NULL COMMENT '更新人',
-# `create_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
-# `update_name` varchar(50) DEFAULT NULL COMMENT '更新人名称',
-# `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-# `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-# PRIMARY KEY (`id`) USING BTREE,
-# UNIQUE KEY `uk_school` (`school_id`) USING BTREE
-# ) ENGINE=InnoDB AUTO_INCREMENT=2451 DEFAULT CHARSET=utf8mb4 COMMENT='院校介绍表';
+# zn_school_intro
 def search_school_info_more_data(id: int = 0, limit: int = 10):
     sql = f'''SELECT 
         a.id as id,
         a.chinese_name as chinese_name,
         a.english_name as english_name, 
         a.school_abbreviations as school_abbreviations,
-        b.introduction as introduction,
-        b.international_ratio as international_ratio,
-        b.faculty_ratio as faculty_ratio,
-        b.boy_girl_ratio as boy_girl_ratio,
+        b.employment_rate as employment_rate,
+        b.employment_salary as employment_salary,
         b.student_amount as student_amount,
         b.undergraduate_amount as undergraduate_amount,
         b.graduate_amount as graduate_amount,
-        b.employment_rate as employment_rate,
-        b.employment_salary as employment_salary,
+        b.international_ratio as international_ratio,
+        b.faculty_ratio as faculty_ratio,
+        b.boy_girl_ratio as boy_girl_ratio,
+        b.introduction as introduction,
         b.history as history,
         b.location as location,
         b.campus as campus,
@@ -206,8 +176,7 @@ def search_school_info_more_data(id: int = 0, limit: int = 10):
         b.library as library,
         b.installation as installation,
         b.admissions_office as admissions_office,
-        b.covid_rule as covid_rule,
-        b.video_url as video_url
+        b.covid_rule as covid_rule
     FROM 
         zn_school_info a 
         left join zn_school_intro b on a.id = b.school_id
@@ -217,8 +186,258 @@ def search_school_info_more_data(id: int = 0, limit: int = 10):
 
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
+def search_zn_school_selection_reason(id: int = 0, limit: int = 10):
+    sql = f'''SELECT 
+        a.id as id,
+        a.chinese_name as chinese_name,
+        a.english_name as english_name, 
+        a.school_abbreviations as school_abbreviations,
+        b.selection_reason as selection_reason,
+        b.feature as feature,
+        b.strong_majors as strong_majors,
+        b.hot_majors as hot_majors,
+        b.department_major as department_major,
+        b.evaluation_good as evaluation_good,
+        b.evaluation_bad as evaluation_bad
+    FROM 
+        zn_school_info a 
+        left join zn_school_selection_reason b on a.id = b.school_id
+        where a.delete_status = 0 and b.delete_status = 0
+        and a.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
+# CREATE TABLE `zn_school_recruit_graduate` (
+# `id` int(11) NOT NULL AUTO_INCREMENT,
+# `school_id` int(11) DEFAULT NULL COMMENT '院校表ID',
+# `recruit_type` int(1) DEFAULT NULL COMMENT '招生类型 1本科 2研究生',
+# `introduction` text COMMENT '申请简介',
+# `admission_rate` varchar(200) DEFAULT NULL COMMENT '录取率',
+# `time_apply_deadline` varchar(300) DEFAULT NULL COMMENT '申请截止时间',
+# `apply_amount` varchar(200) DEFAULT NULL COMMENT '申请人数',
+# `semester` varchar(200) DEFAULT NULL COMMENT '申请学期',
+# `time_offer` varchar(200) DEFAULT NULL COMMENT 'Offer发放时间',
+# `fee_apply` varchar(200) DEFAULT NULL COMMENT '申请费用',
+# `fee_tuition` varchar(300) DEFAULT NULL COMMENT '学费',
+# `fee_book` varchar(200) DEFAULT NULL COMMENT '书本费',
+# `fee_life` varchar(200) DEFAULT NULL COMMENT '生活费',
+# `fee_traffic` varchar(200) DEFAULT NULL COMMENT '交通费',
+# `fee_accommodation` varchar(200) DEFAULT NULL COMMENT '住宿费用',
+# `fee_others` varchar(200) DEFAULT NULL COMMENT '其他费用',
+# `fee_total` varchar(200) DEFAULT NULL COMMENT '总花费',
+# `score_gpa` varchar(500) DEFAULT NULL COMMENT 'GPA成绩',
+# `score_act` varchar(200) DEFAULT NULL COMMENT 'ACT成绩',
+# `score_sat` varchar(200) DEFAULT NULL COMMENT 'SAT成绩',
+# `score_sat2` varchar(200) DEFAULT NULL COMMENT 'SAT2成绩',
+# `score_gre` varchar(200) DEFAULT NULL COMMENT 'GRE成绩',
+# `score_gmat` varchar(200) DEFAULT NULL COMMENT 'GMAT成绩',
+# `score_ielts` varchar(500) DEFAULT NULL COMMENT '雅思成绩',
+# `score_toefl` varchar(500) DEFAULT NULL COMMENT '托福成绩',
+# `score_native` varchar(200) DEFAULT NULL COMMENT 'native成绩',
+# `score_others` varchar(500) DEFAULT NULL COMMENT '其他成绩',
+# `scholarship` text COMMENT '奖学金',
+# `material` text COMMENT '申请材料',
+# `recruit_flow` text COMMENT '申请流程',
+# `delete_status` int(1) DEFAULT '0' COMMENT '是否删除  0-未删除,1-已删除',
+# `create_by` int(11) NOT NULL COMMENT '创建人',
+# `update_by` int(11) NOT NULL COMMENT '更新人',
+# `create_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
+# `update_name` varchar(50) DEFAULT NULL COMMENT '更新人名称',
+# `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+# `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+# `application_fee_value` decimal(8,2) DEFAULT NULL COMMENT '申请费值',
+# `currency_id` int(11) DEFAULT NULL COMMENT '币种id',
+# PRIMARY KEY (`id`) USING BTREE,
+# UNIQUE KEY `uk_school` (`school_id`,`recruit_type`) USING BTREE
+# ) ENGINE=InnoDB AUTO_INCREMENT=16275 DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='院校本研招生表';
+def search_zn_school_recruit_graduate_1(id: int = 0, limit: int = 10):
+    sql = f'''SELECT 
+        a.id as id,
+        a.chinese_name as chinese_name,
+        a.english_name as english_name, 
+        a.school_abbreviations as school_abbreviations,
+        b.introduction as introduction,
+        b.admission_rate as admission_rate,
+        b.time_apply_deadline as time_apply_deadline,
+        b.apply_amount as apply_amount,
+        b.semester as semester,
+        b.time_offer as time_offer,
+        b.fee_apply as fee_apply,
+        b.fee_tuition as fee_tuition,
+        b.fee_book as fee_book,
+        b.fee_life as fee_life,
+        b.fee_traffic as fee_traffic,
+        b.fee_accommodation as fee_accommodation,
+        b.fee_others as fee_others,
+        b.fee_total as fee_total,
+        b.score_gpa as score_gpa,
+        b.score_act as score_act,
+        b.score_sat as score_sat,
+        b.score_sat2 as score_sat2,
+        b.score_gre as score_gre,
+        b.score_gmat as score_gmat,
+        b.score_ielts as score_ielts,
+        b.score_toefl as score_toefl,
+        b.score_native as score_native,
+        b.score_others as score_others,
+        b.scholarship as scholarship,
+        b.material as material,
+        b.recruit_flow as recruit_flow,
+        b.delete_status as delete_status,
+        b.create_by as create_by,
+        b.update_by as update_by,
+        b.create_name as create_name,
+        b.update_name as update_name,
+        b.create_time as create_time,
+        b.update_time as update_time,
+        b.application_fee_value as application_fee_value,
+        b.currency_id as currency_id
+    FROM 
+        zn_school_info a 
+        left join zn_school_recruit_graduate b on a.id = b.school_id
+        where a.delete_status = 0 and b.delete_status = 0 and b.recruit_type = 1
+        and a.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
+def search_zn_school_recruit_graduate_2(id: int = 0, limit: int = 10):
+    sql = f'''SELECT 
+        a.id as id,
+        a.chinese_name as chinese_name,
+        a.english_name as english_name, 
+        a.school_abbreviations as school_abbreviations,
+        b.introduction as introduction,
+        b.admission_rate as admission_rate,
+        b.time_apply_deadline as time_apply_deadline,
+        b.apply_amount as apply_amount,
+        b.semester as semester,
+        b.time_offer as time_offer,
+        b.fee_apply as fee_apply,
+        b.fee_tuition as fee_tuition,
+        b.fee_book as fee_book,
+        b.fee_life as fee_life,
+        b.fee_traffic as fee_traffic,
+        b.fee_accommodation as fee_accommodation,
+        b.fee_others as fee_others,
+        b.fee_total as fee_total,
+        b.score_gpa as score_gpa,
+        b.score_act as score_act,
+        b.score_sat as score_sat,
+        b.score_sat2 as score_sat2,
+        b.score_gre as score_gre,
+        b.score_gmat as score_gmat,
+        b.score_ielts as score_ielts,
+        b.score_toefl as score_toefl,
+        b.score_native as score_native,
+        b.score_others as score_others,
+        b.scholarship as scholarship,
+        b.material as material,
+        b.recruit_flow as recruit_flow,
+        b.delete_status as delete_status,
+        b.create_by as create_by,
+        b.update_by as update_by,
+        b.create_name as create_name,
+        b.update_name as update_name,
+        b.create_time as create_time,
+        b.update_time as update_time,
+        b.application_fee_value as application_fee_value,
+        b.currency_id as currency_id
+    FROM 
+        zn_school_info a 
+        left join zn_school_recruit_graduate b on a.id = b.school_id
+        where a.delete_status = 0 and b.delete_status = 0 and b.recruit_type = 2
+        and a.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+# CREATE TABLE `zn_school_recruit_art` (
+# `id` int(11) NOT NULL AUTO_INCREMENT,
+# `school_id` int(11) DEFAULT NULL COMMENT '院校表ID',
+# `strong_majors` varchar(500) DEFAULT NULL COMMENT '优势专业',
+# `admission_rate` varchar(200) DEFAULT NULL COMMENT '录取率',
+# `fee_apply` varchar(200) DEFAULT NULL COMMENT '申请费用',
+# `fee_tuition` varchar(200) DEFAULT NULL COMMENT '学费',
+# `fee_book` varchar(200) DEFAULT NULL COMMENT '书本费',
+# `fee_life` varchar(200) DEFAULT NULL COMMENT '生活费',
+# `fee_traffic` varchar(200) DEFAULT NULL COMMENT '交通费',
+# `fee_accommodation` varchar(200) DEFAULT NULL COMMENT '住宿费用',
+# `fee_others` varchar(200) DEFAULT NULL COMMENT '其他费用',
+# `fee_total` varchar(200) DEFAULT NULL COMMENT '总花费',
+# `graduate_majors` text COMMENT '研究生专业',
+# `graduate_score_ielts` varchar(200) DEFAULT NULL COMMENT '研究生雅思成绩',
+# `graduate_score_toefl` varchar(200) DEFAULT NULL COMMENT '研究生托福成绩',
+# `graduate_requirements` text COMMENT '研究生申请要求',
+# `graduate_works_requirement` text COMMENT '研究生作品集要求',
+# `graduate_apply_deadline` varchar(200) DEFAULT NULL COMMENT '研究生申请截止日期',
+# `undergraduate_majors` text COMMENT '本科专业',
+# `undergraduate_score_ielts` varchar(200) DEFAULT NULL COMMENT '本科雅思成绩',
+# `undergraduate_score_toefl` varchar(200) DEFAULT NULL COMMENT '本科托福成绩',
+# `undergraduate_requirements` text COMMENT '本科申请要求',
+# `undergraduate_works_requirement` text COMMENT '本科作品集要求',
+# `undergraduate_apply_deadline` varchar(200) DEFAULT NULL COMMENT '本科申请截止日期',
+# `difficulty_name` varchar(20) DEFAULT NULL COMMENT '申请难度',
+# `apply_experience` text COMMENT '申请经验',
+# `alumni` text COMMENT '明星校友',
+# `delete_status` int(1) DEFAULT '0' COMMENT '是否删除  0-未删除,1-已删除',
+# `create_by` int(11) NOT NULL COMMENT '创建人',
+# `update_by` int(11) NOT NULL COMMENT '更新人',
+# `create_name` varchar(50) DEFAULT NULL COMMENT '创建人名称',
+# `update_name` varchar(50) DEFAULT NULL COMMENT '更新人名称',
+# `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+# `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+# `application_fee_value` decimal(8,2) DEFAULT NULL COMMENT '申请费值',
+# `currency_id` int(11) DEFAULT NULL COMMENT '币种id',
+# PRIMARY KEY (`id`),
+# UNIQUE KEY `uk_school` (`school_id`) USING BTREE
+# ) ENGINE=InnoDB AUTO_INCREMENT=837 DEFAULT CHARSET=utf8mb4 COMMENT='院校艺术生招生表';
+def search_zn_school_recruit_art(id: int = 0, limit: int = 10):
+    sql = f'''SELECT 
+        a.id as id,
+        a.chinese_name as chinese_name,
+        a.english_name as english_name, 
+        a.school_abbreviations as school_abbreviations,
+        b.strong_majors as strong_majors,
+        b.admission_rate as admission_rate,
+        b.fee_apply as fee_apply,
+        b.fee_tuition as fee_tuition,
+        b.fee_book as fee_book,
+        b.fee_life as fee_life,
+        b.fee_traffic as fee_traffic,
+        b.fee_accommodation as fee_accommodation,
+        b.fee_others as fee_others,
+        b.fee_total as fee_total,
+        b.graduate_majors as graduate_majors,
+        b.graduate_score_ielts as graduate_score_ielts,
+        b.graduate_score_toefl as graduate_score_toefl,
+        b.graduate_requirements as graduate_requirements,
+        b.graduate_works_requirement as graduate_works_requirement,
+        b.graduate_apply_deadline as graduate_apply_deadline,
+        b.undergraduate_majors as undergraduate_majors,
+        b.undergraduate_score_ielts as undergraduate_score_ielts,
+        b.undergraduate_score_toefl as undergraduate_score_toefl,
+        b.undergraduate_requirements as undergraduate_requirements,
+        b.undergraduate_works_requirement as undergraduate_works_requirement,
+        b.undergraduate_apply_deadline as undergraduate_apply_deadline,
+        b.difficulty_name as difficulty_name,
+        b.apply_experience as apply_experience,
+        b.alumni as alumni,
+        b.delete_status as delete_status,
+        b.create_by as create_by,
+        b.update_by as update_by,
+        b.create_name as create_name,
+        b.update_name as update_name,
+        b.create_time as create_time,
+        b.update_time as update_time,
+        b.application_fee_value as application_fee_value,
+        b.currency_id as currency_id
+    FROM 
+        zn_school_info a 
+        left join zn_school_recruit_art b on a.id = b.school_id
+        where a.delete_status = 0 and b.delete_status = 0
+        and a.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+        
 
 if __name__ == '__main__':
     print(search_school_info_basic_data(5,6))

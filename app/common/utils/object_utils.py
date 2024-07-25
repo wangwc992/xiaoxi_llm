@@ -87,3 +87,5 @@ class ObjectFormatter:
             dict = {"output": output.rstrip("、 "), "instruction": instruction.rstrip()}
             dict_list.append(dict)
         return dict_list
+
+    #写一个整理key和value的方法，传入key_name_list,
