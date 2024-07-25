@@ -10,3 +10,7 @@ logger = get_logger(__name__)
 @router.post("/v1/chat/completions", response_model=None)
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     return await knowledge_base_generate(request, raw_request)
+
+@router.post("/v1/chat/abort", response_model=None)
+async def engine_abort(request_id: str):
+    return engine_abort(request_id)

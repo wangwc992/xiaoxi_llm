@@ -7,6 +7,7 @@ from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
 from app.api.openai.api_server import create_chat_completion
+from app.common.core.langchain_client import get_openai_serving_chat
 from app.common.utils.logging import get_logger
 from app.database.redis.redis_client import  get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
@@ -29,6 +30,15 @@ class MyChatCompletionRequestModel(BaseModel):
     stream: bool
     model: str
 
+def engine_abort(request_id: str):
+    """
+    Abort the request with the given ID.
+
+    Args:
+        request_id (str): The ID of the request to abort.
+    """
+    openai_serving_chat = get_openai_serving_chat()
+    openai_serving_chat.engine.abort(request_id)
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request):
     """
@@ -103,11 +113,11 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     output = ''
     usage = None
     async for chunk in result.body_iterator:
+        yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip():
             continue
         if chunk.startswith("data: "):
             chunk = chunk[len("data: "):]
-        yield chunk
         try:
             chunk_data = json.loads(chunk)
             choices = chunk_data.get('choices')
