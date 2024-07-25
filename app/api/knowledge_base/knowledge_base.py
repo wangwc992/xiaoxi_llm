@@ -9,4 +9,4 @@ logger = get_logger(__name__)
 
 @router.post("/v1/chat/completions", response_model=None)
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
-    return knowledge_base_generate(request, raw_request)
+    return await knowledge_base_generate(request, raw_request)
