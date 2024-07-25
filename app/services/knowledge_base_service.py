@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from app.api.openai.api_server import create_chat_completion
 from app.common.core.langchain_client import get_openai_serving_chat
 from app.common.utils.logging import get_logger
-from app.database.redis.redis_client import  get_object, set_object
+from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from langchain_community.chat_message_histories import ChatMessageHistory
 
@@ -30,6 +30,7 @@ class MyChatCompletionRequestModel(BaseModel):
     stream: bool
     model: str
 
+
 def engine_abort(request_id: str):
     """
     Abort the request with the given ID.
@@ -39,6 +40,7 @@ def engine_abort(request_id: str):
     """
     openai_serving_chat = get_openai_serving_chat()
     openai_serving_chat.engine.abort(request_id)
+
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request):
     """
@@ -113,6 +115,7 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     output = ''
     usage = None
     async for chunk in result.body_iterator:
+        logger.info(f"chunk: {chunk}")
         yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip():
             continue
@@ -120,6 +123,9 @@ async def stream_response(result, chat_message_history, chat_message_history_key
             chunk = chunk[len("data: "):]
         try:
             chunk_data = json.loads(chunk)
+            if len(output) > 20:
+                openai_serving_chat = get_openai_serving_chat()
+                openai_serving_chat.engine.abort(chunk_data.get('id'))
             choices = chunk_data.get('choices')
             if choices and choices[0].get('finish_reason') != 'stop':
                 delta_content = choices[0]['delta'].get('content')
