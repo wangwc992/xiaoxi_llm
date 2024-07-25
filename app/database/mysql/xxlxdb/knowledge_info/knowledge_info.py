@@ -132,16 +132,48 @@ def search_school_info_basic_data(id: int = 0, limit: int = 10):
     '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
-# 院校排名查询信息，带上zn_school_info表关联
-# CREATE TABLE `zn_school_rank` (
+#zn_school_rank
+def search_school_info_ranking_data(id: int = 0, limit: int = 10):
+    sql = f'''SELECT 
+        a.id as id,
+        a.chinese_name as chinese_name,
+        a.english_name as english_name, 
+        a.school_abbreviations as school_abbreviations,
+        b.world_rank_usnews as world_rank_usnews,
+        b.world_rank_the as world_rank_the,
+        b.world_rank_qs as world_rank_qs, 
+        b.local_rank_usnews as local_rank_usnews,
+        b.local_rank_the as local_rank_the,
+        b.local_rank_qs as local_rank_qs
+    FROM 
+        zn_school_info a 
+        left join zn_school_rank b on a.id = b.school_id
+        where a.delete_status = 0 and b.delete_status = 0 and a.id > {id}
+    '''
+
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+# CREATE TABLE `zn_school_intro` (
 #     `id` int(11) NOT NULL AUTO_INCREMENT,
 # `school_id` int(11) DEFAULT NULL COMMENT '院校表ID',
-# `world_rank_usnews` int(5) DEFAULT NULL COMMENT '世界USNEWS排名',
-# `world_rank_the` int(5) DEFAULT NULL COMMENT '世界泰晤士高等教育排名',
-# `world_rank_qs` int(5) DEFAULT NULL COMMENT '世界QS排名',
-# `local_rank_usnews` int(5) DEFAULT NULL COMMENT '地区USNEWS排名',
-# `local_rank_the` int(5) DEFAULT NULL COMMENT '地区泰晤士高等教育排名',
-# `local_rank_qs` int(5) DEFAULT NULL COMMENT '地区QS排名',
+# `introduction` text COMMENT '院校简介',
+# `international_ratio` varchar(200) DEFAULT NULL COMMENT '国际学生比例',
+# `faculty_ratio` varchar(200) DEFAULT NULL COMMENT '师生比例',
+# `boy_girl_ratio` varchar(200) DEFAULT NULL COMMENT '男女比例',
+# `student_amount` varchar(200) DEFAULT NULL COMMENT '学生总数量',
+# `undergraduate_amount` varchar(200) DEFAULT NULL COMMENT '本科生数量',
+# `graduate_amount` varchar(200) DEFAULT NULL COMMENT '研究生数量',
+# `employment_rate` varchar(200) DEFAULT NULL COMMENT '就业率',
+# `employment_salary` varchar(200) DEFAULT NULL COMMENT '毕业薪资',
+# `history` text COMMENT '院校历史',
+# `location` text COMMENT '地理位置',
+# `campus` text COMMENT '校园环境',
+# `accommodation` text COMMENT '学校宿舍',
+# `library` text COMMENT '图书馆',
+# `installation` text COMMENT '学校设施',
+# `admissions_office` text COMMENT '招生办信息',
+# `covid_rule` text COMMENT '防疫信息',
+# `video_url` varchar(255) DEFAULT NULL COMMENT '介绍视频url',
 # `delete_status` int(1) DEFAULT '0' COMMENT '是否删除  0-未删除,1-已删除',
 # `create_by` int(11) NOT NULL COMMENT '创建人',
 # `update_by` int(11) NOT NULL COMMENT '更新人',
@@ -150,10 +182,40 @@ def search_school_info_basic_data(id: int = 0, limit: int = 10):
 # `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 # `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 # PRIMARY KEY (`id`) USING BTREE,
-# UNIQUE KEY `uk_school` (`school_id`) USING BTREE,
-# KEY `idx_school_id_world_rank_qs` (`school_id`,`world_rank_qs`)
-# ) ENGINE=InnoDB AUTO_INCREMENT=20021 DEFAULT CHARSET=utf8mb4 COMMENT='院校排名表';
-def search_school_info_ranking_data(id: int = 0, limit: int = 10):
+# UNIQUE KEY `uk_school` (`school_id`) USING BTREE
+# ) ENGINE=InnoDB AUTO_INCREMENT=2451 DEFAULT CHARSET=utf8mb4 COMMENT='院校介绍表';
+def search_school_info_more_data(id: int = 0, limit: int = 10):
+    sql = f'''SELECT 
+        a.id as id,
+        a.chinese_name as chinese_name,
+        a.english_name as english_name, 
+        a.school_abbreviations as school_abbreviations,
+        b.introduction as introduction,
+        b.international_ratio as international_ratio,
+        b.faculty_ratio as faculty_ratio,
+        b.boy_girl_ratio as boy_girl_ratio,
+        b.student_amount as student_amount,
+        b.undergraduate_amount as undergraduate_amount,
+        b.graduate_amount as graduate_amount,
+        b.employment_rate as employment_rate,
+        b.employment_salary as employment_salary,
+        b.history as history,
+        b.location as location,
+        b.campus as campus,
+        b.accommodation as accommodation,
+        b.library as library,
+        b.installation as installation,
+        b.admissions_office as admissions_office,
+        b.covid_rule as covid_rule,
+        b.video_url as video_url
+    FROM 
+        zn_school_info a 
+        left join zn_school_intro b on a.id = b.school_id
+        where a.delete_status = 0 and b.delete_status = 0
+        and a.id > {id}
+        '''
+
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
 

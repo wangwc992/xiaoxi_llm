@@ -2,7 +2,8 @@ from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
-    search_notice_message_data,search_school_info_basic_data,search_school_info_ranking_data
+    search_notice_message_data,search_school_info_basic_data,search_school_info_ranking_data, \
+    search_school_info_more_data
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
 from app.utils.FileOCR.FileToText import FileToText
 
@@ -153,8 +154,32 @@ def insert_college_library02_data():
     b、内容信息：
     【世界USNEWS排名：】【世界泰晤士排名：】【世界QS排名：】【地区USNEWS排名：】【地区泰晤士排名：】【地区QS排名：】
     '''
-    school_info_basic = search_school_info_ranking_data(id=start_id, limit=limit)
-
+    school_info_ranking_list = search_school_info_ranking_data(id=start_id, limit=limit)
+    knowledge_base_model = [{
+        "database": "zn_school_info",
+        "db_id": str(school_info.get('id', '')),
+        "instruction": (
+            (school_info.get('chinese_name', '') + " " +
+             school_info.get('english_name', '') + " " +
+             school_info.get('school_abbreviations', '') + "的院校排名").strip()
+        ),
+        "input": "",
+        "output": (
+                (f"世界USNEWS排名：{school_info.get('world_rank_usnews', '')} " if school_info.get('world_rank_usnews') else '') +
+                (f"世界泰晤士排名：：{school_info.get('world_rank_the', '')} " if school_info.get('world_rank_the') else '') +
+                (f"世界QS排名：{school_info.get('world_rank_qs', '')} " if school_info.get('world_rank_qs') else '') +
+                (f"地区USNEWS排名：{school_info.get('local_rank_usnews', '')} " if school_info.get('local_rank_usnews') else '') +
+                (f"地区泰晤士排名：{school_info.get('local_rank_the', '')} " if school_info.get('local_rank_the') else '') +
+                (f"地区QS排名：{school_info.get('local_rank_qs', '')} " if school_info.get('local_rank_qs') else '')
+        ).strip(),
+        "keyword": get_string(
+            school_info.get("chinese_name", '') or '',
+            school_info.get("english_name", '') or '',
+            school_info.get("school_abbreviations", '') or ''
+        ),
+        "file_info": "",
+    } for school_info in school_info_ranking_list]
+    insert_weaviate_data_all(knowledge_base_model)
 
 
 def insert_college_library03_data():
@@ -164,7 +189,38 @@ def insert_college_library03_data():
     b、内容信息：
     【就业率：】【毕业薪资：】【学生总数量：】【本科生数量：】【研究生数量：】【国际学生比例：】【师生比例：】【男女比例：】【院校简介：】【院校历史：】【地理位置：】【校园环境：】【学校宿舍：】【图书馆：】【学校设施：】【招生办信息：】【防疫信息：】
     '''
-    pass
+    school_info_more_list = search_school_info_more_data(id=start_id, limit=limit)
+    knowledge_base_model = [{
+        "database": "zn_school_info",
+        "db_id": str(school_info.get('id', '')),
+        "instruction": (
+            (school_info.get('chinese_name', '') + " " +
+             school_info.get('english_name', '') + " " +
+             school_info.get('school_abbreviations', '') + "的院校更多信息").strip()
+        ),
+        "input": "",
+        "output": (
+                (f"就业率：{school_info.get('employment_rate', '')} " if school_info.get('employment_rate') else '') +
+                (f"毕业薪资：{school_info.get('employment_salary', '')} " if school_info.get('employment_salary') else '') +
+                (f"学生总数量：{school_info.get('total_student', '')} " if school_info.get('total_student') else '') +
+                (f"本科生数量：{school_info.get('undergraduate_student', '')} " if school_info.get('undergraduate_student') else '') +
+                (f"研究生数量：{school_info.get('graduate_student', '')} " if school_info.get('graduate_student') else '') +
+                (f"国际学生比例：{school_info.get('international_student_ratio', '')} " if school_info.get('international_student_ratio') else '') +
+                (f"师生比例：{school_info.get('teacher_student_ratio', '')} " if school_info.get('teacher_student_ratio') else '') +
+                (f"男女比例：{school_info.get('male_female_ratio', '')} " if school_info.get('male_female_ratio') else '') +
+                (f"院校简介：{school_info.get('introduction', '')} " if school_info.get('introduction') else '') +
+                (f"院校历史：{school_info.get('history', '')} " if school_info.get('history') else '') +
+                (f"地理位置：{school_info.get('location', '')} " if school_info.get("location") else '') +
+                (f"校园环境：{school_info.get('campus_environment', '')} " if school_info.get('campus_environment') else '') +
+                (f"学校宿舍：{school_info.get('dormitory', '')} " if school_info.get('dormitory') else '') +
+                (f"图书馆：{school_info.get('library', '')} " if school_info.get('library') else '') +
+                (f"学校设施：{school_info.get('facilities', '')} " if school_info.get('facilities') else '') +
+                (f"招生办信息：{school_info.get('enrollment_office_information', '')} " if school_info.get('enrollment_office_information') else '') +
+                (f"防疫信息：{school_info.get('prevention_information', '')} " if school_info.get('prevention_information') else '')
+
+         )
+    }for school_info in school_info_more_list]
+    insert_weaviate_data_all(knowledge_base_model)
 
 
 def insert_college_library04_data():
@@ -326,4 +382,5 @@ if __name__ == '__main__':
     #     "state": 1
     # })
     #insert_institution_information_data()
-    insert_college_library01_data()
+    # insert_college_library01_data()
+    insert_college_library02_data()
