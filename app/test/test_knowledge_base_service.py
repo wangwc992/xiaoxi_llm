@@ -1,0 +1,20 @@
+from app.common.utils.object_utils import ObjectFormatter
+from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_zn_school_department_project02, \
+    search_zn_school_department_project03, search_zn_school_department_project04, search_zn_school_department_project05, \
+    search_zn_school_department_project06, search_zn_school_department_project01
+
+zn_school_department_project_dict_list01 = search_zn_school_department_project01(limit=300)
+zn_school_department_project_dict_list02 = search_zn_school_department_project02(limit=300)
+zn_school_department_project_dict_list03 = search_zn_school_department_project03(limit=300)
+zn_school_department_project_dict_list04 = search_zn_school_department_project04(limit=300)
+zn_school_department_project_dict_list05 = search_zn_school_department_project05(limit=300)
+zn_school_department_project_dict_list06 = search_zn_school_department_project06(limit=300)
+
+print(zn_school_department_project_dict_list01)
+print(zn_school_department_project_dict_list02)
+print(zn_school_department_project_dict_list03)
+print(zn_school_department_project_dict_list04)
+print(zn_school_department_project_dict_list05)
+print(zn_school_department_project_dict_list06)
+
+

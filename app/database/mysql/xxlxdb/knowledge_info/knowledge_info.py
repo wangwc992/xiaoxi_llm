@@ -185,7 +185,7 @@ def search_zn_school_department_project01(id: int = 0, limit: int = 300):
                 znsdp.career_opportunities as 'career_opportunities'
             from 
                 zn_school_department_project znsdp
-            left join zn_school_info zsi on zsi.id = znsdp.school_id
+                left join zn_school_info zsi on zsi.id = znsdp.school_id
             where znsdp.delete_status = 0 
                 and znsdp.id > {id}
         '''
@@ -213,8 +213,9 @@ def search_zn_school_department_project02(id: int = 0, limit: int = 10):
                    znsdp.fee_accommodation   as 'accommodation_fee',
                    znsdp.fee_others          as 'other_fees',
                    znsdp.fee_total           as 'total_cost'
-            from zn_school_department_project znsdp
-                     left join zn_school_info zsi on zsi.id = znsdp.school_id
+            from 
+                zn_school_department_project znsdp
+                inner join zn_school_info zsi on zsi.id = znsdp.school_id
             where znsdp.delete_status = 0
                 and znsdp.id > {id}
         '''
@@ -233,8 +234,9 @@ def search_zn_school_department_project03(id: int = 0, limit: int = 10):
                    znsdp.score_ielts_total  as 'ielts_total_score',
                    znsdp.score_toefl        as 'toefl_score',
                    znsdp.score_toefl_total  as 'toefl_total_score'
-            from zn_school_department_project znsdp
-                     left join zn_school_info zsi on znsdp.school_id = zsi.id
+            from 
+                zn_school_department_project znsdp
+                inner join zn_school_info zsi on znsdp.school_id = zsi.id
             where znsdp.delete_status = 0
                 and zsi.delete_status = 0
                 and znsdp.id > {id}
@@ -275,9 +277,10 @@ def search_zn_school_department_project04(id: int = 0, limit: int = 10):
                    znsds.ossd_score         as 'ossd_score',
                    znsds.bc_ask             as 'bc_requirement',
                    znsds.bc_score           as 'bc_score'
-            from zn_school_department_project znsdp
-                 join zn_school_deparment_admission_score znsds on znsdp.id = znsds.zsdp_id
-                 join zn_school_info zsi on znsdp.school_id = zsi.id
+            from 
+                zn_school_department_project znsdp
+                inner join zn_school_deparment_admission_score znsds on znsdp.id = znsds.zsdp_id
+                inner join zn_school_info zsi on znsdp.school_id = zsi.id
             where znsdp.delete_status = 0
                 and znsds.delete_status = 0
                 and zsi.delete_status = 0
@@ -309,8 +312,8 @@ def search_zn_school_department_project05(id: int = 0, limit: int = 10):
                 znsds.b_accept_md_bg as 'accept_cross_major'
             from 
                 zn_school_department_project znsdp
-                join zn_school_deparment_admission_score znsds on znsdp.id = znsds.zsdp_id
-                join zn_school_info zsi on znsdp.school_id = zsi.id
+                inner join zn_school_deparment_admission_score znsds on znsdp.id = znsds.zsdp_id
+                inner join zn_school_info zsi on znsdp.school_id = zsi.id
             where 
                 znsdp.delete_status = 0
                 and znsds.delete_status = 0
@@ -338,7 +341,7 @@ def search_zn_school_department_project06(id: int = 0, limit: int = 10):
                 znsdp.reduce_condition as 'credit_reduction_condition'
             from
                 zn_school_department_project znsdp
-                join zn_school_info zsi on znsdp.school_id = zsi.id
+                inner join zn_school_info zsi on znsdp.school_id = zsi.id
             where
                 znsdp.delete_status = 0
                 and zsi.delete_status = 0
