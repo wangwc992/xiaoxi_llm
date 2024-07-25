@@ -104,11 +104,11 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     output = ''
     usage = None
     async for chunk in result.body_iterator:
-        yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip():
             continue
         if chunk.startswith("data: "):
             chunk = chunk[len("data: "):]
+        yield chunk
         try:
             chunk_data = json.loads(chunk)
             choices = chunk_data.get('choices')
