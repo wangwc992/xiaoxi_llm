@@ -71,19 +71,22 @@ class ObjectFormatter:
 
         :param key_name_list: 包含键名和对应显示名称的字典列表，例如 [{'所属院系': 'department'}]。
         :param zn_school_department_project_dict_list: 包含专业信息的字典列表，每个字典代表一个专业的信息。
-        :return: 一个字典列表，每个字典包含两个键：'output' 和 'instruction'。
-                 'output' 键对应的值是格式化后的专业信息字符串，'instruction' 键对应的值是包含所有包含属性名的字符串。
+        :return: 一个字典列表，每个字典包含两个键：'key_value' 和 'key'。
+                 'key_value' 键对应的值是格式化后的专业信息字符串，'key' 键对应的值是包含所有包含属性名的字符串。
         """
         dict_list = []
         for zn_school_department_project_dict in zn_school_department_project_dict_list:
-            output = ""
-            instruction = ""
+            key_value = ""
+            key = ""
+            db_id = ''
             for key_name in key_name_list:
                 key = list(key_name.keys())[0]
                 value = zn_school_department_project_dict[key_name[key]]
-                if value:
-                    instruction += f"{key} "
-                    output += f"{key}：{value}、 "
-            dict = {"output": output.rstrip("、 "), "instruction": instruction.rstrip()}
+                if key == 'db_id':
+                    db_id = value
+                elif value:
+                    key += f"{key} "
+                    key_value += f"{key}：{value}、 "
+            dict = {'db_id': db_id, "key_value": key_value.rstrip("、 "), "key": key.rstrip()}
             dict_list.append(dict)
         return dict_list
