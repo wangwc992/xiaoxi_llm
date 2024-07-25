@@ -24,7 +24,7 @@ file_to_text = FileToText()
 start_id = 0
 
 # 每次查询条数
-limit = 1
+limit = 10
 
 
 def get_string(*string_list):
@@ -261,7 +261,7 @@ def insert_major_library01_data():
     '''
     database = "zn_school_department_project_01"
     # {'department': None, 'campus': None, 'chinese_name': '语言学与哲学-博士PhD', 'english_name': 'PhD in Linguistics and Philosophy', 'course_code': None, 'major_link': None, 'full_time_duration': '5年', 'specialization': None, 'part_time_duration': None, 'degree_name': None, 'degree_type': '博士', 'degree_level': None, 'abbreviation': '', 'start_semester': '秋季', 'city_path': '美国-马萨诸塞-波士顿', 'introduction': '', 'career_opportunities': None}
-    zn_school_department_project_dict_list = search_zn_school_department_project01(limit=10)
+    zn_school_department_project_dict_list = search_zn_school_department_project01(limit=limit)
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"所属院系": "department"}, {"所属校区": "campus"},
                      {"专业中文名": "chinese_name"},
@@ -293,7 +293,7 @@ def insert_major_library02_data():
     【开学时间：】【申请截止时间：】【Offer发放时间：】【Offer发放截止时间：】【申请费用：】【学费：】【生活费：】【交通费：】【住宿费用：】【其他费用：】【总花费：】
     '''
     database = "zn_school_department_project_02"
-    zn_school_department_project_dict_list = search_zn_school_department_project02(limit=300)
+    zn_school_department_project_dict_list = search_zn_school_department_project02(limit=limit)
     # # {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'start_semester': '9月', 'application_deadline': '', 'offer_release_time': '', 'offer_deadline': '', 'application_fee': '75美元', 'tuition_fee': '41770美元/学年', 'living_expenses': '', 'traffic_fee': None, 'accommodation_fee': '', 'other_fees': '', 'total_cost': ''}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -326,7 +326,7 @@ def insert_major_library03_data():
     【雅思成绩：】【雅思总分：】【托福成绩：】【托福总分：】
     '''
     database = "zn_school_department_project_03"
-    zn_school_department_project_dict_list = search_zn_school_department_project03(limit=300)
+    zn_school_department_project_dict_list = search_zn_school_department_project03(limit=limit)
     # {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'ielts_score': '', 'ielts_total_score': None, 'toefl_score': '90', 'toefl_total_score': None}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -358,7 +358,7 @@ def insert_major_library04_data():
     【高考分数：】【OSSD要求：】【OSSD分数：】【BC要求：】【BC分数：】
     '''
     database = "zn_school_department_project_04"
-    zn_school_department_project_dict_list = search_zn_school_department_project04(limit=300)
+    zn_school_department_project_dict_list = search_zn_school_department_project04(limit=limit)
     #     {'id': 162865, 'school_name': '蒙纳士大学', 'english_name': 'Monash University', 'school_abbreviations': '', 'chinese_name': '全球商业硕士与管理硕士', 'znsdp.english_name': 'Master of Global Business and Master of Management', 'school_id': 56, 'campus': 'Caulfield campus', 'atar_requirement': '', 'atar_score': None, 'sat_requirement': '', 'sat_score': None, 'ukalevel3_requirement': '', 'ukalevel3_score': None, 'act_requirement': '', 'act_score': None, 'ukalevel3_score1': None, 'ukalevel3_score2': None, 'ukalevel3_score3': None, 'ukalevel4_requirement': '', 'ukalevel4_score': None, 'ap_requirement': '', 'ap_score': None, 'ib_requirement': '', 'ib_score': None, 'gaokao_requirement': '', 'gaokao_score': '', 'ossd_requirement': '', 'ossd_score': None, 'bc_requirement': '', 'bc_score': None}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -394,7 +394,7 @@ def insert_major_library05_data():
         【c9均分要求：】【C9均分分数：】【211均分要求：】【211均分分数：】【985均分要求：】【985均分分数：】【非211均分要求：】【非211均分分数：】【专业背景要求：】【是否接受跨专业：】
     '''
     database = "zn_school_department_project_05"
-    zn_school_department_project_dict_list = search_zn_school_department_project05(limit=300)
+    zn_school_department_project_dict_list = search_zn_school_department_project05(limit=limit)
     # {'id': 156097, 'school_name': '蒙纳士大学', 'english_name': 'Monash University', 'school_abbreviations': '', 'chinese_name': '信息技术文凭课程', 'znsdp.english_name': 'Diploma of Information Technology', 'school_id': 56, 'campus': None, 'c9_requirement': '', 'c9_score': None, 's211_requirement': '', 's211_score': None, 's985_requirement': '', 's985_score': None, 'sn211_requirement': '', 'sn211_score': None, 'professional_background_requirement': '', 'accept_cross_major': 1}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -427,7 +427,7 @@ def insert_major_library06_data():
     【学术要求：】【申请材料：】【申请要点：】【是否减免学分：】【减免学分条件：】
     '''
     database = "zn_school_department_project_06"
-    zn_school_department_project_dict_list = search_zn_school_department_project06(limit=300)
+    zn_school_department_project_dict_list = search_zn_school_department_project06(limit=limit)
     #     {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'academic_requirement': None, 'application_materials': '1、申请表\n2、学历证明以及各科成绩单\n3、托福成绩单\n4、GRE成绩单\n5、申请费\n6、银行资金证明\n7、个人简历', 'application_elements': '', 'credit_reduction': 0, 'credit_reduction_condition': None}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -459,7 +459,9 @@ def insert_weaviate_data_all(knowledge_base_model: list):
 
     uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
     logger.info(
-        "插入大于id:%s的%s条的数据%s" % (knowledge_base_model[0].get('db_id'), len(knowledge_base_model), uuid_list))
+        "%s 插入大于id:%s的%s条的数据%s" % (
+        knowledge_base_weaviate.collections_name, knowledge_base_model[0].get('db_id'), len(knowledge_base_model),
+        uuid_list))
 
 
 def clear_all_data(database: str):
