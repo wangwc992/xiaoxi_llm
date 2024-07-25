@@ -109,6 +109,7 @@ def search_notice_message_data(id: int = 0, limit: int = 10):
     '''
     return smart_counselor.execute_all2dict(sql=sql, limit=limit)
 
+
 def search_school_info_basic_data(id: int = 0, limit: int = 10):
     sql = f'''SELECT 
         id,
@@ -132,6 +133,7 @@ def search_school_info_basic_data(id: int = 0, limit: int = 10):
     '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
+
 # 院校排名查询信息，带上zn_school_info表关联
 # CREATE TABLE `zn_school_rank` (
 #     `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -154,9 +156,196 @@ def search_school_info_basic_data(id: int = 0, limit: int = 10):
 # KEY `idx_school_id_world_rank_qs` (`school_id`,`world_rank_qs`)
 # ) ENGINE=InnoDB AUTO_INCREMENT=20021 DEFAULT CHARSET=utf8mb4 COMMENT='院校排名表';
 def search_school_info_ranking_data(id: int = 0, limit: int = 10):
+    pass
 
 
+def search_zn_school_department_project01(id: int = 0, limit: int = 300):
+    sql = f'''
+            select 
+                znsdp.id as 'id',
+                zsi.chinese_name as 'school_name',
+                zsi.english_name as 'english_name',
+                zsi.school_abbreviations as 'school_abbreviations',
+                znsdp.depart_name as 'department',
+                znsdp.campus_name as 'campus',
+                znsdp.chinese_name as 'chinese_name',
+                znsdp.english_name as 'english_name',
+                znsdp.course_code as 'course_code',
+                znsdp.major_link as 'major_link',
+                znsdp.length_of_full as 'full_time_duration',
+                znsdp.small_direction as 'specialization',
+                znsdp.length_of_part as 'part_time_duration',
+                znsdp.degree_name as 'degree_name',
+                znsdp.degree_type as 'degree_type',
+                znsdp.degree_level as 'degree_level',
+                znsdp.project_abbreviations as 'abbreviation',
+                znsdp.semester as 'start_semester',
+                zsi.city_path as 'city_path',
+                znsdp.introduction as 'introduction',
+                znsdp.career_opportunities as 'career_opportunities'
+            from 
+                zn_school_department_project znsdp
+            left join zn_school_info zsi on zsi.id = znsdp.school_id
+            where znsdp.delete_status = 0 
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project02(id: int = 0, limit: int = 10):
+    sql = f'''
+            select znsdp.id                  as 'id',
+                   zsi.chinese_name          as 'school_name',
+                   zsi.english_name          as 'english_name',
+                   zsi.school_abbreviations  as 'school_abbreviations',
+                   znsdp.chinese_name        as 'chinese_name',
+                   znsdp.english_name        as 'english_name',
+                   znsdp.school_id           as 'school_id',
+                   znsdp.campus_name         as 'campus',
+                   znsdp.semester            as 'start_semester',
+                   znsdp.time_apply_deadline as 'application_deadline',
+                   znsdp.time_offer          as 'offer_release_time',
+                   znsdp.time_offer_deadline as 'offer_deadline',
+                   znsdp.fee_apply           as 'application_fee',
+                   znsdp.fee_tuition         as 'tuition_fee',
+                   znsdp.fee_life            as 'living_expenses',
+                   znsdp.fee_traffic         as 'traffic_fee',
+                   znsdp.fee_accommodation   as 'accommodation_fee',
+                   znsdp.fee_others          as 'other_fees',
+                   znsdp.fee_total           as 'total_cost'
+            from zn_school_department_project znsdp
+                     left join zn_school_info zsi on zsi.id = znsdp.school_id
+            where znsdp.delete_status = 0
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project03(id: int = 0, limit: int = 10):
+    sql = f'''
+            select znsdp.id                 as 'id',
+                   zsi.chinese_name         as 'school_name',
+                   zsi.english_name         as 'english_name',
+                   zsi.school_abbreviations as 'school_abbreviations',
+                   znsdp.chinese_name       as 'chinese_name',
+                   znsdp.english_name       as 'english_name',
+                   znsdp.score_ielts        as 'ielts_score',
+                   znsdp.score_ielts_total  as 'ielts_total_score',
+                   znsdp.score_toefl        as 'toefl_score',
+                   znsdp.score_toefl_total  as 'toefl_total_score'
+            from zn_school_department_project znsdp
+                     left join zn_school_info zsi on znsdp.school_id = zsi.id
+            where znsdp.delete_status = 0
+                and zsi.delete_status = 0
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project04(id: int = 0, limit: int = 10):
+    sql = f'''
+            select znsdp.id                 as 'id',
+                   zsi.chinese_name         as 'school_name',
+                   zsi.english_name         as 'english_name',
+                   zsi.school_abbreviations as 'school_abbreviations',
+                   znsdp.chinese_name       as 'chinese_name',
+                   znsdp.english_name       as 'english_name',
+                   znsdp.school_id          as 'school_id',
+                   znsdp.campus_name        as 'campus',
+                   znsds.atar_ask           as 'atar_requirement',
+                   znsds.atar_score         as 'atar_score',
+                   znsds.sat_ask            as 'sat_requirement',
+                   znsds.sat_score          as 'sat_score',
+                   znsds.ukalevel3_ask      as 'ukalevel3_requirement',
+                   znsds.ukalevel3_score    as 'ukalevel3_score',
+                   znsds.act_ask            as 'act_requirement',
+                   znsds.act_score          as 'act_score',
+                   znsds.ukalevel3_score1   as 'ukalevel3_score1',
+                   znsds.ukalevel3_score2   as 'ukalevel3_score2',
+                   znsds.ukalevel3_score3   as 'ukalevel3_score3',
+                   znsds.ukalevel4_ask      as 'ukalevel4_requirement',
+                   znsds.ukalevel4_score    as 'ukalevel4_score',
+                   znsds.ap_ask             as 'ap_requirement',
+                   znsds.ap_score           as 'ap_score',
+                   znsds.ib_ask             as 'ib_requirement',
+                   znsds.ib_score           as 'ib_score',
+                   znsds.gaokao_ask         as 'gaokao_requirement',
+                   znsds.gaokao_score       as 'gaokao_score',
+                   znsds.ossd_ask           as 'ossd_requirement',
+                   znsds.ossd_score         as 'ossd_score',
+                   znsds.bc_ask             as 'bc_requirement',
+                   znsds.bc_score           as 'bc_score'
+            from zn_school_department_project znsdp
+                 join zn_school_deparment_admission_score znsds on znsdp.id = znsds.zsdp_id
+                 join zn_school_info zsi on znsdp.school_id = zsi.id
+            where znsdp.delete_status = 0
+                and znsds.delete_status = 0
+                and zsi.delete_status = 0
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project05(id: int = 0, limit: int = 10):
+    sql = f'''
+            select 
+                znsdp.id as 'id',
+                zsi.chinese_name as 'school_name',
+                zsi.english_name as 'english_name',
+                zsi.school_abbreviations as 'school_abbreviations',
+                znsdp.chinese_name as 'chinese_name',
+                znsdp.english_name as 'english_name',
+                znsdp.school_id as 'school_id',
+                znsdp.campus_name as 'campus',
+                znsds.c9_ask as 'c9_requirement',
+                znsds.c9_score as 'c9_score',
+                znsds.s211_ask as 's211_requirement',
+                znsds.s211_score as 's211_score',
+                znsds.s985_ask as 's985_requirement',
+                znsds.s985_score as 's985_score',
+                znsds.sn211_ask as 'sn211_requirement',
+                znsds.sn211_score as 'sn211_score',
+                znsds.accept_md_bg as 'professional_background_requirement',
+                znsds.b_accept_md_bg as 'accept_cross_major'
+            from 
+                zn_school_department_project znsdp
+                join zn_school_deparment_admission_score znsds on znsdp.id = znsds.zsdp_id
+                join zn_school_info zsi on znsdp.school_id = zsi.id
+            where 
+                znsdp.delete_status = 0
+                and znsds.delete_status = 0
+                and zsi.delete_status = 0
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project06(id: int = 0, limit: int = 10):
+    sql = f'''
+            select 
+                znsdp.id as 'id',
+                zsi.chinese_name as 'school_name',
+                zsi.english_name as 'english_name',
+                zsi.school_abbreviations as 'school_abbreviations',
+                znsdp.chinese_name as 'chinese_name',
+                znsdp.english_name as 'english_name',
+                znsdp.school_id as 'school_id',
+                znsdp.campus_name as 'campus',
+                znsdp.science_requirement as 'academic_requirement',
+                znsdp.material as 'application_materials',
+                znsdp.admission_elements as 'application_elements',
+                znsdp.reduce_status as 'credit_reduction',
+                znsdp.reduce_condition as 'credit_reduction_condition'
+            from
+                zn_school_department_project znsdp
+                join zn_school_info zsi on znsdp.school_id = zsi.id
+            where
+                znsdp.delete_status = 0
+                and zsi.delete_status = 0
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
 if __name__ == '__main__':
-    print(search_school_info_basic_data(5,6))
+    print(search_school_info_basic_data(5, 6))

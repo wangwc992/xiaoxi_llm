@@ -1,8 +1,17 @@
 from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
-from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
-    search_notice_message_data,search_school_info_basic_data,search_school_info_ranking_data
+from app.common.utils.object_utils import ObjectFormatter
+from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_knowledge_info_data,
+                                                                     search_notice_message_data,
+                                                                     search_school_info_basic_data,
+                                                                     search_school_info_ranking_data,
+                                                                     search_zn_school_department_project01,
+                                                                     search_zn_school_department_project02,
+                                                                     search_zn_school_department_project03,
+                                                                     search_zn_school_department_project04,
+                                                                     search_zn_school_department_project05,
+                                                                     search_zn_school_department_project06)
 from app.database.weaviate.knowledge_base import KnowledgeBaseWeaviate
 from app.common.utils.FileToText import FileToText
 
@@ -10,20 +19,25 @@ knowledge_base_weaviate = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collection
 
 logger = get_logger(__name__)
 file_to_text = FileToText()
+
 # 查询起始id
 start_id = 0
 
 # 每次查询条数
 limit = 1
 
+
 def get_string(*string_list):
     text = " ".join([str(s) for s in string_list if s])
     return text
+
 
 # 拿出富文本中A标签和img标签的链接，我会传入一个字符串的富文本
 def get_file_info(file_url):
     file_info = file_to_text.urlToText(file_url)
     return file_info
+
+
 def insert_t_knowledge_info_data():
     '''知识库
     1、问答/文件相关知识库内容洗入向量库时注意事项：
@@ -58,7 +72,8 @@ def insert_t_knowledge_info_data():
             "keyword": get_string(knowledge_info.get("country", '') or '',
                                   knowledge_info.get("school", '') or '',
                                   knowledge_info.get("class", '') or ''),
-            "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get("fileurl") else "",
+            "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get(
+                "fileurl") else "",
         } for knowledge_info in knowledge_info_dict_list]
 
         insert_weaviate_data_all(knowledge_base_model)
@@ -98,6 +113,7 @@ def insert_institution_information_data():
     } for notice_massage in notice_massage_dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+
 def insert_platform_introduction_data():
     '''插入小希平台介绍的全部数据
     这部分内容由产品经理团队整理出文字版本的word或者pdf文档给到技术，技术洗入向量数据库。
@@ -132,9 +148,12 @@ def insert_college_library01_data():
                 (f"所属国家：{school_info.get('country_name', '')} " if school_info.get('country_name') else '') +
                 (f"所属地区：{school_info.get('city_path', '')} " if school_info.get('city_path') else '') +
                 (f"官网地址：{school_info.get('website', '')} " if school_info.get('website') else '') +
-                (f"申请费支付维度：{school_info.get('fee_dimension', '')} " if school_info.get('fee_dimension') else '') +
-                (f"申请周期-算法统计：{school_info.get('apply_cycle_algorithm', '')} " if school_info.get('apply_cycle_algorithm') else '') +
-                (f"申请周期-人工配置：{school_info.get('apply_cycle_manual', '')} " if school_info.get('apply_cycle_manual') else '')
+                (f"申请费支付维度：{school_info.get('fee_dimension', '')} " if school_info.get(
+                    'fee_dimension') else '') +
+                (f"申请周期-算法统计：{school_info.get('apply_cycle_algorithm', '')} " if school_info.get(
+                    'apply_cycle_algorithm') else '') +
+                (f"申请周期-人工配置：{school_info.get('apply_cycle_manual', '')} " if school_info.get(
+                    'apply_cycle_manual') else '')
         ).strip(),
         "keyword": get_string(
             school_info.get("chinese_name", '') or '',
@@ -154,7 +173,6 @@ def insert_college_library02_data():
     【世界USNEWS排名：】【世界泰晤士排名：】【世界QS排名：】【地区USNEWS排名：】【地区泰晤士排名：】【地区QS排名：】
     '''
     school_info_basic = search_school_info_ranking_data(id=start_id, limit=limit)
-
 
 
 def insert_college_library03_data():
@@ -229,7 +247,7 @@ def insert_college_library08_data():
     pass
 
 
-def insert_major_library01_data():
+def insert_major_library_data():
     '''专业库洗入格式如下：
 
    a、标题信息：
@@ -257,6 +275,207 @@ def insert_major_library01_data():
    【学术要求：】【申请材料：】【申请要点：】【是否减免学分：】【减免学分条件：】'''
 
     pass
+
+
+def insert_major_library01_data():
+    '''专业库洗入格式如下：
+
+   a、标题信息：
+   {院校中文名}{院校英文名}{院校简称}的{{专业英文}{专业中文}信息资料如下：
+   b、内容信息：
+                    zsi.chinese_name AS 'school_name',
+                    zsi.english_name AS 'english_name',
+                    zsi.school_abbreviations AS 'school_abbreviations',
+   1、专业基本信息：
+   【所属院系：】【所属校区：】【*专业中文名：】【*专业英文名：】【课程编码：】【*专业链接：】【*全日制学制：】【专业小方向：】【非全日制：】【*学位名称：】【*学位类型：】【*学位等级：】【专业简称 】【开学时间：】【所在城市：】【专业介绍：】【专业分类】
+    '''
+    database = "zn_school_department_project_01"
+    # {'department': None, 'campus': None, 'chinese_name': '语言学与哲学-博士PhD', 'english_name': 'PhD in Linguistics and Philosophy', 'course_code': None, 'major_link': None, 'full_time_duration': '5年', 'specialization': None, 'part_time_duration': None, 'degree_name': None, 'degree_type': '博士', 'degree_level': None, 'abbreviation': '', 'start_semester': '秋季', 'city_path': '美国-马萨诸塞-波士顿', 'introduction': '', 'career_opportunities': None}
+    zn_school_department_project_dict_list = search_zn_school_department_project01(limit=10)
+    key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
+                     {"院校简称": "school_abbreviations"}, {"所属院系": "department"}, {"所属校区": "campus"},
+                     {"专业中文名": "chinese_name"},
+                     {"专业英文名": "english_name"}, {"课程编码": "course_code"}, {"专业链接": "major_link"},
+                     {"全日制学制": "full_time_duration"}, {"专业小方向": "specialization"},
+                     {"非全日制": "part_time_duration"}, {"学位名称": "degree_name"}, {"学位类型": "degree_type"},
+                     {"学位等级": "degree_level"}, {"专业简称": "abbreviation"}, {"开学时间": "start_semester"},
+                     {"所在城市": "city_path"}, {"专业介绍": "introduction"}, {"专业分类": "career_opportunities"}]
+    dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": dict.get('db_id'),
+        "instruction": f"{dict.get('key_value')} 的专业基本信息",
+        "input": "",
+        "output": dict.get('key_value'),
+        "keyword": dict.get('key_value'),
+        "file_info": "",
+    } for dict in dict_list]
+    insert_weaviate_data_all(knowledge_base_model)
+
+
+def insert_major_library02_data():
+    '''专业库洗入格式如下：
+
+    a、标题信息：
+    {院校中文名}{院校英文名}{院校简称}的{{专业英文}{专业中文}信息资料如下：
+    b、内容信息：
+    2、关键时间和费用：
+    【开学时间：】【申请截止时间：】【Offer发放时间：】【Offer发放截止时间：】【申请费用：】【学费：】【生活费：】【交通费：】【住宿费用：】【其他费用：】【总花费：】
+    '''
+    database = "zn_school_department_project_02"
+    zn_school_department_project_dict_list = search_zn_school_department_project02(limit=300)
+    # # {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'start_semester': '9月', 'application_deadline': '', 'offer_release_time': '', 'offer_deadline': '', 'application_fee': '75美元', 'tuition_fee': '41770美元/学年', 'living_expenses': '', 'traffic_fee': None, 'accommodation_fee': '', 'other_fees': '', 'total_cost': ''}
+    key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
+                     {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
+                     {"专业英文名": "znsdp.english_name"}, {"学校id": "school_id"}, {"校区": "campus"},
+                     {"开学时间": "start_semester"}, {"申请截止时间": "application_deadline"},
+                     {"Offer发放时间": "offer_release_time"}, {"Offer截止时间": "offer_deadline"},
+                     {"申请费用": "application_fee"}, {"学费": "tuition_fee"}, {"生活费": "living_expenses"},
+                     {"交通费": "traffic_fee"}, {"住宿费用": "accommodation_fee"}, {"其他费用": "other_fees"},
+                     {"总花费": "total_cost"}]
+    dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": dict.get('db_id'),
+        "instruction": f"{dict.get('key_value')} 的关键时间和费用",
+        "input": "",
+        "output": dict.get('key_value'),
+        "keyword": dict.get('key_value'),
+        "file_info": "",
+    } for dict in dict_list]
+    insert_weaviate_data_all(knowledge_base_model)
+
+
+def insert_major_library03_data():
+    '''专业库洗入格式如下：
+
+    a、标题信息：
+    {院校中文名}{院校英文名}{院校简称}的{{专业英文}{专业中文}信息资料如下：
+    b、内容信息：
+    3、申请要求
+    【雅思成绩：】【雅思总分：】【托福成绩：】【托福总分：】
+    '''
+    database = "zn_school_department_project_03"
+    zn_school_department_project_dict_list = search_zn_school_department_project03(limit=300)
+    # {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'ielts_score': '', 'ielts_total_score': None, 'toefl_score': '90', 'toefl_total_score': None}
+    key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
+                     {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
+                     {"专业英文名": "znsdp.english_name"},
+                     {"雅思成绩": "ielts_score"}, {"雅思总分": "ielts_total_score"},
+                     {"托福成绩": "toefl_score"}, {"托福总分": "toefl_total_score"}]
+    dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": dict.get('db_id'),
+        "instruction": f"{dict.get('key_value')} 的申请要求",
+        "input": "",
+        "output": dict.get('key_value'),
+        "keyword": dict.get('key_value'),
+        "file_info": "",
+    } for dict in dict_list]
+    insert_weaviate_data_all(knowledge_base_model)
+
+
+def insert_major_library04_data():
+    '''专业库洗入格式如下：
+
+    a、标题信息：
+    {院校中文名}{院校英文名}{院校简称}的{{专业英文}{专业中文}信息资料如下：
+    b、内容信息：
+    4、本科专业申请要求
+    【ATAR要求：】【ATAR分数：】【SAT要求：】【SAT分数：】【UKAlevel三科要求：】【UKAlevel三科分数：】【ACT要求：】【ACT分数：】【分数一:
+    】【分数二:  】【分数三:  】【UKAlevel四科要求：】【UKAlevel四科分数：】【AP要求：】【AP分数：】【IB要求：】【IB分数：】【高考要求：】
+    【高考分数：】【OSSD要求：】【OSSD分数：】【BC要求：】【BC分数：】
+    '''
+    database = "zn_school_department_project_04"
+    zn_school_department_project_dict_list = search_zn_school_department_project04(limit=300)
+    #     {'id': 162865, 'school_name': '蒙纳士大学', 'english_name': 'Monash University', 'school_abbreviations': '', 'chinese_name': '全球商业硕士与管理硕士', 'znsdp.english_name': 'Master of Global Business and Master of Management', 'school_id': 56, 'campus': 'Caulfield campus', 'atar_requirement': '', 'atar_score': None, 'sat_requirement': '', 'sat_score': None, 'ukalevel3_requirement': '', 'ukalevel3_score': None, 'act_requirement': '', 'act_score': None, 'ukalevel3_score1': None, 'ukalevel3_score2': None, 'ukalevel3_score3': None, 'ukalevel4_requirement': '', 'ukalevel4_score': None, 'ap_requirement': '', 'ap_score': None, 'ib_requirement': '', 'ib_score': None, 'gaokao_requirement': '', 'gaokao_score': '', 'ossd_requirement': '', 'ossd_score': None, 'bc_requirement': '', 'bc_score': None}
+    key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
+                     {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
+                     {"专业英文名": "znsdp.english_name"}, {"学校id": "school_id"}, {"校区": "campus"},
+                     {"ATAR要求": "atar_requirement"}, {"ATAR分数": "atar_score"}, {"SAT要求": "sat_requirement"},
+                     {"SAT分数": "sat_score"}, {"UKAlevel三科要求": "ukalevel3_requirement"},
+                     {"UKAlevel三科分数": "ukalevel3_score"}, {"ACT要求": "act_requirement"},
+                     {"ACT分数": "act_score"}, {"分数一": "ukalevel3_score1"}, {"分数二": "ukalevel3_score2"},
+                     {"分数三": "ukalevel3_score3"}, {"UKAlevel四科要求": "ukalevel4_requirement"},
+                     {"UKAlevel四科分数": "ukalevel4_score"}, {"AP要求": "ap_requirement"}, {"AP分数": "ap_score"},
+                     {"IB要求": "ib_requirement"}, {"IB分数": "ib_score"}, {"高考要求": "gaokao_requirement"},
+                     {"高考分数": "gaokao_score"}, {"OSSD要求": "ossd_requirement"}, {"OSSD分数": "ossd_score"},
+                     {"BC要求": "bc_requirement"}, {"BC分数": "bc_score"}]
+    dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": dict.get('db_id'),
+        "instruction": f"{dict.get('key_value')} 的本科专业申请要求",
+        "input": "",
+        "output": dict.get('key_value'),
+        "keyword": dict.get('key_value'),
+        "file_info": "",
+    } for dict in dict_list]
+    insert_weaviate_data_all(knowledge_base_model)
+
+
+def insert_major_library05_data():
+    '''专业库洗入格式如下：
+
+    a、标题信息： {院校中文名}{院校英文名}{院校简称}的{{专业英文}{专业中文}信息资料如下：
+    b、内容信息：
+        5、研究生专业申请要求
+        【c9均分要求：】【C9均分分数：】【211均分要求：】【211均分分数：】【985均分要求：】【985均分分数：】【非211均分要求：】【非211均分分数：】【专业背景要求：】【是否接受跨专业：】
+    '''
+    database = "zn_school_department_project_05"
+    zn_school_department_project_dict_list = search_zn_school_department_project05(limit=300)
+    # {'id': 156097, 'school_name': '蒙纳士大学', 'english_name': 'Monash University', 'school_abbreviations': '', 'chinese_name': '信息技术文凭课程', 'znsdp.english_name': 'Diploma of Information Technology', 'school_id': 56, 'campus': None, 'c9_requirement': '', 'c9_score': None, 's211_requirement': '', 's211_score': None, 's985_requirement': '', 's985_score': None, 'sn211_requirement': '', 'sn211_score': None, 'professional_background_requirement': '', 'accept_cross_major': 1}
+    key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
+                     {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
+                     {"专业英文名": "znsdp.english_name"}, {"学校id": "school_id"}, {"校区": "campus"},
+                     {"c9均分要求": "c9_requirement"}, {"C9均分分数": "c9_score"}, {"211均分要求": "s211_requirement"},
+                     {"211均分分数": "s211_score"}, {"985均分要求": "s985_requirement"}, {"985均分分数": "s985_score"},
+                     {"非211均分要求": "sn211_requirement"}, {"非211均分分数": "sn211_score"},
+                     {"专业背景要求": "professional_background_requirement"}, {"是否接受跨专业": "accept_cross_major"}]
+    dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": dict.get('db_id'),
+        "instruction": f"{dict.get('key_value')} 的研究生专业申请要求",
+        "input": "",
+        "output": dict.get('key_value'),
+        "keyword": dict.get('key_value'),
+        "file_info": "",
+    } for dict in dict_list]
+    insert_weaviate_data_all(knowledge_base_model)
+
+
+def insert_major_library06_data():
+    '''专业库洗入格式如下：
+
+    a、标题信息：
+    {院校中文名}{院校英文名}{院校简称}的{{专业英文}{专业中文}信息资料如下：
+
+    b、内容信息：
+    6、其它申请要求：
+    【学术要求：】【申请材料：】【申请要点：】【是否减免学分：】【减免学分条件：】
+    '''
+    database = "zn_school_department_project_06"
+    zn_school_department_project_dict_list = search_zn_school_department_project06(limit=300)
+    #     {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'academic_requirement': None, 'application_materials': '1、申请表\n2、学历证明以及各科成绩单\n3、托福成绩单\n4、GRE成绩单\n5、申请费\n6、银行资金证明\n7、个人简历', 'application_elements': '', 'credit_reduction': 0, 'credit_reduction_condition': None}
+    key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
+                     {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
+                     {"专业英文名": "znsdp.english_name"}, {"学校id": "school_id"}, {"校区": "campus"},
+                     {"学术要求": "academic_requirement"}, {"申请材料": "application_materials"},
+                     {"申请要点": "application_elements"}, {"是否减免学分": "credit_reduction"},
+                     {"减免学分条件": "credit_reduction_condition"}]
+    dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": dict.get('db_id'),
+        "instruction": f"{dict.get('key_value')} 的其它申请要求",
+        "input": "",
+        "output": dict.get('key_value'),
+        "keyword": dict.get('key_value'),
+        "file_info": "",
+    } for dict in dict_list]
+    insert_weaviate_data_all(knowledge_base_model)
 
 
 def insert_weaviate_data_all(knowledge_base_model: list):
@@ -311,8 +530,8 @@ def update_weaviate_data_by_id(id: str, properties: dict):
 
 
 if __name__ == '__main__':
-    #database = "t_knowledge_info"
-    #insert_t_knowledge_info_data()
+    # database = "t_knowledge_info"
+    # insert_t_knowledge_info_data()
 
     # clear_all_data(database)
     # delete_weaviate_data_by_id("155")
@@ -325,5 +544,5 @@ if __name__ == '__main__':
     #     "output": "郝丽君12 2023-03-22 10:22:41 英国本科学历达到58分，是符合USNW要求65%的硕士录取要求的。如分数达不到，可考虑申请GC项目进行过渡。",
     #     "state": 1
     # })
-    #insert_institution_information_data()
-    insert_college_library01_data()
+    # insert_institution_information_data()
+    insert_major_library02_data()
