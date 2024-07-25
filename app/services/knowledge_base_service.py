@@ -12,7 +12,8 @@ from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_know
                                                                      search_zn_school_department_project04,
                                                                      search_zn_school_department_project05,
                                                                      search_zn_school_department_project06,
-                                                                     search_school_info_more_data, search_zn_school_selection_reason,
+                                                                     search_school_info_more_data,
+                                                                     search_zn_school_selection_reason,
                                                                      search_zn_school_recruit_graduate_1,
                                                                      search_zn_school_recruit_graduate_2,
                                                                      search_zn_school_recruit_art)
@@ -189,11 +190,15 @@ def insert_college_library02_data():
         ),
         "input": "",
         "output": (
-                (f"世界USNEWS排名：{school_info.get('world_rank_usnews', '')} " if school_info.get('world_rank_usnews') else '') +
-                (f"世界泰晤士排名：：{school_info.get('world_rank_the', '')} " if school_info.get('world_rank_the') else '') +
+                (f"世界USNEWS排名：{school_info.get('world_rank_usnews', '')} " if school_info.get(
+                    'world_rank_usnews') else '') +
+                (f"世界泰晤士排名：：{school_info.get('world_rank_the', '')} " if school_info.get(
+                    'world_rank_the') else '') +
                 (f"世界QS排名：{school_info.get('world_rank_qs', '')} " if school_info.get('world_rank_qs') else '') +
-                (f"地区USNEWS排名：{school_info.get('local_rank_usnews', '')} " if school_info.get('local_rank_usnews') else '') +
-                (f"地区泰晤士排名：{school_info.get('local_rank_the', '')} " if school_info.get('local_rank_the') else '') +
+                (f"地区USNEWS排名：{school_info.get('local_rank_usnews', '')} " if school_info.get(
+                    'local_rank_usnews') else '') +
+                (f"地区泰晤士排名：{school_info.get('local_rank_the', '')} " if school_info.get(
+                    'local_rank_the') else '') +
                 (f"地区QS排名：{school_info.get('local_rank_qs', '')} " if school_info.get('local_rank_qs') else '')
         ).strip(),
         "keyword": get_string(
@@ -204,6 +209,7 @@ def insert_college_library02_data():
         "file_info": "",
     } for school_info in school_info_ranking_list]
     insert_weaviate_data_all(knowledge_base_model)
+
 
 def insert_college_library03_data():
     '''院校库洗入格式如下
@@ -224,11 +230,15 @@ def insert_college_library03_data():
         "input": "",
         "output": (
                 (f"就业率：{school_info.get('employment_rate', '')} " if school_info.get('employment_rate') else '') +
-                (f"毕业薪资：{school_info.get('employment_salary', '')} " if school_info.get('employment_salary') else '') +
+                (f"毕业薪资：{school_info.get('employment_salary', '')} " if school_info.get(
+                    'employment_salary') else '') +
                 (f"学生总数量：{school_info.get('student_amount', '')} " if school_info.get('student_amount') else '') +
-                (f"本科生数量：{school_info.get('undergraduate_amount', '')} " if school_info.get('undergraduate_amount') else '') +
-                (f"研究生数量：{school_info.get('graduate_amount', '')} " if school_info.get('graduate_amount') else '') +
-                (f"国际学生比例：{school_info.get('international_ratio', '')} " if school_info.get('international_ratio') else '') +
+                (f"本科生数量：{school_info.get('undergraduate_amount', '')} " if school_info.get(
+                    'undergraduate_amount') else '') +
+                (f"研究生数量：{school_info.get('graduate_amount', '')} " if school_info.get(
+                    'graduate_amount') else '') +
+                (f"国际学生比例：{school_info.get('international_ratio', '')} " if school_info.get(
+                    'international_ratio') else '') +
                 (f"师生比例：{school_info.get('faculty_ratio', '')} " if school_info.get('faculty_ratio') else '') +
                 (f"男女比例：{school_info.get('boy_girl_ratio', '')} " if school_info.get('boy_girl_ratio') else '') +
                 (f"院校简介：{school_info.get('introduction', '')} " if school_info.get('introduction') else '') +
@@ -238,17 +248,18 @@ def insert_college_library03_data():
                 (f"学校宿舍：{school_info.get('accommodation', '')} " if school_info.get('accommodation') else '') +
                 (f"图书馆：{school_info.get('library', '')} " if school_info.get('library') else '') +
                 (f"学校设施：{school_info.get('installation', '')} " if school_info.get('installation') else '') +
-                (f"招生办信息：{school_info.get('admissions_office', '')} " if school_info.get('admissions_office') else '') +
+                (f"招生办信息：{school_info.get('admissions_office', '')} " if school_info.get(
+                    'admissions_office') else '') +
                 (f"防疫信息：{school_info.get('covid_rule', '')} " if school_info.get('covid_rule') else '')
 
-         ),
+        ),
         "keyword": get_string(
             school_info.get("chinese_name", '') or '',
             school_info.get("english_name", '') or '',
             school_info.get("school_abbreviations", '') or ''
         ),
         "file_info": "",
-    }for school_info in school_info_more_list]
+    } for school_info in school_info_more_list]
     insert_weaviate_data_all(knowledge_base_model)
 
 
@@ -271,11 +282,13 @@ def insert_college_library04_data():
         ),
         "input": "",
         "output": (
-                (f"择校理由：{school_info.get('selection_reason', '')} " if school_info.get('selection_reason') else '') +
+                (f"择校理由：{school_info.get('selection_reason', '')} " if school_info.get(
+                    'selection_reason') else '') +
                 (f"学校特色：{school_info.get('feature', '')} " if school_info.get('feature') else '') +
                 (f"强势专业：{school_info.get('strong_majors', '')} " if school_info.get('strong_majors') else '') +
                 (f"热门专业：{school_info.get('hot_majors', '')} " if school_info.get('hot_majors') else '') +
-                (f"院系设置：{school_info.get('department_major', '')} " if school_info.get('department_major') else '') +
+                (f"院系设置：{school_info.get('department_major', '')} " if school_info.get(
+                    'department_major') else '') +
                 (f"好评项：{school_info.get('evaluation_good', '')} " if school_info.get('evaluation_good') else '') +
                 (f"差评项：{school_info.get('evaluation_bad', '')} " if school_info.get('evaluation_bad') else '')
         ),
@@ -285,7 +298,7 @@ def insert_college_library04_data():
             school_info.get("school_abbreviations", '') or ''
         ),
         "file_info": "",
-    }for school_info in zn_school_selection_reason_list]
+    } for school_info in zn_school_selection_reason_list]
     insert_weaviate_data_all(knowledge_base_model)
 
 
@@ -316,7 +329,8 @@ def insert_college_library05_data():
                 (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
                 (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
                 (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
-                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get('time_apply_deadline') else '') +
+                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get(
+                    'time_apply_deadline') else '') +
                 (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
 
                 (f"\n留学费用如下："
@@ -325,7 +339,8 @@ def insert_college_library05_data():
                 (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
                 (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
                 (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
-                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get('fee_accommodation') else '') +
+                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get(
+                    'fee_accommodation') else '') +
                 (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
                 (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
 
@@ -346,9 +361,8 @@ def insert_college_library05_data():
                 (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
         )
 
-    }for school_info in search_zn_school_recruit_graduate_1_list]
+    } for school_info in search_zn_school_recruit_graduate_1_list]
     insert_weaviate_data_all(knowledge_base_model)
-
 
 
 def insert_college_library06_data():
@@ -378,7 +392,8 @@ def insert_college_library06_data():
                 (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
                 (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
                 (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
-                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get('time_apply_deadline') else '') +
+                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get(
+                    'time_apply_deadline') else '') +
                 (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
 
                 (f"\n留学费用如下："
@@ -387,7 +402,8 @@ def insert_college_library06_data():
                 (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
                 (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
                 (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
-                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get('fee_accommodation') else '') +
+                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get(
+                    'fee_accommodation') else '') +
                 (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
                 (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
 
@@ -408,7 +424,7 @@ def insert_college_library06_data():
                 (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
         )
 
-    }for school_info in search_zn_school_recruit_graduate_2_list]
+    } for school_info in search_zn_school_recruit_graduate_2_list]
     insert_weaviate_data_all(knowledge_base_model)
 
 
@@ -439,7 +455,8 @@ def insert_college_library07_data():
                 (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
                 (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
                 (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
-                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get('time_apply_deadline') else '') +
+                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get(
+                    'time_apply_deadline') else '') +
                 (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
 
                 (f"\n留学费用如下："
@@ -448,7 +465,8 @@ def insert_college_library07_data():
                 (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
                 (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
                 (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
-                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get('fee_accommodation') else '') +
+                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get(
+                    'fee_accommodation') else '') +
                 (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
                 (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
 
@@ -469,10 +487,8 @@ def insert_college_library07_data():
                 (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
         )
 
-    }for school_info in search_zn_school_recruit_graduate_2_list]
+    } for school_info in search_zn_school_recruit_graduate_2_list]
     insert_weaviate_data_all(knowledge_base_model)
-
-
 
 
 def insert_major_library01_data():
@@ -688,8 +704,8 @@ def insert_weaviate_data_all(knowledge_base_model: list):
     uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
     logger.info(
         "%s 插入大于id:%s的%s条的数据%s" % (
-        knowledge_base_weaviate.collections_name, knowledge_base_model[0].get('db_id'), len(knowledge_base_model),
-        uuid_list))
+            knowledge_base_weaviate.collections_name, knowledge_base_model[0].get('db_id'), len(knowledge_base_model),
+            uuid_list))
 
 
 def clear_all_data(database: str):
@@ -731,13 +747,14 @@ def update_weaviate_data_by_id(id: str, properties: dict):
 
 if __name__ == '__main__':
     # database = "t_knowledge_info"
-    insert_t_knowledge_info_data()
+    # insert_t_knowledge_info_data()
     # database = "t_knowledge_info"
     # insert_t_knowledge_info_data()
 
     # clear_all_data(database)
     # delete_weaviate_data_by_id("155")
-    # search_weaviate_data_by_query("英国", 10)
+    # x = search_weaviate_data_by_query("英国", 10)
+    # print(x)
     # update_weaviate_data_by_id("7e08b804-8b7c-47f8-a92b-29256d274266", {
     #     "database": "t_knowledge_info",
     #     "db_id": "156",
@@ -754,5 +771,5 @@ if __name__ == '__main__':
     # insert_college_library03_data()
     # insert_college_library04_data()
     # insert_college_library05_data()
-    insert_college_library07_data()
-
+    # insert_college_library07_data()
+    pass

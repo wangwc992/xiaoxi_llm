@@ -137,7 +137,7 @@ def search_school_info_basic_data(id: int = 0, limit: int = 10):
 # 院校排名查询信息，带上zn_school_info表关联
 # CREATE TABLE `zn_school_rank` (
 #     `id` int(11) NOT NULL AUTO_INCREMENT,
-#zn_school_rank
+# zn_school_rank
 def search_school_info_ranking_data(id: int = 0, limit: int = 10):
     sql = f'''SELECT 
         a.id as id,
@@ -157,6 +157,7 @@ def search_school_info_ranking_data(id: int = 0, limit: int = 10):
     '''
 
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
 
 # zn_school_intro
 def search_school_info_more_data(id: int = 0, limit: int = 10):
@@ -191,6 +192,7 @@ def search_school_info_more_data(id: int = 0, limit: int = 10):
 
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
+
 def search_zn_school_selection_reason(id: int = 0, limit: int = 10):
     sql = f'''SELECT 
         a.id as id,
@@ -211,6 +213,7 @@ def search_zn_school_selection_reason(id: int = 0, limit: int = 10):
         and a.id > {id}
         '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
 
 # CREATE TABLE `zn_school_recruit_graduate` (
 # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -305,6 +308,7 @@ def search_zn_school_recruit_graduate_1(id: int = 0, limit: int = 10):
         '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
+
 def search_zn_school_recruit_graduate_2(id: int = 0, limit: int = 10):
     sql = f'''SELECT 
         a.id as id,
@@ -354,6 +358,90 @@ def search_zn_school_recruit_graduate_2(id: int = 0, limit: int = 10):
         and a.id > {id}
         '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project01(id: int = 0, limit: int = 300):
+    sql = f'''
+            select 
+                znsdp.id as 'id',
+                zsi.chinese_name as 'school_name',
+                zsi.english_name as 'english_name',
+                zsi.school_abbreviations as 'school_abbreviations',
+                znsdp.depart_name as 'department',
+                znsdp.campus_name as 'campus',
+                znsdp.chinese_name as 'chinese_name',
+                znsdp.english_name as 'english_name',
+                znsdp.course_code as 'course_code',
+                znsdp.major_link as 'major_link',
+                znsdp.length_of_full as 'full_time_duration',
+                znsdp.small_direction as 'specialization',
+                znsdp.length_of_part as 'part_time_duration',
+                znsdp.degree_name as 'degree_name',
+                znsdp.degree_type as 'degree_type',
+                znsdp.degree_level as 'degree_level',
+                znsdp.project_abbreviations as 'abbreviation',
+                znsdp.semester as 'start_semester',
+                zsi.city_path as 'city_path',
+                znsdp.introduction as 'introduction',
+                znsdp.career_opportunities as 'career_opportunities'
+            from 
+                zn_school_department_project znsdp
+            left join zn_school_info zsi on zsi.id = znsdp.school_id
+            where znsdp.delete_status = 0 
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project02(id: int = 0, limit: int = 10):
+    sql = f'''
+            select znsdp.id                  as 'id',
+                   zsi.chinese_name          as 'school_name',
+                   zsi.english_name          as 'english_name',
+                   zsi.school_abbreviations  as 'school_abbreviations',
+                   znsdp.chinese_name        as 'chinese_name',
+                   znsdp.english_name        as 'english_name',
+                   znsdp.school_id           as 'school_id',
+                   znsdp.campus_name         as 'campus',
+                   znsdp.semester            as 'start_semester',
+                   znsdp.time_apply_deadline as 'application_deadline',
+                   znsdp.time_offer          as 'offer_release_time',
+                   znsdp.time_offer_deadline as 'offer_deadline',
+                   znsdp.fee_apply           as 'application_fee',
+                   znsdp.fee_tuition         as 'tuition_fee',
+                   znsdp.fee_life            as 'living_expenses',
+                   znsdp.fee_traffic         as 'traffic_fee',
+                   znsdp.fee_accommodation   as 'accommodation_fee',
+                   znsdp.fee_others          as 'other_fees',
+                   znsdp.fee_total           as 'total_cost'
+            from zn_school_department_project znsdp
+                     left join zn_school_info zsi on zsi.id = znsdp.school_id
+            where znsdp.delete_status = 0
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
+
+def search_zn_school_department_project03(id: int = 0, limit: int = 10):
+    sql = f'''
+            select znsdp.id                 as 'id',
+                   zsi.chinese_name         as 'school_name',
+                   zsi.english_name         as 'english_name',
+                   zsi.school_abbreviations as 'school_abbreviations',
+                   znsdp.chinese_name       as 'chinese_name',
+                   znsdp.english_name       as 'english_name',
+                   znsdp.score_ielts        as 'ielts_score',
+                   znsdp.score_ielts_total  as 'ielts_total_score',
+                   znsdp.score_toefl        as 'toefl_score',
+                   znsdp.score_toefl_total  as 'toefl_total_score'
+            from zn_school_department_project znsdp
+                     left join zn_school_info zsi on znsdp.school_id = zsi.id
+            where znsdp.delete_status = 0
+                and zsi.delete_status = 0
+                and znsdp.id > {id}
+        '''
+    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
 
 def search_zn_school_department_project04(id: int = 0, limit: int = 10):
     sql = f'''
@@ -459,6 +547,7 @@ def search_zn_school_department_project06(id: int = 0, limit: int = 10):
                 and znsdp.id > {id}
         '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
 
 # CREATE TABLE `zn_school_recruit_art` (
 # `id` int(11) NOT NULL AUTO_INCREMENT,
