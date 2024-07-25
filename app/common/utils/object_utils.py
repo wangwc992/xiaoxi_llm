@@ -80,13 +80,13 @@ class ObjectFormatter:
             key = ""
             db_id = ''
             for key_name in key_name_list:
-                key = list(key_name.keys())[0]
-                value = zn_school_department_project_dict[key_name[key]]
-                if key == 'db_id':
+                name = list(key_name.keys())[0]
+                value = zn_school_department_project_dict[key_name[name]]
+                if name == 'db_id':
                     db_id = value
                 elif value:
-                    key += f"{key} "
-                    key_value += f"{key}：{value}、 "
+                    key += f"{name} "
+                    key_value += f"{name}：{value}、 "
             dict = {'db_id': db_id, "key_value": key_value.rstrip("、 "), "key": key.rstrip()}
             dict_list.append(dict)
         return dict_list
