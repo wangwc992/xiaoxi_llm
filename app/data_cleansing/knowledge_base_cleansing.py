@@ -1,5 +1,4 @@
-import json
-import sys
+import asyncio
 from typing import Optional, Dict
 
 from pydantic import BaseModel
@@ -30,12 +29,6 @@ from app.common.utils.FileToText import FileToText
 logger = get_logger(__name__)
 file_to_text = FileToText()
 
-# 查询起始id
-start_id = 0
-
-# 每次查询条数
-limit = 2
-
 
 def get_string(*string_list):
     text = " ".join([str(s) for s in string_list if s])
@@ -48,7 +41,7 @@ def get_file_info(file_url):
     return file_info
 
 
-def insert_t_knowledge_info_data():
+def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     '''知识库
     1、问答/文件相关知识库内容洗入向量库时注意事项：
     a、标题洗入要求： {国家}{院校}{问题类型}{问题是否常见}的以下问题：{标题内容}：
@@ -60,36 +53,39 @@ def insert_t_knowledge_info_data():
 
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
-    global start_id
-    while True:
-        knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
-        if not knowledge_info_dict_list:
-            break
-        start_id = knowledge_info_dict_list[-1].get("id")
-        knowledge_base_model = [{
-            "database": "t_knowledge_info",
-            "db_id": str(knowledge_info.get("id", '') or ''),
-            "instruction": get_string(knowledge_info.get("country", '') or '',
-                                      knowledge_info.get("school", '') or '',
-                                      knowledge_info.get("class", '') or '',
-                                      "的以下问题",
-                                      knowledge_info.get("name", '') or ''),
-            "input": "",
-            "output": ((knowledge_info.get("founder", '') or '') + "于" +
-                       ((knowledge_info.get("replyerTime").strftime("%Y-%m-%d %H:%M:%S"))
-                        if knowledge_info.get("replyerTime") else '') + "回复内容如下：" +
-                       HtmlUtils.replace_link_with_url(knowledge_info.get("content", '') or '')),
-            "keyword": get_string(knowledge_info.get("country", '') or '',
+    database = "t_knowledge_info"
+    knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
+    if not knowledge_info_dict_list:
+        logger.info(f"{database}知识库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"{database}知识库数据已全部洗入")
+
+    knowledge_base_model = [{
+        "database": database,
+        "db_id": str(knowledge_info.get("id", '') or ''),
+        "instruction": get_string(knowledge_info.get("country", '') or '',
                                   knowledge_info.get("school", '') or '',
-                                  knowledge_info.get("class", '') or ''),
-            "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get(
-                "fileurl") else "",
-        } for knowledge_info in knowledge_info_dict_list]
+                                  knowledge_info.get("class", '') or '',
+                                  "的以下问题",
+                                  knowledge_info.get("name", '') or ''),
+        "input": "",
+        "output": ((knowledge_info.get("founder", '') or '') + "于" +
+                   ((knowledge_info.get("replyerTime").strftime("%Y-%m-%d %H:%M:%S"))
+                    if knowledge_info.get("replyerTime") else '') + "回复内容如下：" +
+                   HtmlUtils.replace_link_with_url(knowledge_info.get("content", '') or '')),
+        "keyword": get_string(knowledge_info.get("country", '') or '',
+                              knowledge_info.get("school", '') or '',
+                              knowledge_info.get("class", '') or ''),
+        "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get(
+            "fileurl") else "",
+    } for knowledge_info in knowledge_info_dict_list]
 
-        insert_weaviate_data_all(knowledge_base_model)
+    insert_weaviate_data_all(knowledge_base_model)
+
+    return knowledge_info_dict_list[-1].get("id")
 
 
-def insert_institution_information_data():
+def insert_institution_information_data(start_id: int = 0, limit: int = 10):
     '''小希平台院校资讯
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}于{时间}的{资讯类型}的{标题}资讯。
@@ -100,6 +96,10 @@ def insert_institution_information_data():
     以下为资料正文中附件{附件内容}。
     '''
     notice_massage_dict_list = search_notice_message_data(id=start_id, limit=limit)
+    if not notice_massage_dict_list:
+        logger.info(f"小希平台院校资讯数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"小希平台院校资讯数据已全部洗入")
     knowledge_base_model = [{
         "database": "notice_message",
         "db_id": str(notice_massage.get('notice_id', '')),
@@ -123,8 +123,10 @@ def insert_institution_information_data():
     } for notice_massage in notice_massage_dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return notice_massage_dict_list[-1].get("notice_id")
 
-def insert_platform_introduction_data():
+
+def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     '''插入小希平台介绍的全部数据
     这部分内容由产品经理团队整理出文字版本的word或者pdf文档给到技术，技术洗入向量数据库。
     产品经理给出的文档格式如下：
@@ -135,7 +137,7 @@ def insert_platform_introduction_data():
     pass
 
 
-def insert_college_library01_data():
+def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{基本信息}如下：
@@ -143,6 +145,10 @@ def insert_college_library01_data():
     （*仅洗入字段内容不为空的字段，字段为（*我这里仅列出标题））：【*院校中文名：】【*院校英文名：】【*所属国家：】【所属地区：】【*官网地址：】【申请费支付维度：】【申请周期-算法统计：】【申请周期-人工配置：】
         '''
     school_info_basic = search_school_info_basic_data(id=start_id, limit=limit)
+    if not school_info_basic:
+        logger.info(f"院校库基本信息数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"院校库基本信息数据已全部洗入")
     knowledge_base_model = [{
         "database": "zn_school_info",
         "db_id": str(school_info.get('id', '')),
@@ -174,8 +180,10 @@ def insert_college_library01_data():
     } for school_info in school_info_basic]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return school_info_basic[-1].get("id")
 
-def insert_college_library02_data():
+
+def insert_college_library02_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{院校排名}如下：
@@ -183,6 +191,10 @@ def insert_college_library02_data():
     【世界USNEWS排名：】【世界泰晤士排名：】【世界QS排名：】【地区USNEWS排名：】【地区泰晤士排名：】【地区QS排名：】
     '''
     school_info_ranking_list = search_school_info_ranking_data(id=start_id, limit=limit)
+    if not school_info_ranking_list:
+        logger.info(f"院校库排名信息数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"院校库排名信息数据已全部洗入")
     knowledge_base_model = [{
         "database": "zn_school_info",
         "db_id": str(school_info.get('id', '')),
@@ -213,8 +225,10 @@ def insert_college_library02_data():
     } for school_info in school_info_ranking_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return school_info_ranking_list[-1].get("id")
 
-def insert_college_library03_data():
+
+def insert_college_library03_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{院校更多信息}如下：
@@ -222,6 +236,10 @@ def insert_college_library03_data():
     【就业率：】【毕业薪资：】【学生总数量：】【本科生数量：】【研究生数量：】【国际学生比例：】【师生比例：】【男女比例：】【院校简介：】【院校历史：】【地理位置：】【校园环境：】【学校宿舍：】【图书馆：】【学校设施：】【招生办信息：】【防疫信息：】
     '''
     school_info_more_list = search_school_info_more_data(id=start_id, limit=limit)
+    if not school_info_more_list:
+        logger.info(f"院校库更多信息数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"院校库更多信息数据已全部洗入")
     knowledge_base_model = [{
         "database": "zn_school_info",
         "db_id": str(school_info.get('id', '')),
@@ -265,8 +283,10 @@ def insert_college_library03_data():
     } for school_info in school_info_more_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return school_info_more_list[-1].get("id")
 
-def insert_college_library04_data():
+
+def insert_college_library04_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{院校择校理由}如下：
@@ -274,7 +294,11 @@ def insert_college_library04_data():
     【择校理由：】【学校特色：】【强势专业：】【热门专业：】【院系设置：】【好评项：】【差评项：】
     '''
     database = "zn_school_selection_reason"
-    zn_school_selection_reason_list = search_zn_school_selection_reason(limit=10)
+    zn_school_selection_reason_list = search_zn_school_selection_reason(id=start_id, limit=limit)
+    if not zn_school_selection_reason_list:
+        logger.info(f"院校库择校理由数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"院校库择校理由数据已全部洗入")
     knowledge_base_model = [{
         "database": database,
         "db_id": str(school_info.get('id', '')),
@@ -304,8 +328,10 @@ def insert_college_library04_data():
     } for school_info in zn_school_selection_reason_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return zn_school_selection_reason_list[-1].get("id")
 
-def insert_college_library05_data():
+
+def insert_college_library05_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{本科生院校招生信息}如下：
@@ -316,7 +342,11 @@ def insert_college_library05_data():
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
     database = "zn_school_recruit_graduate_1"
-    search_zn_school_recruit_graduate_1_list = search_zn_school_recruit_graduate_1(limit=10)
+    search_zn_school_recruit_graduate_1_list = search_zn_school_recruit_graduate_1(id=start_id, limit=limit)
+    if not search_zn_school_recruit_graduate_1_list:
+        logger.info(f"院校库本科生院校招生信息数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"院校库本科生院校招生信息数据已全部洗入")
     knowledge_base_model = [{
         "database": database,
         "db_id": str(school_info.get('id', '')),
@@ -367,8 +397,10 @@ def insert_college_library05_data():
     } for school_info in search_zn_school_recruit_graduate_1_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return search_zn_school_recruit_graduate_1_list[-1].get("id")
 
-def insert_college_library06_data():
+
+def insert_college_library06_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{研究生生院校招生信息}如下：
@@ -379,7 +411,11 @@ def insert_college_library06_data():
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
     database = "zn_school_recruit_graduate_2"
-    search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_graduate_2(limit=10)
+    search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_graduate_2(id=start_id, limit=limit)
+    if not search_zn_school_recruit_graduate_2_list:
+        logger.info(f"院校库研究生生院校招生信息数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"院校库研究生生院校招生信息数据已全部洗入")
     knowledge_base_model = [{
         "database": database,
         "db_id": str(school_info.get('id', '')),
@@ -430,8 +466,10 @@ def insert_college_library06_data():
     } for school_info in search_zn_school_recruit_graduate_2_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return search_zn_school_recruit_graduate_2_list[-1].get("id")
 
-def insert_college_library07_data():
+
+def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}的{艺术生院校招生信息}如下：
@@ -442,7 +480,11 @@ def insert_college_library07_data():
     【研究生专业：】【本科专业：】【研究生雅思成绩：】【本科雅思成绩：】【研究生托福成绩：】【本科托福成绩：】【研究生申请截止日：】【本科申请截止日期：】【研究生申请要求：】【本科申请要求：】【研究生作品集要求：】【本科作品集要求：】
     '''
     database = "zn_school_recruit_art"
-    search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_art(limit=10)
+    search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_art(id=start_id, limit=limit)
+    if not search_zn_school_recruit_graduate_2_list:
+        logger.info(f"院校库艺术生院校招生信息数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"院校库艺术生院校招生信息数据已全部洗入")
     knowledge_base_model = [{
         "database": database,
         "db_id": str(school_info.get('id', '')),
@@ -493,10 +535,16 @@ def insert_college_library07_data():
     } for school_info in search_zn_school_recruit_graduate_2_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return search_zn_school_recruit_graduate_2_list[-1].get("id")
 
-def insert_major_library_data():
+
+def insert_major_library_data(start_id: int = 0, limit: int = 10):
     database = "zn_school_department_project"
-    datasets = search_zn_school_department_project(limit=limit)
+    datasets = search_zn_school_department_project(id=start_id, limit=limit)
+    if not datasets:
+        logger.info(f"专业库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"专业库数据已全部洗入")
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"所属院系": "department"}, {"所属校区": "campus"},
                      {"专业中文名": "chinese_name"}, {"专业英文名": "english_name"}, {"课程编码": "course_code"},
@@ -535,9 +583,10 @@ def insert_major_library_data():
     } for dict in dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return datasets[-1].get("id")
 
 
-def insert_major_library01_data():
+def insert_major_library01_data(start_id: int = 0, limit: int = 10):
     '''专业库洗入格式如下：
 
    a、标题信息：
@@ -551,7 +600,11 @@ def insert_major_library01_data():
     '''
     database = "zn_school_department_project_01"
     # {'department': None, 'campus': None, 'chinese_name': '语言学与哲学-博士PhD', 'english_name': 'PhD in Linguistics and Philosophy', 'course_code': None, 'major_link': None, 'full_time_duration': '5年', 'specialization': None, 'part_time_duration': None, 'degree_name': None, 'degree_type': '博士', 'degree_level': None, 'abbreviation': '', 'start_semester': '秋季', 'city_path': '美国-马萨诸塞-波士顿', 'introduction': '', 'career_opportunities': None}
-    zn_school_department_project_dict_list = search_zn_school_department_project01(limit=limit)
+    zn_school_department_project_dict_list = search_zn_school_department_project01(id=start_id, limit=limit)
+    if not zn_school_department_project_dict_list:
+        logger.info(f"专业库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"专业库数据已全部洗入")
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"所属院系": "department"}, {"所属校区": "campus"},
                      {"专业中文名": "chinese_name"},
@@ -572,8 +625,10 @@ def insert_major_library01_data():
     } for dict in dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return zn_school_department_project_dict_list[-1].get("id")
 
-def insert_major_library02_data():
+
+def insert_major_library02_data(start_id: int = 0, limit: int = 10):
     '''专业库洗入格式如下：
 
     a、标题信息：
@@ -583,7 +638,11 @@ def insert_major_library02_data():
     【开学时间：】【申请截止时间：】【Offer发放时间：】【Offer发放截止时间：】【申请费用：】【学费：】【生活费：】【交通费：】【住宿费用：】【其他费用：】【总花费：】
     '''
     database = "zn_school_department_project_02"
-    zn_school_department_project_dict_list = search_zn_school_department_project02(limit=limit)
+    zn_school_department_project_dict_list = search_zn_school_department_project02(id=start_id, limit=limit)
+    if not zn_school_department_project_dict_list:
+        logger.info(f"专业库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"专业库数据已全部洗入")
     # # {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'start_semester': '9月', 'application_deadline': '', 'offer_release_time': '', 'offer_deadline': '', 'application_fee': '75美元', 'tuition_fee': '41770美元/学年', 'living_expenses': '', 'traffic_fee': None, 'accommodation_fee': '', 'other_fees': '', 'total_cost': ''}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -605,8 +664,10 @@ def insert_major_library02_data():
     } for dict in dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return zn_school_department_project_dict_list[-1].get("id")
 
-def insert_major_library03_data():
+
+def insert_major_library03_data(start_id: int = 0, limit: int = 10):
     '''专业库洗入格式如下：
 
     a、标题信息：
@@ -616,7 +677,11 @@ def insert_major_library03_data():
     【雅思成绩：】【雅思总分：】【托福成绩：】【托福总分：】
     '''
     database = "zn_school_department_project_03"
-    zn_school_department_project_dict_list = search_zn_school_department_project03(limit=limit)
+    zn_school_department_project_dict_list = search_zn_school_department_project03(id=start_id, limit=limit)
+    if not zn_school_department_project_dict_list:
+        logger.info(f"专业库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"专业库数据已全部洗入")
     # {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'ielts_score': '', 'ielts_total_score': None, 'toefl_score': '90', 'toefl_total_score': None}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -635,8 +700,10 @@ def insert_major_library03_data():
     } for dict in dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return zn_school_department_project_dict_list[-1].get("id")
 
-def insert_major_library04_data():
+
+def insert_major_library04_data(start_id: int = 0, limit: int = 10):
     '''专业库洗入格式如下：
 
     a、标题信息：
@@ -648,7 +715,11 @@ def insert_major_library04_data():
     【高考分数：】【OSSD要求：】【OSSD分数：】【BC要求：】【BC分数：】
     '''
     database = "zn_school_department_project_04"
-    zn_school_department_project_dict_list = search_zn_school_department_project04(limit=limit)
+    zn_school_department_project_dict_list = search_zn_school_department_project04(id=start_id, limit=limit)
+    if not zn_school_department_project_dict_list:
+        logger.info(f"专业库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"专业库数据已全部洗入")
     #     {'id': 162865, 'school_name': '蒙纳士大学', 'english_name': 'Monash University', 'school_abbreviations': '', 'chinese_name': '全球商业硕士与管理硕士', 'znsdp.english_name': 'Master of Global Business and Master of Management', 'school_id': 56, 'campus': 'Caulfield campus', 'atar_requirement': '', 'atar_score': None, 'sat_requirement': '', 'sat_score': None, 'ukalevel3_requirement': '', 'ukalevel3_score': None, 'act_requirement': '', 'act_score': None, 'ukalevel3_score1': None, 'ukalevel3_score2': None, 'ukalevel3_score3': None, 'ukalevel4_requirement': '', 'ukalevel4_score': None, 'ap_requirement': '', 'ap_score': None, 'ib_requirement': '', 'ib_score': None, 'gaokao_requirement': '', 'gaokao_score': '', 'ossd_requirement': '', 'ossd_score': None, 'bc_requirement': '', 'bc_score': None}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -678,8 +749,10 @@ def insert_major_library04_data():
     } for dict in dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return zn_school_department_project_dict_list[-1].get("id")
 
-def insert_major_library05_data():
+
+def insert_major_library05_data(start_id: int = 0, limit: int = 10):
     '''专业库洗入格式如下：
 
     a、标题信息： {院校中文名}{院校英文名}{院校简称}的{{专业英文}{专业中文}信息资料如下：
@@ -688,7 +761,11 @@ def insert_major_library05_data():
         【c9均分要求：】【C9均分分数：】【211均分要求：】【211均分分数：】【985均分要求：】【985均分分数：】【非211均分要求：】【非211均分分数：】【专业背景要求：】【是否接受跨专业：】
     '''
     database = "zn_school_department_project_05"
-    zn_school_department_project_dict_list = search_zn_school_department_project05(limit=limit)
+    zn_school_department_project_dict_list = search_zn_school_department_project05(id=start_id, limit=limit)
+    if not zn_school_department_project_dict_list:
+        logger.info(f"专业库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"专业库数据已全部洗入")
     # {'id': 156097, 'school_name': '蒙纳士大学', 'english_name': 'Monash University', 'school_abbreviations': '', 'chinese_name': '信息技术文凭课程', 'znsdp.english_name': 'Diploma of Information Technology', 'school_id': 56, 'campus': None, 'c9_requirement': '', 'c9_score': None, 's211_requirement': '', 's211_score': None, 's985_requirement': '', 's985_score': None, 'sn211_requirement': '', 'sn211_score': None, 'professional_background_requirement': '', 'accept_cross_major': 1}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -709,8 +786,10 @@ def insert_major_library05_data():
     } for dict in dict_list]
     insert_weaviate_data_all(knowledge_base_model)
 
+    return zn_school_department_project_dict_list[-1].get("id")
 
-def insert_major_library06_data():
+
+def insert_major_library06_data(start_id: int = 0, limit: int = 10):
     '''专业库洗入格式如下：
 
     a、标题信息：
@@ -721,7 +800,11 @@ def insert_major_library06_data():
     【学术要求：】【申请材料：】【申请要点：】【是否减免学分：】【减免学分条件：】
     '''
     database = "zn_school_department_project_06"
-    zn_school_department_project_dict_list = search_zn_school_department_project06(limit=limit)
+    zn_school_department_project_dict_list = search_zn_school_department_project06(id=start_id, limit=limit)
+    if not zn_school_department_project_dict_list:
+        logger.info(f"专业库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"专业库数据已全部洗入")
     #     {'id': 1, 'school_name': '麻省理工学院', 'english_name': 'Massachusetts Institute of Technology', 'school_abbreviations': '', 'chinese_name': '建筑技术-博士PhD', 'znsdp.english_name': 'PhD in Building Technology', 'school_id': 1, 'campus': None, 'academic_requirement': None, 'application_materials': '1、申请表\n2、学历证明以及各科成绩单\n3、托福成绩单\n4、GRE成绩单\n5、申请费\n6、银行资金证明\n7、个人简历', 'application_elements': '', 'credit_reduction': 0, 'credit_reduction_condition': None}
     key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
                      {"院校简称": "school_abbreviations"}, {"专业中文名": "chinese_name"},
@@ -740,6 +823,8 @@ def insert_major_library06_data():
         "file_info": "",
     } for dict in dict_list]
     insert_weaviate_data_all(knowledge_base_model)
+
+    return zn_school_department_project_dict_list[-1].get("id")
 
 
 def insert_weaviate_data_all(knowledge_base_model: list):
@@ -861,7 +946,26 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
             break
         frequency -= 1
         if method in method_mapping:
-            method_mapping[method]()
+            start_id = method_mapping[method](start_id=start_id, limit=limit)
         else:
             print("请输入正确的参数")
             break
+
+
+if __name__ == '__main__':
+    manner_execution = {
+        "method_name": "insert_major_library01_data",
+        "datasets": "zn_school_department_project_01",
+        "limit": 1000,
+        "start_id": 0,
+        "is_while": True,
+        "uuid": "123e4567-e89b-12d3-a456-426614174000",
+        "query": "SELECT * FROM knowledge_info",
+        "properties": {
+            "key1": "value1",
+            "key2": "value2"
+        },
+        "frequency": -1
+    }
+    manner_execution = MannerExecution(**manner_execution)
+    asyncio.run(cleansing_manner_execution(manner_execution))
