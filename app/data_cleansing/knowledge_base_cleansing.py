@@ -1,6 +1,8 @@
 import asyncio
+import os
 from typing import Optional, Dict
 
+import pandas as pd
 from pydantic import BaseModel
 
 from app.common.core.langchain_client import Embedding
@@ -76,8 +78,9 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         "keyword": get_string(knowledge_info.get("country", '') or '',
                               knowledge_info.get("school", '') or '',
                               knowledge_info.get("class", '') or ''),
-        "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get(
-            "fileurl") else "",
+        # "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get(
+        #     "fileurl") else "",
+        "file_info": "",
     } for knowledge_info in knowledge_info_dict_list]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -134,7 +137,25 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     a、问题： 小希平台/小希系统的{模块}{功能}介绍说明如下/问题解答如下：
 
     b、答案： {答案}'''
-    pass
+    datasets = 'platform_introduction'
+    # 加载小希平台介绍数据的xlsx文件
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, './data/prompt/platform_introduction.xlsx')
+    df = pd.read_excel(file_path)
+
+    # Extract the necessary information
+    data = df.to_dict(orient='records')
+    knowledge_base_model = [{
+        "database": datasets,
+        "db_id": i,
+        "instruction": info.get('instruction'),
+        "input": "",
+        "output": info.get('output'),
+        "keyword": "",
+        "file_info": "",
+    } for i, info in enumerate(data)]
+    insert_weaviate_data_all(knowledge_base_model)
+
 
 
 def insert_college_library01_data(start_id: int = 0, limit: int = 10):
@@ -863,15 +884,15 @@ def insert_weaviate_data_all(knowledge_base_model: list):
     将t_knowledge_info表的全部数据插入weaviate数据
     :return:
     '''
-    texts = [doc['instruction'] for doc in knowledge_base_model]
-
-    doc_vecs = Embedding.embed_documents(texts)
-
-    uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
-    logger.info(
-        "%s 插入大于id:%s的%s条的数据%s" % (
-            knowledge_base_weaviate.collections_name, knowledge_base_model[0].get('db_id'), len(knowledge_base_model),
-            uuid_list))
+    # texts = [doc['instruction'] for doc in knowledge_base_model]
+    #
+    # doc_vecs = Embedding.embed_documents(texts)
+    #
+    # uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
+    # logger.info(
+    #     "%s 插入大于id:%s的%s条的数据%s" % (
+    #         knowledge_base_weaviate.collections_name, knowledge_base_model[0].get('db_id'), len(knowledge_base_model),
+    #         uuid_list))
 
 
 def clear_all_data(database: str):
@@ -989,7 +1010,7 @@ if __name__ == '__main__':
         "method_name": "insert_major_library_data",
         "datasets": "zn_school_department_project_01",
         "limit": 300,
-        "start_id": 157053,
+        "start_id": 212513,
         "is_while": True,
         "uuid": "123e4567-e89b-12d3-a456-426614174000",
         "query": "SELECT * FROM knowledge_info",
