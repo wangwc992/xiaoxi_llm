@@ -157,7 +157,6 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     insert_weaviate_data_all(knowledge_base_model)
 
 
-
 def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
     a、标题信息：
@@ -971,6 +970,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     method_mapping = {
         "insert_t_knowledge_info_data": insert_t_knowledge_info_data,
         "insert_institution_information_data": insert_institution_information_data,
+        "insert_platform_introduction_data": insert_platform_introduction_data,
         "insert_college_library01_data": insert_college_library01_data,
         "insert_college_library02_data": insert_college_library02_data,
         "insert_college_library03_data": insert_college_library03_data,
