@@ -1,8 +1,7 @@
 import json
 import sys
-from typing import Optional
+from typing import Optional, Dict
 
-from partd import dict
 from pydantic import BaseModel
 
 from app.common.core.langchain_client import Embedding
@@ -771,7 +770,7 @@ class MannerExecution(BaseModel):
     is_while: Optional[bool] = False
     uuid: Optional[str] = None
     query: Optional[str] = None
-    properties: Optional[dict] = None
+    properties: Optional[Dict] = None
     frequency: Optional[int] = 1
 
 
