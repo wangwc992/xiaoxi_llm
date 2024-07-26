@@ -1,3 +1,6 @@
+import json
+import sys
+
 from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
@@ -741,31 +744,83 @@ def update_weaviate_data_by_id(id: str, properties: dict):
     knowledge_base_weaviate.update_data_by_uuid(id, properties)
 
 
-if __name__ == '__main__':
-    # database = "t_knowledge_info"
-    # insert_t_knowledge_info_data()
-    # database = "t_knowledge_info"
-    # insert_t_knowledge_info_data()
+def delete_collection_name():
+    knowledge_base_weaviate.delete_collection_name(knowledge_base_weaviate.collections_name)
 
-    # clear_all_data(database)
-    # delete_weaviate_data_by_id("155")
-    # x = search_weaviate_data_by_query("英国", 10)
-    # print(x)
-    # update_weaviate_data_by_id("7e08b804-8b7c-47f8-a92b-29256d274266", {
-    #     "database": "t_knowledge_info",
-    #     "db_id": "156",
-    #     "input": "",
-    #     "instruction": "英国 约克大学（英国） 院校介绍 请问英国约克大学申请UNSW商科硕士需要达到多少分呢？",
-    #     "output": "郝丽君12 2023-03-22 10:22:41 英国本科学历达到58分，是符合USNW要求65%的硕士录取要求的。如分数达不到，可考虑申请GC项目进行过渡。",
-    #     "state": 1
-    # })
-    # insert_institution_information_data()
-    # insert_major_library02_data()
-    # insert_institution_information_data()
-    # insert_college_library01_data()
-    # insert_college_library02_data()
-    # insert_college_library03_data()
-    # insert_college_library04_data()
-    # insert_college_library05_data()
-    # insert_college_library07_data()
-    pass
+
+def delete_by_database(database: str):
+    knowledge_base_weaviate.delete_by_database(database)
+
+
+def manner_execution(args: list):
+    if len(args) < 2:
+        print("请输入参数")
+        sys.exit()
+    method = args[1]
+    if method == "insert_college_library01_data":
+        insert_college_library01_data()
+    elif method == "insert_college_library02_data":
+        insert_college_library02_data()
+    elif method == "insert_college_library03_data":
+        insert_college_library03_data()
+    elif method == "insert_college_library04_data":
+        insert_college_library04_data()
+    elif method == "insert_college_library05_data":
+        insert_college_library05_data()
+    elif method == "insert_college_library06_data":
+        insert_college_library06_data()
+    elif method == "insert_college_library07_data":
+        insert_college_library07_data()
+    elif method == "insert_major_library01_data":
+        insert_major_library01_data()
+    elif method == "insert_major_library02_data":
+        insert_major_library02_data()
+    elif method == "insert_major_library03_data":
+        insert_major_library03_data()
+    elif method == "insert_major_library04_data":
+        insert_major_library04_data()
+    elif method == "insert_major_library05_data":
+        insert_major_library05_data()
+    elif method == "insert_major_library06_data":
+        insert_major_library06_data()
+    elif method == "clear_all_data":
+        clear_all_data(knowledge_base_weaviate.collections_name)
+    elif method == "delete_weaviate_data_by_id":
+        if len(args) < 3:
+            print("请输入id")
+            sys.exit()
+        id = args[2]
+        delete_weaviate_data_by_id(id, knowledge_base_weaviate.collections_name)
+    elif method == "search_weaviate_data_by_query":
+        if len(args) < 3:
+            print("请输入query")
+            sys.exit()
+        query = args[2]
+        if len(args) < 4:
+            limit = 10
+        else:
+            limit = int(args[3])
+        print(search_weaviate_data_by_query(query, limit))
+    elif method == "update_weaviate_data_by_id":
+        if len(args) < 3:
+            print("请输入id")
+            sys.exit()
+        id = args[2]
+        if len(args) < 4:
+            print("请输入properties")
+            sys.exit()
+        properties = json.loads(args[3])
+        update_weaviate_data_by_id(id, properties)
+    elif method == "delete_collection_name":
+        delete_collection_name()
+    elif method == "delete_by_database":
+        if len(args) < 3:
+            print("请输入database")
+            sys.exit()
+        database = args[2]
+        delete_by_database(database)
+    else:
+        print("请输入正确的参数")
+        sys.exit()
+
+

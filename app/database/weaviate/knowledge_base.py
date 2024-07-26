@@ -61,6 +61,13 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             where=Filter.by_property("db_id").equal(id) & Filter.by_property("database").equal(database)
         )
 
+    def delete_by_database(self, database: str):
+        '''根据database删除Weaviate数据库中的数据'''
+        self.collection.data.delete_many(
+            where=Filter.by_property("database").equal(database)
+        )
+
+
 knowledge_base_weaviate = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
 
 if __name__ == '__main__':
