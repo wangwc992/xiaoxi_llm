@@ -21,5 +21,5 @@ async def abort(request_id: str):
 
 @router.post("/v1/chat/cleansing", description="Cleansing the knowledge base.")
 async def cleansing(manner_execution: MannerExecution):
-    logger.info("Received cleansing request with args: %s", manner_execution.args)
-    return cleansing_manner_execution(manner_execution)
+    logger.info("Received cleansing request with args: %s", manner_execution)
+    return await cleansing_manner_execution(manner_execution)

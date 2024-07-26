@@ -2,6 +2,7 @@ import json
 import sys
 from typing import Optional
 
+from partd import dict
 from pydantic import BaseModel
 
 from app.common.core.langchain_client import Embedding
@@ -662,7 +663,10 @@ def insert_major_library05_data():
     insert_weaviate_data_all(knowledge_base_model)
 
 
-def insert_major_library06_data():
+def insert_major_library06_data(list_=[
+    {"database": database, "db_id": dict.get('db_id'), "instruction": f"{dict.get('key_value')} 的其它申请要求",
+     "input": "", "output": dict.get('key_value'), "keyword": dict.get('key_value'), "file_info": "", } for dict in
+    dict_list]):
     '''专业库洗入格式如下：
 
     a、标题信息：
@@ -768,70 +772,52 @@ class MannerExecution(BaseModel):
     uuid: Optional[str] = None
     query: Optional[str] = None
     properties: Optional[dict] = None
+    frequency: Optional[int] = 1
 
 
-def cleansing_manner_execution(manner_execution: MannerExecution):
-    global limit
+async def cleansing_manner_execution(manner_execution: MannerExecution):
+    global limit, start_id
     limit = manner_execution.limit
-    global start_id
     start_id = manner_execution.start_id
     is_while = manner_execution.is_while
     uuid = manner_execution.uuid
     query = manner_execution.query
     properties = manner_execution.properties
-
+    frequency = manner_execution.frequency
     method = manner_execution.method_name
     datasets = manner_execution.datasets
+
+    method_mapping = {
+        "insert_t_knowledge_info_data": insert_t_knowledge_info_data,
+        "insert_institution_information_data": insert_institution_information_data,
+        "insert_college_library01_data": insert_college_library01_data,
+        "insert_college_library02_data": insert_college_library02_data,
+        "insert_college_library03_data": insert_college_library03_data,
+        "insert_college_library04_data": insert_college_library04_data,
+        "insert_college_library05_data": insert_college_library05_data,
+        "insert_college_library06_data": insert_college_library06_data,
+        "insert_college_library07_data": insert_college_library07_data,
+        "insert_major_library01_data": insert_major_library01_data,
+        "insert_major_library02_data": insert_major_library02_data,
+        "insert_major_library03_data": insert_major_library03_data,
+        "insert_major_library04_data": insert_major_library04_data,
+        "insert_major_library05_data": insert_major_library05_data,
+        "insert_major_library06_data": insert_major_library06_data,
+        "clear_all_data": lambda: clear_all_data(knowledge_base_weaviate.collections_name),
+        "delete_weaviate_data_by_id": lambda: delete_weaviate_data_by_id(uuid,
+                                                                         knowledge_base_weaviate.collections_name),
+        "search_weaviate_data_by_query": lambda: print(search_weaviate_data_by_query(query, limit)),
+        "update_weaviate_data_by_id": lambda: update_weaviate_data_by_id(uuid, properties),
+        "delete_collection_name": delete_collection_name,
+        "delete_by_database": lambda: delete_by_database(datasets)
+    }
+
     while is_while:
-        if method == "insert_t_knowledge_info_data":
-            insert_t_knowledge_info_data()
-        elif method == "insert_institution_information_data":
-            insert_institution_information_data()
-        elif method == "insert_institution_information_data":
-            insert_institution_information_data()
-        if method == "insert_college_library01_data":
-            insert_college_library01_data()
-        elif method == "insert_college_library02_data":
-            insert_college_library02_data()
-        elif method == "insert_college_library03_data":
-            insert_college_library03_data()
-        elif method == "insert_college_library04_data":
-            insert_college_library04_data()
-        elif method == "insert_college_library05_data":
-            insert_college_library05_data()
-        elif method == "insert_college_library06_data":
-            insert_college_library06_data()
-        elif method == "insert_college_library07_data":
-            insert_college_library07_data()
-        elif method == "insert_major_library01_data":
-            insert_major_library01_data()
-        elif method == "insert_major_library02_data":
-            insert_major_library02_data()
-        elif method == "insert_major_library03_data":
-            insert_major_library03_data()
-        elif method == "insert_major_library04_data":
-            insert_major_library04_data()
-        elif method == "insert_major_library05_data":
-            insert_major_library05_data()
-        elif method == "insert_major_library06_data":
-            insert_major_library06_data()
-        elif method == "clear_all_data":
-            clear_all_data(knowledge_base_weaviate.collections_name)
-        elif method == "delete_weaviate_data_by_id":
-            delete_weaviate_data_by_id(uuid, knowledge_base_weaviate.collections_name)
-        elif method == "search_weaviate_data_by_query":
-            is_while = False
-            print(search_weaviate_data_by_query(query, limit))
-        elif method == "update_weaviate_data_by_id":
-            is_while = False
-            update_weaviate_data_by_id(uuid, properties)
-        elif method == "delete_collection_name":
-            is_while = False
-            delete_collection_name()
-        elif method == "delete_by_database":
-            is_while = False
-            delete_by_database(datasets)
+        if frequency == 0:
+            break
+        frequency -= 1
+        if method in method_mapping:
+            method_mapping[method]()
         else:
-            is_while = False
             print("请输入正确的参数")
-            sys.exit()
+            break
