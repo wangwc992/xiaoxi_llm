@@ -31,7 +31,7 @@ class MyChatCompletionRequestModel(BaseModel):
     model: str
 
 
-def engine_abort(request_id: str):
+async def engine_abort(request_id: str):
     """
     Abort the request with the given ID.
 
@@ -39,7 +39,7 @@ def engine_abort(request_id: str):
         request_id (str): The ID of the request to abort.
     """
     openai_serving_chat = get_openai_serving_chat()
-    openai_serving_chat.engine.abort(request_id)
+    await openai_serving_chat.engine.abort(request_id)
 
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request):
@@ -123,11 +123,6 @@ async def stream_response(result, chat_message_history, chat_message_history_key
             chunk = chunk[len("data: "):]
         try:
             chunk_data = json.loads(chunk)
-            if len(output) > 20:
-                openai_serving_chat = get_openai_serving_chat()
-                id = chunk_data.get('id')
-                logger.info(f"Aborting request with ID: {id}")
-                openai_serving_chat.engine.abort(id)
             choices = chunk_data.get('choices')
             if choices and choices[0].get('finish_reason') != 'stop':
                 delta_content = choices[0]['delta'].get('content')

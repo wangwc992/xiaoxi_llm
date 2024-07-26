@@ -7,10 +7,10 @@ router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
 
 
-@router.post("/v1/chat/completions", response_model=None)
+@router.post("/v1/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     return await knowledge_base_generate(request, raw_request)
 
-@router.post("/v1/chat/abort", response_model=None)
+@router.post("/v1/chat/abort", description="Abort the request with the given ID.")
 async def abort(request_id: str):
     return engine_abort(request_id)
