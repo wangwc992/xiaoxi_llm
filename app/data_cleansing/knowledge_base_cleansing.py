@@ -1,5 +1,8 @@
 import json
 import sys
+from typing import Optional
+
+from pydantic import BaseModel
 
 from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
@@ -752,75 +755,83 @@ def delete_by_database(database: str):
     knowledge_base_weaviate.delete_by_database(database)
 
 
-def manner_execution(args: list):
-    if len(args) < 2:
-        print("请输入参数")
-        sys.exit()
-    method = args[1]
-    if method == "insert_college_library01_data":
-        insert_college_library01_data()
-    elif method == "insert_college_library02_data":
-        insert_college_library02_data()
-    elif method == "insert_college_library03_data":
-        insert_college_library03_data()
-    elif method == "insert_college_library04_data":
-        insert_college_library04_data()
-    elif method == "insert_college_library05_data":
-        insert_college_library05_data()
-    elif method == "insert_college_library06_data":
-        insert_college_library06_data()
-    elif method == "insert_college_library07_data":
-        insert_college_library07_data()
-    elif method == "insert_major_library01_data":
-        insert_major_library01_data()
-    elif method == "insert_major_library02_data":
-        insert_major_library02_data()
-    elif method == "insert_major_library03_data":
-        insert_major_library03_data()
-    elif method == "insert_major_library04_data":
-        insert_major_library04_data()
-    elif method == "insert_major_library05_data":
-        insert_major_library05_data()
-    elif method == "insert_major_library06_data":
-        insert_major_library06_data()
-    elif method == "clear_all_data":
-        clear_all_data(knowledge_base_weaviate.collections_name)
-    elif method == "delete_weaviate_data_by_id":
-        if len(args) < 3:
-            print("请输入id")
-            sys.exit()
-        id = args[2]
-        delete_weaviate_data_by_id(id, knowledge_base_weaviate.collections_name)
-    elif method == "search_weaviate_data_by_query":
-        if len(args) < 3:
-            print("请输入query")
-            sys.exit()
-        query = args[2]
-        if len(args) < 4:
-            limit = 10
+def create_collection_name():
+    knowledge_base_weaviate.create_collection(knowledge_base_weaviate.properties)
+
+
+class MannerExecution(BaseModel):
+    method_name: Optional[str]
+    datasets: Optional[str]
+    limit: Optional[int] = 10
+    start_id: Optional[int] = 0
+    is_while: Optional[bool] = False
+    uuid: Optional[str] = None
+    query: Optional[str] = None
+    properties: Optional[dict] = None
+
+
+def cleansing_manner_execution(manner_execution: MannerExecution):
+    global limit
+    limit = manner_execution.limit
+    global start_id
+    start_id = manner_execution.start_id
+    is_while = manner_execution.is_while
+    uuid = manner_execution.uuid
+    query = manner_execution.query
+    properties = manner_execution.properties
+
+    method = manner_execution.method_name
+    datasets = manner_execution.datasets
+    while is_while:
+        if method == "insert_t_knowledge_info_data":
+            insert_t_knowledge_info_data()
+        elif method == "insert_institution_information_data":
+            insert_institution_information_data()
+        elif method == "insert_institution_information_data":
+            insert_institution_information_data()
+        if method == "insert_college_library01_data":
+            insert_college_library01_data()
+        elif method == "insert_college_library02_data":
+            insert_college_library02_data()
+        elif method == "insert_college_library03_data":
+            insert_college_library03_data()
+        elif method == "insert_college_library04_data":
+            insert_college_library04_data()
+        elif method == "insert_college_library05_data":
+            insert_college_library05_data()
+        elif method == "insert_college_library06_data":
+            insert_college_library06_data()
+        elif method == "insert_college_library07_data":
+            insert_college_library07_data()
+        elif method == "insert_major_library01_data":
+            insert_major_library01_data()
+        elif method == "insert_major_library02_data":
+            insert_major_library02_data()
+        elif method == "insert_major_library03_data":
+            insert_major_library03_data()
+        elif method == "insert_major_library04_data":
+            insert_major_library04_data()
+        elif method == "insert_major_library05_data":
+            insert_major_library05_data()
+        elif method == "insert_major_library06_data":
+            insert_major_library06_data()
+        elif method == "clear_all_data":
+            clear_all_data(knowledge_base_weaviate.collections_name)
+        elif method == "delete_weaviate_data_by_id":
+            delete_weaviate_data_by_id(uuid, knowledge_base_weaviate.collections_name)
+        elif method == "search_weaviate_data_by_query":
+            is_while = False
+            print(search_weaviate_data_by_query(query, limit))
+        elif method == "update_weaviate_data_by_id":
+            is_while = False
+            update_weaviate_data_by_id(uuid, properties)
+        elif method == "delete_collection_name":
+            is_while = False
+            delete_collection_name()
+        elif method == "delete_by_database":
+            is_while = False
+            delete_by_database(datasets)
         else:
-            limit = int(args[3])
-        print(search_weaviate_data_by_query(query, limit))
-    elif method == "update_weaviate_data_by_id":
-        if len(args) < 3:
-            print("请输入id")
+            is_while = False
+            print("请输入正确的参数")
             sys.exit()
-        id = args[2]
-        if len(args) < 4:
-            print("请输入properties")
-            sys.exit()
-        properties = json.loads(args[3])
-        update_weaviate_data_by_id(id, properties)
-    elif method == "delete_collection_name":
-        delete_collection_name()
-    elif method == "delete_by_database":
-        if len(args) < 3:
-            print("请输入database")
-            sys.exit()
-        database = args[2]
-        delete_by_database(database)
-    else:
-        print("请输入正确的参数")
-        sys.exit()
-
-

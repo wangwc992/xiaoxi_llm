@@ -1,7 +1,7 @@
 from fastapi import Request, APIRouter
 
 from app.common.utils.logging import get_logger
-# from app.data_cleansing.knowledge_base_cleansing import manner_execution
+from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
 
 from app.services.knowledge_base_service import knowledge_base_generate, MyChatCompletionRequestModel, engine_abort
 
@@ -19,6 +19,7 @@ async def abort(request_id: str):
     return await engine_abort(request_id)
 
 
-# @router.post("/v1/chat/cleansing", description="Cleansing the knowledge base.")
-# def abort(args: list):
-#     return manner_execution(args)
+@router.post("/v1/chat/cleansing", description="Cleansing the knowledge base.")
+async def cleansing(manner_execution: MannerExecution):
+    logger.info("Received cleansing request with args: %s", manner_execution.args)
+    return cleansing_manner_execution(manner_execution)
