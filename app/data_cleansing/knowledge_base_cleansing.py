@@ -540,50 +540,81 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
 
 def insert_major_library_data(start_id: int = 0, limit: int = 10):
     database = "zn_school_department_project"
-    datasets = search_zn_school_department_project(id=start_id, limit=limit)
-    if not datasets:
+    zn_school_department_project_list = search_zn_school_department_project(id=start_id, limit=limit)
+    if not zn_school_department_project_list:
         logger.info(f"专业库数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"专业库数据已全部洗入")
-    key_name_list = [{"db_id": "id"}, {"院校中文名": "school_name"}, {"院校英文名": "english_name"},
-                     {"院校简称": "school_abbreviations"}, {"所属院系": "department"}, {"所属校区": "campus"},
-                     {"专业中文名": "chinese_name"}, {"专业英文名": "english_name"}, {"课程编码": "course_code"},
-                     {"专业链接": "major_link"}, {"全日制学制": "full_time_duration"}, {"专业小方向": "specialization"},
-                     {"非全日制": "part_time_duration"}, {"学位名称": "degree_name"}, {"学位类型": "degree_type"},
-                     {"学位等级": "degree_level"}, {"专业简称": "abbreviation"}, {"开学时间": "start_semester"},
-                     {"所在城市": "city_path"}, {"专业介绍": "introduction"}, {"专业分类": "career_opportunities"},
-                     {"学校id": "school_id"}, {"校区": "campus"}, {"开学时间": "start_semester"},
-                     {"申请截止时间": "application_deadline"}, {"Offer发放时间": "offer_release_time"},
-                     {"Offer截止时间": "offer_deadline"}, {"申请费用": "application_fee"}, {"学费": "tuition_fee"},
-                     {"生活费": "living_expenses"}, {"交通费": "traffic_fee"}, {"住宿费用": "accommodation_fee"},
-                     {"其他费用": "other_fees"}, {"总花费": "total_cost"}, {"雅思成绩": "ielts_score"},
-                     {"雅思总分": "ielts_total_score"}, {"托福成绩": "toefl_score"}, {"托福总分": "toefl_total_score"},
-                     {"ATAR要求": "atar_requirement"}, {"ATAR分数": "atar_score"}, {"SAT要求": "sat_requirement"},
-                     {"SAT分数": "sat_score"}, {"UKAlevel三科要求": "ukalevel3_requirement"},
-                     {"UKAlevel三科分数": "ukalevel3_score"}, {"ACT要求": "act_requirement"}, {"ACT分数": "act_score"},
-                     {"分数一": "ukalevel3_score1"}, {"分数二": "ukalevel3_score2"}, {"分数三": "ukalevel3_score3"},
-                     {"UKAlevel四科要求": "ukalevel4_requirement"}, {"UKAlevel四科分数": "ukalevel4_score"},
-                     {"AP要求": "ap_requirement"}, {"AP分数": "ap_score"}, {"IB要求": "ib_requirement"},
-                     {"IB分数": "ib_score"}, {"高考要求": "gaokao_requirement"}, {"高考分数": "gaokao_score"},
-                     {"OSSD要求": "ossd_requirement"}, {"OSSD分数": "ossd_score"}, {"BC要求": "bc_requirement"},
-                     {"BC分数": "bc_score"}, {"学术要求": "academic_requirement"},
-                     {"申请材料": "application_materials"}, {"申请要点": "application_elements"},
-                     {"是否减免学分": "credit_reduction"}, {"减免学分条件": "credit_reduction_condition"}
-                     ]
 
-    dict_list = ObjectFormatter.attribute_concatenation(key_name_list, datasets)
+    title00 = "标题信息"
+    key_name_list00 = [{"db_id": "id"}, {"院校中文名": "zsi_school_name"}, {"院校英文名": "zsi_english_name"},
+                       {"院校简称": "school_abbreviations"}, {"专业中文名": "znsdp_chinese_name"},
+                       {"专业英文名": "znsdp_english_name"}]
+
+    title01 = "专业基本信息"
+    key_name_list01 = [{"所属院系": "department"}, {"所属校区": "campus"}, {"专业中文名": "znsdp_chinese_name"},
+                       {"专业英文名": "znsdp_english_name"}, {"课程编码": "course_code"}, {"专业链接": "major_link"},
+                       {"全日制学制": "full_time_duration"}, {"专业小方向": "specialization"},
+                       {"非全日制": "part_time_duration"}, {"学位名称": "degree_name"}, {"学位类型": "degree_type"},
+                       {"学位等级": "degree_level"}, {"专业简称": "abbreviation"}, {"开学时间": "start_semester"},
+                       {"所在城市": "city_path"}, {"专业介绍": "introduction"}, {"专业分类": "career_opportunities"}]
+
+    title02 = "关键时间和费用"
+    key_name_list02 = [{"开学时间": "start_semester"}, {"申请截止时间": "application_deadline"},
+                       {"Offer发放时间": "offer_release_time"}, {"Offer截止时间": "offer_deadline"},
+                       {"申请费用": "application_fee"}, {"学费": "tuition_fee"}, {"生活费": "living_expenses"},
+                       {"交通费": "traffic_fee"}, {"住宿费用": "accommodation_fee"}, {"其他费用": "other_fees"},
+                       {"总花费": "total_cost"}]
+
+    title03 = "申请要求"
+    key_name_list03 = [{"雅思成绩": "ielts_score"}, {"雅思总分": "ielts_total_score"},
+                       {"托福成绩": "toefl_score"}, {"托福总分": "toefl_total_score"}]
+
+    title04 = "本科专业申请要求"
+    key_name_list04 = [{"ATAR要求": "atar_requirement"}, {"ATAR分数": "atar_score"},
+                       {"SAT要求": "sat_requirement"}, {"SAT分数": "sat_score"},
+                       {"UKAlevel三科要求": "ukalevel3_requirement"}, {"UKAlevel三科分数": "ukalevel3_score"},
+                       {"ACT要求": "act_requirement"}, {"ACT分数": "act_score"},
+                       {"分数一": "ukalevel3_score1"}, {"分数二": "ukalevel3_score2"},
+                       {"分数三": "ukalevel3_score3"}, {"UKAlevel四科要求": "ukalevel4_requirement"},
+                       {"UKAlevel四科分数": "ukalevel4_score"}, {"AP要求": "ap_requirement"}, {"AP分数": "ap_score"},
+                       {"IB要求": "ib_requirement"}, {"IB分数": "ib_score"}, {"高考要求": "gaokao_requirement"},
+                       {"高考分数": "gaokao_score"}, {"OSSD要求": "ossd_requirement"}, {"OSSD分数": "ossd_score"},
+                       {"BC要求": "bc_requirement"}, {"BC分数": "bc_score"}]
+
+    title05 = "研究生专业申请要求"
+    key_name_list05 = [{"c9均分要求": "c9_requirement"}, {"C9均分分数": "c9_score"},
+                       {"211均分要求": "s211_requirement"}, {"211均分分数": "s211_score"},
+                       {"985均分要求": "s985_requirement"}, {"985均分分数": "s985_score"},
+                       {"非211均分要求": "sn211_requirement"}, {"非211均分分数": "sn211_score"},
+                       {"专业背景要求": "professional_background_requirement"},
+                       {"是否接受跨专业": "accept_cross_major"}]
+
+    title06 = "其它申请要求"
+    key_name_list06 = [{"学术要求": "academic_requirement"}, {"申请材料": "application_materials"},
+                       {"申请要点": "application_elements"}, {"是否减免学分": "credit_reduction"},
+                       {"减免学分条件": "credit_reduction_condition"}]
+
+    dict_list00 = ObjectFormatter.attribute_concatenation(key_name_list00, zn_school_department_project_list)
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, zn_school_department_project_list)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, zn_school_department_project_list)
+    dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, zn_school_department_project_list)
+    dict_list04 = ObjectFormatter.attribute_concatenation(key_name_list04, zn_school_department_project_list)
+    dict_list05 = ObjectFormatter.attribute_concatenation(key_name_list05, zn_school_department_project_list)
+    dict_list06 = ObjectFormatter.attribute_concatenation(key_name_list06, zn_school_department_project_list)
+
     knowledge_base_model = [{
         "database": database,
         "db_id": dict.get('db_id'),
-        "instruction": f"{dict.get('key_value')} 的专业基本信息",
+        "instruction": dict_list00[i].get('key_value'),
         "input": "",
-        "output": dict.get('key_value'),
-        "keyword": dict.get('key_value'),
+        "output": f"""{title01}: {dict_list01[i].get('key_value')}\n{title02}: {dict_list02[i].get('key_value')}\n{title03}: {dict_list03[i].get('key_value')}\n{title04}: {dict_list04[i].get('key_value')}\n{title05}: {dict_list05[i].get('key_value')}\n{title06}: {dict_list06[i].get('key_value')}""",
+        "keyword": "",
         "file_info": "",
-    } for dict in dict_list]
+    } for i, dict in enumerate(dict_list00)]
     insert_weaviate_data_all(knowledge_base_model)
 
-    return datasets[-1].get("id")
+    return zn_school_department_project_list[-1].get("id")
 
 
 def insert_major_library01_data(start_id: int = 0, limit: int = 10):
@@ -926,6 +957,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
         "insert_college_library05_data": insert_college_library05_data,
         "insert_college_library06_data": insert_college_library06_data,
         "insert_college_library07_data": insert_college_library07_data,
+        "insert_major_library_data": insert_major_library_data,
         "insert_major_library01_data": insert_major_library01_data,
         "insert_major_library02_data": insert_major_library02_data,
         "insert_major_library03_data": insert_major_library03_data,
@@ -954,10 +986,10 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
 
 if __name__ == '__main__':
     manner_execution = {
-        "method_name": "insert_major_library01_data",
+        "method_name": "insert_major_library_data",
         "datasets": "zn_school_department_project_01",
-        "limit": 1000,
-        "start_id": 0,
+        "limit": 300,
+        "start_id": 157053,
         "is_while": True,
         "uuid": "123e4567-e89b-12d3-a456-426614174000",
         "query": "SELECT * FROM knowledge_info",

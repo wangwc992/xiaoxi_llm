@@ -363,13 +363,13 @@ def search_zn_school_department_project(id: int = 0, limit: int = 300):
     sql = f'''
             select 
                 znsdp.id as 'id',
-                zsi.chinese_name as 'school_name',
-                zsi.english_name as 'english_name',
+                zsi.chinese_name as 'zsi_school_name',
+                zsi.english_name as 'zsi_english_name',
                 zsi.school_abbreviations as 'school_abbreviations',
                 znsdp.depart_name as 'department',
                 znsdp.campus_name as 'campus',
-                znsdp.chinese_name as 'chinese_name',
-                znsdp.english_name as 'english_name',
+                znsdp.chinese_name as 'znsdp_chinese_name',
+                znsdp.english_name as 'znsdp_english_name',
                 znsdp.course_code as 'course_code',
                 znsdp.major_link as 'major_link',
                 znsdp.length_of_full as 'full_time_duration',
@@ -430,7 +430,11 @@ def search_zn_school_department_project(id: int = 0, limit: int = 300):
                 znsds.sn211_ask as 'sn211_requirement',
                 znsds.sn211_score as 'sn211_score',
                 znsds.accept_md_bg as 'professional_background_requirement',
-                znsds.b_accept_md_bg as 'accept_cross_major',
+                case znsds.accept_md_bg
+                    when 1 then '是'
+                    when 0 then '否'
+                    else '未知'
+                end as 'accept_cross_major',
                 znsdp.science_requirement as 'academic_requirement',
                 znsdp.material as 'application_materials',
                 znsdp.admission_elements as 'application_elements',
