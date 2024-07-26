@@ -1,4 +1,5 @@
-import MySQLdb
+import pymysql
+pymysql.install_as_MySQLdb()
 import MySQLdb.cursors
 from typing import Any, Dict, List, Type
 from app.common.core.config import settings
