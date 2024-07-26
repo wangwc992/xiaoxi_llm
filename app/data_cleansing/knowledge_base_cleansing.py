@@ -662,10 +662,7 @@ def insert_major_library05_data():
     insert_weaviate_data_all(knowledge_base_model)
 
 
-def insert_major_library06_data(list_=[
-    {"database": database, "db_id": dict.get('db_id'), "instruction": f"{dict.get('key_value')} 的其它申请要求",
-     "input": "", "output": dict.get('key_value'), "keyword": dict.get('key_value'), "file_info": "", } for dict in
-    dict_list]):
+def insert_major_library06_data():
     '''专业库洗入格式如下：
 
     a、标题信息：
