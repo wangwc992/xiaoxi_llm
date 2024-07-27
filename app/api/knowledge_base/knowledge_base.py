@@ -5,21 +5,21 @@ from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansi
 
 from app.services.knowledge_base_service import knowledge_base_generate, MyChatCompletionRequestModel, engine_abort
 
-router = APIRouter(prefix="/chat")
+router = APIRouter(prefix="/knowledge_base")
 logger = get_logger(__name__)
 
 
-@router.post("/v1/chat/completions", description="Create a chat completion.")
+@router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     return await knowledge_base_generate(request, raw_request)
 
 
-@router.post("/v1/chat/abort", description="Abort the request with the given ID.")
+@router.post("/chat/abort", description="Abort the request with the given ID.")
 async def abort(request_id: str):
     return await engine_abort(request_id)
 
 
-@router.post("/v1/chat/cleansing", description="Cleansing the knowledge base.")
+@router.post("/cleansing", description="Cleansing the knowledge base.")
 async def cleansing(manner_execution: MannerExecution):
     logger.info("Received cleansing request with args: %s", manner_execution)
     return await cleansing_manner_execution(manner_execution)
