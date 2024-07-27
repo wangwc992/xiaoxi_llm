@@ -968,23 +968,24 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     datasets = manner_execution.datasets
 
     method_mapping = {
-        "insert_t_knowledge_info_data": insert_t_knowledge_info_data,
-        "insert_institution_information_data": insert_institution_information_data,
-        "insert_platform_introduction_data": insert_platform_introduction_data,
-        "insert_college_library01_data": insert_college_library01_data,
-        "insert_college_library02_data": insert_college_library02_data,
-        "insert_college_library03_data": insert_college_library03_data,
-        "insert_college_library04_data": insert_college_library04_data,
-        "insert_college_library05_data": insert_college_library05_data,
-        "insert_college_library06_data": insert_college_library06_data,
-        "insert_college_library07_data": insert_college_library07_data,
-        "insert_major_library_data": insert_major_library_data,
-        "insert_major_library01_data": insert_major_library01_data,
-        "insert_major_library02_data": insert_major_library02_data,
-        "insert_major_library03_data": insert_major_library03_data,
-        "insert_major_library04_data": insert_major_library04_data,
-        "insert_major_library05_data": insert_major_library05_data,
-        "insert_major_library06_data": insert_major_library06_data,
+        "insert_t_knowledge_info_data": lambda: insert_t_knowledge_info_data(start_id=start_id, limit=limit),
+        "insert_institution_information_data": lambda: insert_institution_information_data(start_id=start_id,
+                                                                                           limit=limit),
+        "insert_platform_introduction_data": lambda: insert_platform_introduction_data(start_id=start_id, limit=limit),
+        "insert_college_library01_data": lambda: insert_college_library01_data(start_id=start_id, limit=limit),
+        "insert_college_library02_data": lambda: insert_college_library02_data(start_id=start_id, limit=limit),
+        "insert_college_library03_data": lambda: insert_college_library03_data(start_id=start_id, limit=limit),
+        "insert_college_library04_data": lambda: insert_college_library04_data(start_id=start_id, limit=limit),
+        "insert_college_library05_data": lambda: insert_college_library05_data(start_id=start_id, limit=limit),
+        "insert_college_library06_data": lambda: insert_college_library06_data(start_id=start_id, limit=limit),
+        "insert_college_library07_data": lambda: insert_college_library07_data(start_id=start_id, limit=limit),
+        "insert_major_library_data": lambda: insert_major_library_data(start_id=start_id, limit=limit),
+        "insert_major_library01_data": lambda: insert_major_library01_data(start_id=start_id, limit=limit),
+        "insert_major_library02_data": lambda: insert_major_library02_data(start_id=start_id, limit=limit),
+        "insert_major_library03_data": lambda: insert_major_library03_data(start_id=start_id, limit=limit),
+        "insert_major_library04_data": lambda: insert_major_library04_data(start_id=start_id, limit=limit),
+        "insert_major_library05_data": lambda: insert_major_library05_data(start_id=start_id, limit=limit),
+        "insert_major_library06_data": lambda: insert_major_library06_data(start_id=start_id, limit=limit),
         "clear_all_data": lambda: clear_all_data(knowledge_base_weaviate.collections_name),
         "delete_weaviate_data_by_id": lambda: delete_weaviate_data_by_id(uuid,
                                                                          knowledge_base_weaviate.collections_name),
@@ -999,7 +1000,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
             break
         frequency -= 1
         if method in method_mapping:
-            start_id = method_mapping[method](start_id=start_id, limit=limit)
+            start_id = method_mapping[method]
         else:
             print("请输入正确的参数")
             break
