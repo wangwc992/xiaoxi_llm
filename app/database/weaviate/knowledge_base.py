@@ -6,10 +6,12 @@ from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from weaviate.classes.config import Property
 from langchain_core.pydantic_v1 import BaseModel, Field
 
+from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.weaviate_client import WeaviateClient
 from app.common.core.langchain_client import Embedding
 
+logger = get_logger(__name__)
 
 class KnowledgeBaseModel(BaseModel):
     db_id: Optional[str] = Field(None, description="数据库的id")
@@ -35,11 +37,14 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
     def clear_all_data(self, database: str):
         '''清空Weaviate数据库中的所有数据'''
+        logger.info(f"Clearing all data in Weaviate database: {database}")
         self.collection.data.delete_many(
             where=Filter.by_property("database").equal(database)
         )
 
     def search_hybrid(self, query, limit):
+        '''在Weaviate数据库中搜索数据'''
+        logger.info(f"Searching Weaviate database with query: {query}")
         response = self.collection.query.hybrid(
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
@@ -62,6 +67,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         )
 
     def delete_by_database(self, database: str):
+        logger.info(f"Deleting data in Weaviate database: {database}")
         '''根据database删除Weaviate数据库中的数据'''
         self.collection.data.delete_many(
             where=Filter.by_property("database").equal(database)
