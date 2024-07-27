@@ -999,7 +999,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
             break
         frequency -= 1
         if method in method_mapping:
-            start_id = method_mapping[method]
+            start_id = method_mapping[method]()
         else:
             print("请输入正确的参数")
             break
