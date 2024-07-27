@@ -1007,7 +1007,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
 
 if __name__ == '__main__':
     manner_execution = {
-        "method_name": "insert_major_library_data",
+        "method_name": "clear_all_data",
         "datasets": "zn_school_department_project_01",
         "limit": 300,
         "start_id": 212513,

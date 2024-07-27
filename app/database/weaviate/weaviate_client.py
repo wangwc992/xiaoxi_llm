@@ -7,9 +7,11 @@ from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from weaviate.embedded import EmbeddedOptions
 import weaviate.classes as wvc
 from app.common.core.config import settings
+from app.common.utils.logging import get_logger
 
 # Load environment variables from .env file
 load_dotenv()
+logger = get_logger(__name__)
 
 
 class WeaviateClient:
@@ -40,6 +42,7 @@ class WeaviateClient:
     @classmethod
     def collections_list_all(cls):
         '''列出Weaviate数据库中的所有集合'''
+        logger.info("Listing all collections in Weaviate database")
         collections = cls.client.collections.list_all()
         for collection in collections:
             print(collection)
@@ -48,20 +51,24 @@ class WeaviateClient:
     @classmethod
     def exists(cls, collection_name):
         '''判断集合是否存在'''
+        logger.info(f"Checking if collection exists: {collection_name}")
         return cls.client.collections.exists(collection_name)
 
     def get_collection_config(self):
         '''获取集合配置'''
+        logger.info(f"Getting collection config: {self.collections_name}")
         articles_config = self.collection.config.get()
         print(articles_config)
 
     @classmethod
     def delete_collection_name(cls, collection_name):
         '''删除集合'''
+        logger.info(f"Deleting collection: {collection_name}")
         cls.client.collections.delete(collection_name)
 
     def create_collection(self, properties):
         '''创建集合'''
+        logger.info(f"Creating collection: {self.collections_name}")
         if not self.exists(self.collections_name):
             self.client.collections.create(
                 self.collections_name,
@@ -72,10 +79,12 @@ class WeaviateClient:
     def insert_data(self, properties, vec):
         '''插入数据'''
         # 返回uuid列表
+        logger.info(f"Inserting data into collection: {self.collections_name}")
         return self.collection.data.insert(properties=properties, vector=vec)
 
     def basth_insert_data(self, properties_list: list, vecs: list):
         '''批量插入数据'''
+        logger.info(f"Batch inserting data into collection: {self.collections_name}")
         uuid_list = []
         with self.collection.batch.dynamic() as batch:
             for properties in properties_list:
@@ -84,12 +93,14 @@ class WeaviateClient:
         return uuid_list
 
     def update_data_by_uuid(self, uuid, update_data):
+        logger.info(f"Updating data in collection: {self.collections_name}")
         self.collection.data.update(
             uuid=uuid,
             properties=update_data
         )
 
     def update_data(self, uuid, properties, vec):
+        logger.info(f"Updating data in collection: {self.collections_name}")
         self.collection.data.update(
             uuid=uuid,
             properties=properties,
@@ -97,24 +108,26 @@ class WeaviateClient:
         )
 
     def search_id(self, uuid):
+        logger.info(f"Searching data by id: {uuid}")
         data_object = self.collection.query.fetch_object_by_id(uuid)
         print(data_object.properties)
 
     def hybrid_data(self, query, vec, limit=10):
+        '''混合查询数据'''
+        logger.info(f"Hybrid querying data in collection: {self.collections_name}")
         response = self.collection.query.hybrid(
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
             target_vector="instruction",
             vector=vec,
             return_metadata=MetadataQuery(score=True, explain_score=True),
-            limit=10,
+            limit=limit,
         )
 
     def delete_data(self, uuid):
         '''删除数据'''
+        logger.info(f"Deleting data in collection: {self.collections_name}")
         self.collection.delete(uuid)
-
-
 
 
 if __name__ == '__main__':
@@ -128,4 +141,3 @@ if __name__ == '__main__':
     # WeaviateClient.search_id("uuid")
     # WeaviateClient.query_data("jeopardy", "query", vec)
     # WeaviateClient.delete_data("jeopardy", "uuid")
-
