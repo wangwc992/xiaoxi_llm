@@ -883,15 +883,15 @@ def insert_weaviate_data_all(knowledge_base_model: list):
     将t_knowledge_info表的全部数据插入weaviate数据
     :return:
     '''
-    # texts = [doc['instruction'] for doc in knowledge_base_model]
-    #
-    # doc_vecs = Embedding.embed_documents(texts)
-    #
-    # uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
-    # logger.info(
-    #     "%s 插入大于id:%s的%s条的数据%s" % (
-    #         knowledge_base_weaviate.collections_name, knowledge_base_model[0].get('db_id'), len(knowledge_base_model),
-    #         uuid_list))
+    texts = [doc['instruction'] for doc in knowledge_base_model]
+
+    doc_vecs = Embedding.embed_documents(texts)
+
+    uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
+    logger.info(
+        "%s 插入大于id:%s的%s条的数据%s" % (
+            knowledge_base_weaviate.collections_name, knowledge_base_model[0].get('db_id'), len(knowledge_base_model),
+            uuid_list))
 
 
 def clear_all_data(database: str):
