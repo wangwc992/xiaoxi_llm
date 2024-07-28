@@ -124,8 +124,8 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
         "file_info": file_info if (file_info := (file_to_text.urlToText(notice_massage["attachment_url"])
                                                  if notice_massage.get("attachment_url") else '')) else '',
     } for notice_massage in notice_massage_dict_list]
-    insert_weaviate_data_all(knowledge_base_model)
 
+    insert_weaviate_data_all(knowledge_base_model)
     return notice_massage_dict_list[-1].get("notice_id")
 
 
@@ -140,7 +140,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     datasets = 'platform_introduction'
     # 加载小希平台介绍数据的xlsx文件
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, './data/prompt/platform_introduction.xlsx')
+    file_path = os.path.join(base_dir, 'data/prompt/platform_introduction.xlsx')
     df = pd.read_excel(file_path)
 
     # Extract the necessary information
@@ -169,37 +169,25 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
         logger.info(f"院校库基本信息数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"院校库基本信息数据已全部洗入")
+    key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
+                       {"院校简称": "school_abbreviations"}]
+    key_name_list02 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'}, {"所属国家": "country_name"},
+                       {"所属地区": "city_path"}, {"官网地址": "website"}, {"申请费支付维度": "fee_dimension"},
+                       {"申请周期-算法统计": "apply_cycle_algorithm"}, {"申请周期-人工配置": "apply_cycle_manual"}]
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_basic)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_basic)
+
     knowledge_base_model = [{
         "database": "zn_school_info",
-        "db_id": str(school_info.get('id', '')),
-        "instruction": (
-            (school_info.get('chinese_name', '') + " " +
-             school_info.get('english_name', '') + " " +
-             school_info.get('school_abbreviations', '') + "的基本信息").strip()
-        ),
+        "db_id": dict.get('db_id'),
+        "instruction": dict.get("value") + "的基本信息",
         "input": "",
-        "output": (
-                (f"院校中文名：{school_info.get('chinese_name', '')} " if school_info.get('chinese_name') else '') +
-                (f"院校英文名：{school_info.get('english_name', '')} " if school_info.get('english_name') else '') +
-                (f"所属国家：{school_info.get('country_name', '')} " if school_info.get('country_name') else '') +
-                (f"所属地区：{school_info.get('city_path', '')} " if school_info.get('city_path') else '') +
-                (f"官网地址：{school_info.get('website', '')} " if school_info.get('website') else '') +
-                (f"申请费支付维度：{school_info.get('fee_dimension', '')} " if school_info.get(
-                    'fee_dimension') else '') +
-                (f"申请周期-算法统计：{school_info.get('apply_cycle_algorithm', '')} " if school_info.get(
-                    'apply_cycle_algorithm') else '') +
-                (f"申请周期-人工配置：{school_info.get('apply_cycle_manual', '')} " if school_info.get(
-                    'apply_cycle_manual') else '')
-        ).strip(),
-        "keyword": get_string(
-            school_info.get("chinese_name", '') or '',
-            school_info.get("english_name", '') or '',
-            school_info.get("school_abbreviations", '') or ''
-        ),
+        "output": dict_list02[i].get("key_value"),
+        "keyword": "",
         "file_info": "",
-    } for school_info in school_info_basic]
-    insert_weaviate_data_all(knowledge_base_model)
+    } for i, dict in enumerate(dict_list01)]
 
+    insert_weaviate_data_all(knowledge_base_model)
     return school_info_basic[-1].get("id")
 
 
@@ -215,36 +203,24 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
         logger.info(f"院校库排名信息数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"院校库排名信息数据已全部洗入")
+    key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
+                       {"院校简称": "school_abbreviations"}]
+    key_name_list02 = [{"世界泰晤士排名": "world_rank_the"}, {"世界QS排名": "world_rank_qs"},
+                       {"地区USNEWS排名": "local_rank_usnews"}, {"地区泰晤士排名": "local_rank_the"},
+                       {"地区QS排名": "local_rank_qs"}]
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_ranking_list)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_ranking_list)
     knowledge_base_model = [{
         "database": "zn_school_info",
-        "db_id": str(school_info.get('id', '')),
-        "instruction": (
-            (school_info.get('chinese_name', '') + " " +
-             school_info.get('english_name', '') + " " +
-             school_info.get('school_abbreviations', '') + "的院校排名").strip()
-        ),
+        "db_id": dict.get('db_id'),
+        "instruction": dict.get("value") + "的院校排名",
         "input": "",
-        "output": (
-                (f"世界USNEWS排名：{school_info.get('world_rank_usnews', '')} " if school_info.get(
-                    'world_rank_usnews') else '') +
-                (f"世界泰晤士排名：：{school_info.get('world_rank_the', '')} " if school_info.get(
-                    'world_rank_the') else '') +
-                (f"世界QS排名：{school_info.get('world_rank_qs', '')} " if school_info.get('world_rank_qs') else '') +
-                (f"地区USNEWS排名：{school_info.get('local_rank_usnews', '')} " if school_info.get(
-                    'local_rank_usnews') else '') +
-                (f"地区泰晤士排名：{school_info.get('local_rank_the', '')} " if school_info.get(
-                    'local_rank_the') else '') +
-                (f"地区QS排名：{school_info.get('local_rank_qs', '')} " if school_info.get('local_rank_qs') else '')
-        ).strip(),
-        "keyword": get_string(
-            school_info.get("chinese_name", '') or '',
-            school_info.get("english_name", '') or '',
-            school_info.get("school_abbreviations", '') or ''
-        ),
+        "output": dict_list02[i].get("key_value"),
+        "keyword": "",
         "file_info": "",
-    } for school_info in school_info_ranking_list]
-    insert_weaviate_data_all(knowledge_base_model)
+    } for i, dict in enumerate(dict_list01)]
 
+    insert_weaviate_data_all(knowledge_base_model)
     return school_info_ranking_list[-1].get("id")
 
 
@@ -260,49 +236,28 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
         logger.info(f"院校库更多信息数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"院校库更多信息数据已全部洗入")
+    key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
+                       {"院校简称": "school_abbreviations"}]
+    key_name_list02 = [{"就业率": "employment_rate"}, {"毕业薪资": "employment_salary"},
+                       {"学生总数量": "student_amount"}, {"本科生数量": "undergraduate_amount"},
+                       {"研究生数量": "graduate_amount"}, {"国际学生比例": "international_ratio"},
+                       {"师生比例": "faculty_ratio"}, {"男女比例": "boy_girl_ratio"},
+                       {"院校简介": "introduction"}, {"院校历史": "history"}, {"地理位置": "location"},
+                       {"校园环境": "campus"}, {"学校宿舍": "accommodation"}, {"图书馆": "library"},
+                       {"学校设施": "installation"}, {"招生办信息": "admissions_office"}, {"防疫信息": "covid_rule"}]
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_more_list)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_more_list)
     knowledge_base_model = [{
         "database": "zn_school_info",
-        "db_id": str(school_info.get('id', '')),
-        "instruction": (
-            (school_info.get('chinese_name', '') + " " +
-             school_info.get('english_name', '') + " " +
-             school_info.get('school_abbreviations', '') + "的院校更多信息").strip()
-        ),
+        "db_id": dict.get('db_id'),
+        "instruction": dict.get("value") + "的院校更多信息",
         "input": "",
-        "output": (
-                (f"就业率：{school_info.get('employment_rate', '')} " if school_info.get('employment_rate') else '') +
-                (f"毕业薪资：{school_info.get('employment_salary', '')} " if school_info.get(
-                    'employment_salary') else '') +
-                (f"学生总数量：{school_info.get('student_amount', '')} " if school_info.get('student_amount') else '') +
-                (f"本科生数量：{school_info.get('undergraduate_amount', '')} " if school_info.get(
-                    'undergraduate_amount') else '') +
-                (f"研究生数量：{school_info.get('graduate_amount', '')} " if school_info.get(
-                    'graduate_amount') else '') +
-                (f"国际学生比例：{school_info.get('international_ratio', '')} " if school_info.get(
-                    'international_ratio') else '') +
-                (f"师生比例：{school_info.get('faculty_ratio', '')} " if school_info.get('faculty_ratio') else '') +
-                (f"男女比例：{school_info.get('boy_girl_ratio', '')} " if school_info.get('boy_girl_ratio') else '') +
-                (f"院校简介：{school_info.get('introduction', '')} " if school_info.get('introduction') else '') +
-                (f"院校历史：{school_info.get('history', '')} " if school_info.get('history') else '') +
-                (f"地理位置：{school_info.get('location', '')} " if school_info.get("location") else '') +
-                (f"校园环境：{school_info.get('campus', '')} " if school_info.get('campus') else '') +
-                (f"学校宿舍：{school_info.get('accommodation', '')} " if school_info.get('accommodation') else '') +
-                (f"图书馆：{school_info.get('library', '')} " if school_info.get('library') else '') +
-                (f"学校设施：{school_info.get('installation', '')} " if school_info.get('installation') else '') +
-                (f"招生办信息：{school_info.get('admissions_office', '')} " if school_info.get(
-                    'admissions_office') else '') +
-                (f"防疫信息：{school_info.get('covid_rule', '')} " if school_info.get('covid_rule') else '')
-
-        ),
-        "keyword": get_string(
-            school_info.get("chinese_name", '') or '',
-            school_info.get("english_name", '') or '',
-            school_info.get("school_abbreviations", '') or ''
-        ),
+        "output": dict_list02[i].get("key_value"),
+        "keyword": "",
         "file_info": "",
-    } for school_info in school_info_more_list]
-    insert_weaviate_data_all(knowledge_base_model)
+    } for i, dict in enumerate(dict_list01)]
 
+    insert_weaviate_data_all(knowledge_base_model)
     return school_info_more_list[-1].get("id")
 
 
@@ -319,35 +274,25 @@ def insert_college_library04_data(start_id: int = 0, limit: int = 10):
         logger.info(f"院校库择校理由数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"院校库择校理由数据已全部洗入")
+    key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
+                       {"院校简称": "school_abbreviations"}]
+    key_name_list02 = [{"择校理由": "selection_reason"}, {"学校特色": "feature"},
+                       {"强势专业": "strong_majors"}, {"热门专业": "hot_majors"},
+                       {"院系设置": "department_major"}, {"好评项": "evaluation_good"},
+                       {"差评项": "evaluation_bad"}]
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, zn_school_selection_reason_list)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, zn_school_selection_reason_list)
     knowledge_base_model = [{
         "database": database,
-        "db_id": str(school_info.get('id', '')),
-        "instruction": (
-            (school_info.get('chinese_name', '') + " " +
-             school_info.get('english_name', '') + " " +
-             school_info.get('school_abbreviations', '') + "的院校择校理由").strip()
-        ),
+        "db_id": dict.get('db_id'),
+        "instruction": dict.get("value") + "的院校择校理由",
         "input": "",
-        "output": (
-                (f"择校理由：{school_info.get('selection_reason', '')} " if school_info.get(
-                    'selection_reason') else '') +
-                (f"学校特色：{school_info.get('feature', '')} " if school_info.get('feature') else '') +
-                (f"强势专业：{school_info.get('strong_majors', '')} " if school_info.get('strong_majors') else '') +
-                (f"热门专业：{school_info.get('hot_majors', '')} " if school_info.get('hot_majors') else '') +
-                (f"院系设置：{school_info.get('department_major', '')} " if school_info.get(
-                    'department_major') else '') +
-                (f"好评项：{school_info.get('evaluation_good', '')} " if school_info.get('evaluation_good') else '') +
-                (f"差评项：{school_info.get('evaluation_bad', '')} " if school_info.get('evaluation_bad') else '')
-        ),
-        "keyword": get_string(
-            school_info.get("chinese_name", '') or '',
-            school_info.get("english_name", '') or '',
-            school_info.get("school_abbreviations", '') or ''
-        ),
+        "output": dict_list02[i].get("key_value"),
+        "keyword": "",
         "file_info": "",
-    } for school_info in zn_school_selection_reason_list]
-    insert_weaviate_data_all(knowledge_base_model)
+    } for i, dict in enumerate(dict_list01)]
 
+    insert_weaviate_data_all(knowledge_base_model)
     return zn_school_selection_reason_list[-1].get("id")
 
 
@@ -367,56 +312,38 @@ def insert_college_library05_data(start_id: int = 0, limit: int = 10):
         logger.info(f"院校库本科生院校招生信息数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"院校库本科生院校招生信息数据已全部洗入")
+    title01 = "标题信息"
+    key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
+                       {"院校简称": "school_abbreviations"}]
+    title02 = "录取信息如下"
+    key_name_list02 = [{"申请简介": "introduction"}, {"录取率": "admission_rate"},
+                       {"申请人数": "apply_amount"}, {"申请学期": "semester"},
+                       {"申请截止时间": "time_apply_deadline"}, {"Offer发放时间": "time_offer"}]
+    title03 = "留学费用如下"
+    key_name_list03 = [{"申请费用": "fee_apply"}, {"学费": "fee_tuition"}, {"书本费": "fee_book"},
+                       {"生活费": "fee_life"}, {"交通费": "fee_traffic"}, {"住宿费用": "fee_accommodation"},
+                       {"其他费用": "fee_others"}, {"总花费": "fee_total"}]
+    title04 = "考试要求如下"
+    key_name_list04 = [{"GPA成绩": "score_gpa"},
+                       {"ACT成绩": "score_act"}, {"SAT成绩": "score_sat"}, {"SAT2成绩": "score_sat2"},
+                       {"GRE成绩": "score_gre"}, {"GMAT成绩": "score_gmat"}, {"雅思成绩": "score_ielts"},
+                       {"托福成绩": "score_toefl"}, {"native成绩": "score_native"}, {"其他成绩": "score_others"},
+                       {"奖学金": "scholarship"}, {"申请材料": "material"}, {"申请流程": "recruit_flow"}]
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, search_zn_school_recruit_graduate_1_list)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, search_zn_school_recruit_graduate_1_list)
+    dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_1_list)
+    dict_list04 = ObjectFormatter.attribute_concatenation(key_name_list04, search_zn_school_recruit_graduate_1_list)
     knowledge_base_model = [{
         "database": database,
-        "db_id": str(school_info.get('id', '')),
-        "instruction": (
-            (school_info.get('chinese_name', '') + " " +
-             school_info.get('english_name', '') + " " +
-             school_info.get('school_abbreviations', '') + "的本科生院校招生信息").strip()
-        ),
+        "db_id": dict.get('db_id'),
+        "instruction": dict.get("value") + "的本科生院校招生信息",
         "input": "",
-        "output": (
-                (f"录取信息如下："
-                 f"【申请简介：{school_info.get('introduction', '')}】" if school_info.get('introduction') else '') +
-                (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
-                (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
-                (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
-                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get(
-                    'time_apply_deadline') else '') +
-                (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
+        "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
+        "keyword": "",
+        "file_info": "",
+    } for i, dict in enumerate(dict_list01)]
 
-                (f"\n留学费用如下："
-                 f"【申请费用：{school_info.get('fee_apply', '')}】" if school_info.get('fee_apply') else '') +
-                (f"【学费：{school_info.get('fee_tuition', '')}】" if school_info.get('fee_tuition') else '') +
-                (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
-                (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
-                (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
-                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get(
-                    'fee_accommodation') else '') +
-                (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
-                (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
-
-                (f"\n考试要求如下："
-                 f"【GPA成绩：{school_info.get('score_gpa', '')}】" if school_info.get('score_gpa') else '') +
-                (f"【ACT成绩：{school_info.get('score_act', '')}】" if school_info.get('score_act') else '') +
-                (f"【SAT成绩：{school_info.get('score_sat', '')}】" if school_info.get('score_sat') else '') +
-                (f"【SAT2成绩：{school_info.get('score_sat2', '')}】" if school_info.get('score_sat2') else '') +
-                (f"【GRE成绩：{school_info.get('score_gre', '')}】" if school_info.get('score_gre') else '') +
-                (f"【GMAT成绩：{school_info.get('score_gmat', '')}】" if school_info.get('score_gmat') else '') +
-                (f"【雅思成绩：{school_info.get('score_ielts', '')}】" if school_info.get('score_ielts') else '') +
-                (f"【托福成绩：{school_info.get('score_toefl', '')}】" if school_info.get('score_toefl') else '') +
-                (f"【native成绩：{school_info.get('score_native', '')}】" if school_info.get('score_native') else '') +
-                (f"【其他成绩：{school_info.get('score_others', '')}】" if school_info.get('score_others') else '') +
-
-                (f"【奖学金：{school_info.get('scholarship', '')}】" if school_info.get('scholarship') else '') +
-                (f"【申请材料：{school_info.get('material', '')}】" if school_info.get('material') else '') +
-                (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
-        )
-
-    } for school_info in search_zn_school_recruit_graduate_1_list]
     insert_weaviate_data_all(knowledge_base_model)
-
     return search_zn_school_recruit_graduate_1_list[-1].get("id")
 
 
@@ -436,56 +363,39 @@ def insert_college_library06_data(start_id: int = 0, limit: int = 10):
         logger.info(f"院校库研究生生院校招生信息数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"院校库研究生生院校招生信息数据已全部洗入")
+
+    title01 = "标题信息"
+    key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
+                       {"院校简称": "school_abbreviations"}]
+    title02 = "录取信息如下"
+    key_name_list02 = [{"申请简介": "introduction"}, {"录取率": "admission_rate"},
+                       {"申请人数": "apply_amount"}, {"申请学期": "semester"},
+                       {"申请截止时间": "time_apply_deadline"}, {"Offer发放时间": "time_offer"}]
+    title03 = "留学费用如下"
+    key_name_list03 = [{"申请费用": "fee_apply"}, {"学费": "fee_tuition"}, {"书本费": "fee_book"},
+                       {"生活费": "fee_life"}, {"交通费": "fee_traffic"}, {"住宿费用": "fee_accommodation"},
+                       {"其他费用": "fee_others"}, {"总花费": "fee_total"}]
+    title04 = "考试要求如下"
+    key_name_list04 = [{"GPA成绩": "score_gpa"},
+                       {"ACT成绩": "score_act"}, {"SAT成绩": "score_sat"}, {"SAT2成绩": "score_sat2"},
+                       {"GRE成绩": "score_gre"}, {"GMAT成绩": "score_gmat"}, {"雅思成绩": "score_ielts"},
+                       {"托福成绩": "score_toefl"}, {"native成绩": "score_native"}, {"其他成绩": "score_others"},
+                       {"奖学金": "scholarship"}, {"申请材料": "material"}, {"申请流程": "recruit_flow"}]
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, search_zn_school_recruit_graduate_2_list)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, search_zn_school_recruit_graduate_2_list)
+    dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_2_list)
+    dict_list04 = ObjectFormatter.attribute_concatenation(key_name_list04, search_zn_school_recruit_graduate_2_list)
     knowledge_base_model = [{
         "database": database,
-        "db_id": str(school_info.get('id', '')),
-        "instruction": (
-            (school_info.get('chinese_name', '') + " " +
-             school_info.get('english_name', '') + " " +
-             school_info.get('school_abbreviations', '') + "的本科生院校招生信息").strip()
-        ),
+        "db_id": dict.get('db_id'),
+        "instruction": dict.get("value") + "的研究生生院校招生信息",
         "input": "",
-        "output": (
-                (f"录取信息如下："
-                 f"【申请简介：{school_info.get('introduction', '')}】" if school_info.get('introduction') else '') +
-                (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
-                (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
-                (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
-                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get(
-                    'time_apply_deadline') else '') +
-                (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
+        "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
+        "keyword": "",
+        "file_info": "",
+    } for i, dict in enumerate(dict_list01)]
 
-                (f"\n留学费用如下："
-                 f"【申请费用：{school_info.get('fee_apply', '')}】" if school_info.get('fee_apply') else '') +
-                (f"【学费：{school_info.get('fee_tuition', '')}】" if school_info.get('fee_tuition') else '') +
-                (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
-                (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
-                (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
-                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get(
-                    'fee_accommodation') else '') +
-                (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
-                (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
-
-                (f"\n考试要求如下："
-                 f"【GPA成绩：{school_info.get('score_gpa', '')}】" if school_info.get('score_gpa') else '') +
-                (f"【ACT成绩：{school_info.get('score_act', '')}】" if school_info.get('score_act') else '') +
-                (f"【SAT成绩：{school_info.get('score_sat', '')}】" if school_info.get('score_sat') else '') +
-                (f"【SAT2成绩：{school_info.get('score_sat2', '')}】" if school_info.get('score_sat2') else '') +
-                (f"【GRE成绩：{school_info.get('score_gre', '')}】" if school_info.get('score_gre') else '') +
-                (f"【GMAT成绩：{school_info.get('score_gmat', '')}】" if school_info.get('score_gmat') else '') +
-                (f"【雅思成绩：{school_info.get('score_ielts', '')}】" if school_info.get('score_ielts') else '') +
-                (f"【托福成绩：{school_info.get('score_toefl', '')}】" if school_info.get('score_toefl') else '') +
-                (f"【native成绩：{school_info.get('score_native', '')}】" if school_info.get('score_native') else '') +
-                (f"【其他成绩：{school_info.get('score_others', '')}】" if school_info.get('score_others') else '') +
-
-                (f"【奖学金：{school_info.get('scholarship', '')}】" if school_info.get('scholarship') else '') +
-                (f"【申请材料：{school_info.get('material', '')}】" if school_info.get('material') else '') +
-                (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
-        )
-
-    } for school_info in search_zn_school_recruit_graduate_2_list]
     insert_weaviate_data_all(knowledge_base_model)
-
     return search_zn_school_recruit_graduate_2_list[-1].get("id")
 
 
@@ -505,56 +415,43 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
         logger.info(f"院校库艺术生院校招生信息数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"院校库艺术生院校招生信息数据已全部洗入")
+    title01 = "标题信息"
+    key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
+                       {"院校简称": "school_abbreviations"}]
+    title02 = "录取信息如下"
+    key_name_list02 = [{"录取率": "admission_rate"}, {"申请难度": "apply_difficulty"},
+                       {"优势专业": "advantage_major"}, {"申请经验": "apply_experience"},
+                       {"明星校友": "star_alumni"}]
+
+    title03 = "留学费用如下"
+    key_name_list03 = [{"申请费用": "fee_apply"}, {"学费": "fee_tuition"}, {"书本费": "fee_book"},
+                       {"生活费": "fee_life"}, {"交通费": "fee_traffic"}, {"住宿费用": "fee_accommodation"},
+                       {"其他费用": "fee_others"}, {"总花费": "fee_total"}]
+    title04 = "考试要求如下"
+    key_name_list04 = [{"研究生专业": "graduate_major"}, {"本科专业": "undergraduate_major"},
+                       {"研究生雅思成绩": "graduate_ielts"}, {"本科雅思成绩": "undergraduate_ielts"},
+                       {"研究生托福成绩": "graduate_toefl"}, {"本科托福成绩": "undergraduate_toefl"},
+                       {"研究生申请截止日": "graduate_apply_deadline"},
+                       {"本科申请截止日期": "undergraduate_apply_deadline"},
+                       {"研究生申请要求": "graduate_apply_requirement"},
+                       {"本科申请要求": "undergraduate_apply_requirement"},
+                       {"研究生作品集要求": "graduate_works_requirement"},
+                       {"本科作品集要求": "undergraduate_works_requirement"}]
+    dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, search_zn_school_recruit_graduate_2_list)
+    dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, search_zn_school_recruit_graduate_2_list)
+    dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_2_list)
+    dict_list04 = ObjectFormatter.attribute_concatenation(key_name_list04, search_zn_school_recruit_graduate_2_list)
     knowledge_base_model = [{
         "database": database,
-        "db_id": str(school_info.get('id', '')),
-        "instruction": (
-            (school_info.get('chinese_name', '') + " " +
-             school_info.get('english_name', '') + " " +
-             school_info.get('school_abbreviations', '') + "的本科生院校招生信息").strip()
-        ),
+        "db_id": dict.get('db_id'),
+        "instruction": dict.get("value") + "的艺术生院校招生信息",
         "input": "",
-        "output": (
-                (f"录取信息如下："
-                 f"【申请简介：{school_info.get('introduction', '')}】" if school_info.get('introduction') else '') +
-                (f"【录取率：{school_info.get('admission_rate', '')}】" if school_info.get('admission_rate') else '') +
-                (f"【申请人数：{school_info.get('apply_amount', '')}】" if school_info.get('apply_amount') else '') +
-                (f"【申请学期：{school_info.get('semester', '')}】" if school_info.get('semester') else '') +
-                (f"【申请截止时间：{school_info.get('time_apply_deadline', '')}】" if school_info.get(
-                    'time_apply_deadline') else '') +
-                (f"【Offer发放时间：{school_info.get('time_offer', '')}】" if school_info.get('time_offer') else '') +
+        "output": f"""{title01}: {dict_list01[i].get("key_value")}\n{title02}: {dict_list02[i].get("key_value")}\n{title03}: {dict_list03[i].get("key_value")}\n{title04}: {dict_list04[i].get("key_value")}""",
+        "keyword": "",
+        "file_info": "",
+    } for i, dict in enumerate(dict_list01)]
 
-                (f"\n留学费用如下："
-                 f"【申请费用：{school_info.get('fee_apply', '')}】" if school_info.get('fee_apply') else '') +
-                (f"【学费：{school_info.get('fee_tuition', '')}】" if school_info.get('fee_tuition') else '') +
-                (f"【书本费：{school_info.get('fee_book', '')}】" if school_info.get('fee_book') else '') +
-                (f"【生活费：{school_info.get('fee_life', '')}】" if school_info.get('fee_life') else '') +
-                (f"【交通费：{school_info.get('fee_traffic', '')}】" if school_info.get('fee_traffic') else '') +
-                (f"【住宿费用：{school_info.get('fee_accommodation', '')}】" if school_info.get(
-                    'fee_accommodation') else '') +
-                (f"【其他费用：{school_info.get('fee_others', '')}】" if school_info.get('fee_others') else '') +
-                (f"【总花费：{school_info.get('fee_total', '')}】" if school_info.get('fee_total') else '') +
-
-                (f"\n考试要求如下："
-                 f"【GPA成绩：{school_info.get('score_gpa', '')}】" if school_info.get('score_gpa') else '') +
-                (f"【ACT成绩：{school_info.get('score_act', '')}】" if school_info.get('score_act') else '') +
-                (f"【SAT成绩：{school_info.get('score_sat', '')}】" if school_info.get('score_sat') else '') +
-                (f"【SAT2成绩：{school_info.get('score_sat2', '')}】" if school_info.get('score_sat2') else '') +
-                (f"【GRE成绩：{school_info.get('score_gre', '')}】" if school_info.get('score_gre') else '') +
-                (f"【GMAT成绩：{school_info.get('score_gmat', '')}】" if school_info.get('score_gmat') else '') +
-                (f"【雅思成绩：{school_info.get('score_ielts', '')}】" if school_info.get('score_ielts') else '') +
-                (f"【托福成绩：{school_info.get('score_toefl', '')}】" if school_info.get('score_toefl') else '') +
-                (f"【native成绩：{school_info.get('score_native', '')}】" if school_info.get('score_native') else '') +
-                (f"【其他成绩：{school_info.get('score_others', '')}】" if school_info.get('score_others') else '') +
-
-                (f"【奖学金：{school_info.get('scholarship', '')}】" if school_info.get('scholarship') else '') +
-                (f"【申请材料：{school_info.get('material', '')}】" if school_info.get('material') else '') +
-                (f"【申请流程：{school_info.get('recruit_flow', '')}】" if school_info.get('recruit_flow') else '')
-        )
-
-    } for school_info in search_zn_school_recruit_graduate_2_list]
     insert_weaviate_data_all(knowledge_base_model)
-
     return search_zn_school_recruit_graduate_2_list[-1].get("id")
 
 
@@ -674,8 +571,8 @@ def insert_major_library01_data(start_id: int = 0, limit: int = 10):
         "keyword": dict.get('key_value'),
         "file_info": "",
     } for dict in dict_list]
-    insert_weaviate_data_all(knowledge_base_model)
 
+    insert_weaviate_data_all(knowledge_base_model)
     return zn_school_department_project_dict_list[-1].get("id")
 
 
@@ -713,8 +610,8 @@ def insert_major_library02_data(start_id: int = 0, limit: int = 10):
         "keyword": dict.get('key_value'),
         "file_info": "",
     } for dict in dict_list]
-    insert_weaviate_data_all(knowledge_base_model)
 
+    insert_weaviate_data_all(knowledge_base_model)
     return zn_school_department_project_dict_list[-1].get("id")
 
 
@@ -749,8 +646,8 @@ def insert_major_library03_data(start_id: int = 0, limit: int = 10):
         "keyword": dict.get('key_value'),
         "file_info": "",
     } for dict in dict_list]
-    insert_weaviate_data_all(knowledge_base_model)
 
+    insert_weaviate_data_all(knowledge_base_model)
     return zn_school_department_project_dict_list[-1].get("id")
 
 
@@ -798,8 +695,8 @@ def insert_major_library04_data(start_id: int = 0, limit: int = 10):
         "keyword": dict.get('key_value'),
         "file_info": "",
     } for dict in dict_list]
-    insert_weaviate_data_all(knowledge_base_model)
 
+    insert_weaviate_data_all(knowledge_base_model)
     return zn_school_department_project_dict_list[-1].get("id")
 
 
@@ -835,8 +732,8 @@ def insert_major_library05_data(start_id: int = 0, limit: int = 10):
         "keyword": dict.get('key_value'),
         "file_info": "",
     } for dict in dict_list]
-    insert_weaviate_data_all(knowledge_base_model)
 
+    insert_weaviate_data_all(knowledge_base_model)
     return zn_school_department_project_dict_list[-1].get("id")
 
 
@@ -873,8 +770,8 @@ def insert_major_library06_data(start_id: int = 0, limit: int = 10):
         "keyword": dict.get('key_value'),
         "file_info": "",
     } for dict in dict_list]
-    insert_weaviate_data_all(knowledge_base_model)
 
+    insert_weaviate_data_all(knowledge_base_model)
     return zn_school_department_project_dict_list[-1].get("id")
 
 
@@ -987,10 +884,11 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
         "insert_major_library05_data": lambda: insert_major_library05_data(start_id=start_id, limit=limit),
         "insert_major_library06_data": lambda: insert_major_library06_data(start_id=start_id, limit=limit),
         "clear_all_data": lambda: clear_all_data(datasets),
-        "delete_weaviate_data_by_id": lambda: delete_weaviate_data_by_id(uuid,datasets),
+        "delete_weaviate_data_by_id": lambda: delete_weaviate_data_by_id(uuid, datasets),
         "search_weaviate_data_by_query": lambda: print(search_weaviate_data_by_query(query, limit)),
         "update_weaviate_data_by_id": lambda: update_weaviate_data_by_id(uuid, properties),
         "delete_collection_name": delete_collection_name,
+        "create_collection_name": create_collection_name,
         "delete_by_database": lambda: delete_by_database(datasets)
     }
 

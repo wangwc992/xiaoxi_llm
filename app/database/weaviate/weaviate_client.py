@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from weaviate.collections.classes.config import Configure
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from weaviate.embedded import EmbeddedOptions
-import weaviate.classes as wvc
 from app.common.core.config import settings
 from app.common.utils.logging import get_logger
 
@@ -26,10 +25,11 @@ class WeaviateClient:
     else:
         client = weaviate.WeaviateClient(
             embedded_options=EmbeddedOptions(
+                binary_path="/root/autodl-tmp/database/w2",
                 additional_env_vars={
                     # "ENABLE_MODULES": "text2vec-transformers",
                     # "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8090',
-                    "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/weaviate"
+                    "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/w2"
                 }
             )
         )

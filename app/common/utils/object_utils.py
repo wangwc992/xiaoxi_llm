@@ -76,19 +76,21 @@ class ObjectFormatter:
         """
         dict_list = []
         for zn_school_department_project_dict in zn_school_department_project_dict_list:
-            key_value = ""
-            key = ""
+            key = ''
+            value = ''
+            key_value = ''
             db_id = ''
             for key_name in key_name_list:
-                name = list(key_name.keys())[0]
-                value = zn_school_department_project_dict[key_name[name]]
-                if name == 'db_id':
-                    db_id = str(value)
+                key_str = list(key_name.keys())[0]
+                value_str = zn_school_department_project_dict[key_name[key_str]]
+                if key_str == 'db_id':
+                    db_id = str(value_str)
                 elif value:
-                    key += f"{name} "
-                    key_value += f"{name}：{value}、 "
-            dict = {'db_id': db_id, "key_value": key_value.rstrip("、 "), "key": key.rstrip()}
+                    key += f"{key_str} "
+                    value += f"{value_str} "
+                    key_value += f"{key_str}：{value_str}、 "
+            dict = {'db_id': db_id, 'key': key, 'value': value, 'key_value': key_value.rstrip('、 ')}
             dict_list.append(dict)
         return dict_list
 
-    #写一个整理key和value的方法，传入key_name_list,
+    # 写一个整理key和value的方法，传入key_name_list,
