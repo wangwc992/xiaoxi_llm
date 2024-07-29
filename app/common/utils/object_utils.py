@@ -85,10 +85,13 @@ class ObjectFormatter:
                 value_str = zn_school_department_project_dict[key_name[key_str]]
                 if key_str == 'db_id':
                     db_id = str(value_str)
-                elif value:
+                elif value_str:
                     key += f"{key_str} "
                     value += f"{value_str} "
-                    key_value += f"{key_str}：{value_str}、 "
+                    if key_str:
+                        key_value += f"{key_str}:{value_str} "
+                    else:
+                        key_value += f"{value_str} "
             dict = {'db_id': db_id, 'key': key, 'value': value, 'key_value': key_value.rstrip('、 ')}
             dict_list.append(dict)
         return dict_list
