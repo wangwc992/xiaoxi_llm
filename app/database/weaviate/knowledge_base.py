@@ -38,9 +38,12 @@ class KnowledgeBaseWeaviate(WeaviateClient):
     def clear_all_data(self, database: str):
         '''清空Weaviate数据库中的所有数据'''
         logger.info(f"Clearing all data in Weaviate database: {database}")
-        self.collection.data.delete_many(
+        result = self.collection.data.delete_many(
             where=Filter.by_property("database").equal(database)
         )
+    #     DeleteManyReturn(failed=0, matches=4480, objects=None, successful=4480)
+        logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
+
 
     def search_hybrid(self, query, limit):
         '''在Weaviate数据库中搜索数据'''

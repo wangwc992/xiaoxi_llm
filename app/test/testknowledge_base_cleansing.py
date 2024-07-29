@@ -2,9 +2,11 @@ import os
 
 import pandas as pd
 
+from app.common.core.langchain_client import Embedding
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_school_info_basic_data, \
     search_school_info_ranking_data
+from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 
 def insert_college_library01_data(start_id: int = 0, limit: int = 10):
@@ -94,6 +96,13 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
         "keyword": "",
         "file_info": "",
     } for i, info in enumerate(data)]
+
+    texts = [doc['instruction'] for doc in knowledge_base_model]
+
+    doc_vecs = Embedding.embed_documents(texts)
+
+    uuid_list = knowledge_base_weaviate.basth_insert_data(properties_list=knowledge_base_model, vecs=doc_vecs)
+    print(uuid_list)
 
 if __name__ == '__main__':
     # insert_college_library02_data()

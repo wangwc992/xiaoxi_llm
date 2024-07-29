@@ -118,11 +118,13 @@ class WeaviateClient:
         response = self.collection.query.hybrid(
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
-            target_vector="instruction",
+            query_properties=["instruction"],
             vector=vec,
             return_metadata=MetadataQuery(score=True, explain_score=True),
             limit=limit,
         )
+
+        return response
 
     def delete_data(self, uuid):
         '''删除数据'''
