@@ -147,7 +147,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     data = df.to_dict(orient='records')
     knowledge_base_model = [{
         "database": datasets,
-        "db_id": i,
+        "db_id": str(i),
         "instruction": info.get('instruction'),
         "input": "",
         "output": info.get('output'),
