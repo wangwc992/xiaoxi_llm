@@ -65,7 +65,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # Add a system message if the chat history is empty
     if not chat_message_history.messages:
-        chat_message_history.add_message(SystemMessage(content="你是小希留学顾问助手"))
+        chat_message_history.add_message(SystemMessage(content="你是智能助手，回复问题"))
 
     # Add the user's query to the chat history
     chat_message_history.add_user_message(request.query)

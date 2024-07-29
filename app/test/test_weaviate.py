@@ -13,7 +13,7 @@ collection = client.collections.get(collections_name)
 
 def delete_many():
     collection.data.delete_many(
-        where=Filter.by_property("datasets").like("*zn_school_department_project_01*"),
+        where=Filter.by_property("database").like("*"),
         # dry_run=True,
         # verbose=True
     )
@@ -45,7 +45,10 @@ def clear_all_data(database: str):
     )
     logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
 
+
 hybrid_data_query = '小希平台'
+
+
 def hybrid_data(query, vec, limit=10):
     '''混合查询数据'''
     logger.info(f"Hybrid querying data in collection: {collections_name}")
@@ -60,9 +63,15 @@ def hybrid_data(query, vec, limit=10):
 
     return response
 
+
 if __name__ == "__main__":
+    delete_many()
+
     # query_bm25(query_bm25_database)
+
     # clear_all_data(database)
 
-    vec = Embedding.embed_query(hybrid_data_query)
-    response = hybrid_data(hybrid_data_query, vec)
+    # vec = Embedding.embed_query(hybrid_data_query)
+    # response = hybrid_data(hybrid_data_query, vec)
+
+    pass
