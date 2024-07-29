@@ -140,7 +140,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     datasets = 'platform_introduction'
     # 加载小希平台介绍数据的xlsx文件
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, 'data/prompt/platform_introduction.xlsx')
+    file_path = os.path.join(base_dir, 'data/platform_introduction.xlsx')
     df = pd.read_excel(file_path)
 
     # Extract the necessary information
@@ -154,6 +154,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
         "keyword": "",
         "file_info": "",
     } for i, info in enumerate(data)]
+
     insert_weaviate_data_all(knowledge_base_model)
 
 
@@ -168,12 +169,12 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     if not school_info_basic:
         logger.info(f"院校库基本信息数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"院校库基本信息数据已全部洗入")
+        raise Exception(f'院校库基本信息数据已全部洗入')
     key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
-    key_name_list02 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'}, {"所属国家": "country_name"},
-                       {"所属地区": "city_path"}, {"官网地址": "website"}, {"申请费支付维度": "fee_dimension"},
-                       {"申请周期-算法统计": "apply_cycle_algorithm"}, {"申请周期-人工配置": "apply_cycle_manual"}]
+    key_name_list02 = [{'': 'chinese_name'}, {'': 'english_name'}, {'': 'country_name'},
+                       {'所属地区': "city_path"}, {'': "website"}, {'申请费支付维度': 'fee_dimension'},
+                       {'申请周期-算法统计': 'apply_cycle_algorithm'}, {'申请周期-人工配置': 'apply_cycle_manual'}]
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_basic)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_basic)
 
