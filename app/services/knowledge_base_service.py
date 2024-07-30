@@ -215,7 +215,7 @@ async def load_reference_data(query, limit):
     response_list = knowledge_base_weaviate.search_hybrid(query, limit)
     reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}"
                                   for n in range(len(response_list))])
-    knowledge_link = [response.url for response in response_list if
+    knowledge_link = [response.link for response in response_list if
                       response.database == "t_knowledge_info" and response.link]
     return reference_data, knowledge_link
 
