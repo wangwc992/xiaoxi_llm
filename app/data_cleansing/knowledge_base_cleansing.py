@@ -156,7 +156,9 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     } for i, info in enumerate(data)]
 
     insert_weaviate_data_all(knowledge_base_model)
-
+    logger.info(f"小希平台介绍数据已全部洗入")
+    # 抛出异常，终止程序
+    raise Exception(f'小希平台介绍数据已全部洗入')
 
 def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
@@ -524,7 +526,7 @@ def insert_major_library_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = [{
         "database": database,
         "db_id": dict.get('db_id'),
-        "instruction": dict_list00[i].get('key_value'),
+        "instruction": dict_list00[i].get('key_value')+"信息资料如下",
         "input": "",
         "output": f"""{title01}: {dict_list01[i].get('key_value')}\n{title02}: {dict_list02[i].get('key_value')}\n{title03}: {dict_list03[i].get('key_value')}\n{title04}: {dict_list04[i].get('key_value')}\n{title05}: {dict_list05[i].get('key_value')}\n{title06}: {dict_list06[i].get('key_value')}""",
         "keyword": "",
