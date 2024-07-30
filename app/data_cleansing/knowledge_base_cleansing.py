@@ -64,8 +64,8 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = []
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
-        if knowledge_info.get("fileurl"):
-            content += file_to_text.urlToText(knowledge_info["fileurl"])
+        # if knowledge_info.get("fileurl"):
+            # content += file_to_text.urlToText(knowledge_info["fileurl"])
 
         if knowledge_info.get("type") == 1:
             name = knowledge_info.get("name")

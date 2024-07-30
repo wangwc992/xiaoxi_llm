@@ -201,7 +201,7 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     print(knowledge_base_model)
 
 
-def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
+def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 100):
     '''知识库
     1、问答/文件相关知识库内容洗入向量库时注意事项：
     a、标题洗入要求： {国家}{院校}{问题类型}{问题是否常见}的以下问题：{标题内容}：
@@ -214,7 +214,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
     database = "t_knowledge_info"
-    knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
+    knowledge_info_dict_list = search_knowledge_info_data(id=50, limit=limit)
     if not knowledge_info_dict_list:
         # logger.info(f"{database}知识库数据已全部洗入")
         # 抛出异常，终止程序
@@ -223,6 +223,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
         if knowledge_info.get("fileurl"):
+            print(knowledge_info["fileurl"])
             content += file_to_text.urlToText(knowledge_info["fileurl"])
         if knowledge_info.get("type") == 1:
             name = knowledge_info.get("name")

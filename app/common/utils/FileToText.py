@@ -119,7 +119,7 @@ class FileToText:
 if __name__ == '__main__':
     fileToText = FileToText()
     #文字型PDF
-    #pdf_url = "https://xiaoxi-cdn.globeedu.com/2024/07/19/pdf/2024071915532394803013.pdf"  # 替换为你的PDF链接
+    pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/pdf/2023032019262545103013.pdf"  # 替换为你的PDF链接
 
     #图片型PDF
     #pdf_url = "https://xiaoxi-cdn.globeedu.com/2024/07/19/pdf/2024071915530687603013.pdf"  # 替换为你的PDF链接
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     #pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/04/17/jpg/2023041711083100403013.jpg"
 
     #XLSX
-    pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/xlsx/2023032018555339603013.xlsx"
+    # pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/xlsx/2023032018555339603013.xlsx"
     text = fileToText.urlToText(pdf_url)
 
     print(text)
