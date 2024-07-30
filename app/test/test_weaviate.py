@@ -21,7 +21,7 @@ def delete_many():
     )
 
 
-query_bm25_database = 'platform_introduction'
+query_bm25_database = 't_knowledge_info'
 
 
 def query_bm25(query_bm25: str):
@@ -89,13 +89,13 @@ def search_hybrid(query, limit):
 if __name__ == "__main__":
     # delete_many()
     #
-    # query_bm25(query_bm25_database)
+    query_bm25(query_bm25_database)
 
     # clear_all_data(database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
 
-    search_hybrid("墨尔本大学怎么样", 10)
+    # search_hybrid("墨尔本大学怎么样", 10)
 
     pass

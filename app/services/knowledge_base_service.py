@@ -216,7 +216,7 @@ async def load_reference_data(query, limit):
     reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}"
                                   for n in range(len(response_list))])
     knowledge_link = [response.url for response in response_list if
-                      response.database == "t_knowledge_info" and response.url]
+                      response.database == "t_knowledge_info" and response.link]
     return reference_data, knowledge_link
 
 
