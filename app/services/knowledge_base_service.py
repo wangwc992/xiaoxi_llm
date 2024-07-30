@@ -1,8 +1,10 @@
 import json
+import os
 from datetime import datetime
 from fastapi import Request, APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse, StreamingResponse
 from langchain_core.messages import SystemMessage
+from langchain_core.prompts import PromptTemplate
 from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
@@ -12,6 +14,8 @@ from app.common.utils.logging import get_logger
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from langchain_community.chat_message_histories import ChatMessageHistory
+
+from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
@@ -65,13 +69,22 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # Add a system message if the chat history is empty
     if not chat_message_history.messages:
-        chat_message_history.add_message(SystemMessage(content="你是智能助手，回复问题"))
+        chat_message_history.add_message(SystemMessage(content="你是小希留学顾问助手"))
 
     # Add the user's query to the chat history
     chat_message_history.add_user_message(request.query)
     # Convert messages to the required format
     message_list = [{"role": message.type, "content": message.content} for message in chat_message_history.messages]
     logger.info(f"message_list: {message_list}")
+
+    # Load reference data
+    reference_data = await load_reference_data(request.query, 10)
+    # 加载prompt
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
+    template = PromptTemplate.from_file(file_path)
+    prompt = template.format(input=request.query, reference_data=reference_data)
+    message_list[-1]['content'] = prompt
 
     # Set stream options if the request is for streaming
     stream_options = StreamOptions(include_usage=True) if request.stream else None
@@ -190,6 +203,14 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     # Save the message to chat history in Langfuse
     await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
                         end_time)
+
+
+async def load_reference_data(query, limit):
+    """ Load reference data from the knowledge base. """
+    response_list = knowledge_base_weaviate.search_hybrid(query, limit)
+    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}"
+                                  for n in range(len(response_list))])
+    return reference_data
 
 
 async def save_redis(chat_message_history, chat_message_history_key, message_dict):
