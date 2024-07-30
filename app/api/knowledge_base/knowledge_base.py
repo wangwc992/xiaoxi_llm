@@ -14,7 +14,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     return await knowledge_base_generate(request, raw_request)
 
 
-@router.post("/chat/abort", description="Abort the request with the given ID.")
+@router.get("/chat/abort", description="Abort the request with the given ID.")
 async def abort(request_id: str):
     return await engine_abort(request_id)
 

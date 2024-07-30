@@ -132,10 +132,10 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     async for chunk in result.body_iterator:
         logger.info(f"chunk: {chunk}")
         if first_chunk:
-            chunk = chunk.replace('"role":"assistant"', f'"role":"assistant","content":{knowledge_link}')
-            first_chunk = False
+            chunk = chunk.replace('"role":"assistant"', f'"role":"assistant","content":{json.dumps(knowledge_link)}')
         yield chunk
-        if chunk.strip() == "data: [DONE]" or not chunk.strip():
+        if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
+            first_chunk = False
             continue
         if chunk.startswith("data: "):
             chunk = chunk[len("data: "):]
