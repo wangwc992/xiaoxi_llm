@@ -127,6 +127,7 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     """
     output = ''
     usage = None
+    yield "data: {'reference_data': 'Reference data loaded'}"
     async for chunk in result.body_iterator:
         logger.info(f"chunk: {chunk}")
         yield chunk
