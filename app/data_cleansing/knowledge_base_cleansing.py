@@ -422,24 +422,22 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     key_name_list01 = [{'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
     title02 = "录取信息如下"
-    key_name_list02 = [{"录取率": "admission_rate"}, {"申请难度": "apply_difficulty"},
-                       {"优势专业": "advantage_major"}, {"申请经验": "apply_experience"},
-                       {"明星校友": "star_alumni"}]
+    key_name_list02 = [{"录取率": "admission_rate"}, {"申请难度": "difficulty_name"},
+                       {"优势专业": "strong_majors"}, {"申请经验": "apply_experience"},
+                       {"明星校友": "alumni"}]
 
     title03 = "留学费用如下"
     key_name_list03 = [{"申请费用": "fee_apply"}, {"学费": "fee_tuition"}, {"书本费": "fee_book"},
                        {"生活费": "fee_life"}, {"交通费": "fee_traffic"}, {"住宿费用": "fee_accommodation"},
                        {"其他费用": "fee_others"}, {"总花费": "fee_total"}]
+
     title04 = "考试要求如下"
-    key_name_list04 = [{"研究生专业": "graduate_major"}, {"本科专业": "undergraduate_major"},
-                       {"研究生雅思成绩": "graduate_ielts"}, {"本科雅思成绩": "undergraduate_ielts"},
-                       {"研究生托福成绩": "graduate_toefl"}, {"本科托福成绩": "undergraduate_toefl"},
-                       {"研究生申请截止日": "graduate_apply_deadline"},
-                       {"本科申请截止日期": "undergraduate_apply_deadline"},
-                       {"研究生申请要求": "graduate_apply_requirement"},
-                       {"本科申请要求": "undergraduate_apply_requirement"},
-                       {"研究生作品集要求": "graduate_works_requirement"},
-                       {"本科作品集要求": "undergraduate_works_requirement"}]
+    key_name_list04 = [{"研究生专业": "graduate_majors"}, {"本科专业": "undergraduate_majors"},
+                       {"研究生雅思成绩": "graduate_score_ielts"}, {"本科雅思成绩": "undergraduate_score_ielts"},
+                       {"研究生托福成绩": "graduate_score_toefl"}, {"本科托福成绩": "undergraduate_score_toefl"},
+                       {"研究生申请截止日": "graduate_apply_deadline"}, {"本科申请截止日期": "undergraduate_apply_deadline"},
+                       {"研究生申请要求": "graduate_requirements"}, {"本科申请要求": "undergraduate_requirements"},
+                       {"研究生作品集要求": "graduate_works_requirement"}, {"本科作品集要求": "undergraduate_works_requirement"}]
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, search_zn_school_recruit_graduate_2_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, search_zn_school_recruit_graduate_2_list)
     dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_2_list)
