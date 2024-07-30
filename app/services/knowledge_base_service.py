@@ -78,7 +78,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     logger.info(f"message_list: {message_list}")
 
     # Load reference data
-    reference_data = await load_reference_data(request.query, 10)
+    reference_data, knowledge_link = await load_reference_data(request.query, 10)
     # 加载prompt
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
@@ -100,7 +100,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
             stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list,
-                            start_time),
+                            start_time, knowledge_link),
             media_type="text/event-stream")
     else:
         message_dict = await extract_message(result)
@@ -110,7 +110,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         return result
 
 
-async def stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list, start_time):
+async def stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list, start_time,
+                          knowledge_link):
     """
     Handle streaming response.
 
@@ -127,9 +128,12 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     """
     output = ''
     usage = None
-    yield "data: {'reference_data': 'Reference data loaded'}"
+    first_chunk = True
     async for chunk in result.body_iterator:
         logger.info(f"chunk: {chunk}")
+        if first_chunk:
+            chunk = chunk.replace('"role":"assistant"', f'"role":"assistant","content":{knowledge_link}')
+            first_chunk = False
         yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip():
             continue
@@ -211,7 +215,8 @@ async def load_reference_data(query, limit):
     response_list = knowledge_base_weaviate.search_hybrid(query, limit)
     reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}"
                                   for n in range(len(response_list))])
-    return reference_data
+    knowledge_link = [response.link for response in response_list]
+    return reference_data, knowledge_link
 
 
 async def save_redis(chat_message_history, chat_message_history_key, message_dict):

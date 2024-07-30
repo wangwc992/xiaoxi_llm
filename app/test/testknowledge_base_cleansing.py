@@ -4,8 +4,9 @@ import pandas as pd
 
 from app.common.core.langchain_client import Embedding
 from app.common.utils.object_utils import ObjectFormatter
+from app.data_cleansing.knowledge_base_cleansing import file_to_text
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_school_info_basic_data, \
-    search_school_info_ranking_data, search_zn_school_recruit_art
+    search_school_info_ranking_data, search_zn_school_recruit_art, search_knowledge_info_data
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 
@@ -178,9 +179,11 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     key_name_list04 = [{"研究生专业": "graduate_majors"}, {"本科专业": "undergraduate_majors"},
                        {"研究生雅思成绩": "graduate_score_ielts"}, {"本科雅思成绩": "undergraduate_score_ielts"},
                        {"研究生托福成绩": "graduate_score_toefl"}, {"本科托福成绩": "undergraduate_score_toefl"},
-                       {"研究生申请截止日": "graduate_apply_deadline"}, {"本科申请截止日期": "undergraduate_apply_deadline"},
+                       {"研究生申请截止日": "graduate_apply_deadline"},
+                       {"本科申请截止日期": "undergraduate_apply_deadline"},
                        {"研究生申请要求": "graduate_requirements"}, {"本科申请要求": "undergraduate_requirements"},
-                       {"研究生作品集要求": "graduate_works_requirement"}, {"本科作品集要求": "undergraduate_works_requirement"}]
+                       {"研究生作品集要求": "graduate_works_requirement"},
+                       {"本科作品集要求": "undergraduate_works_requirement"}]
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, search_zn_school_recruit_graduate_2_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, search_zn_school_recruit_graduate_2_list)
     dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_2_list)
@@ -198,6 +201,52 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     print(knowledge_base_model)
 
 
+def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
+    '''知识库
+    1、问答/文件相关知识库内容洗入向量库时注意事项：
+    a、标题洗入要求： {国家}{院校}{问题类型}{问题是否常见}的以下问题：{标题内容}：
+
+    b、答案洗入要求： {回复顾问}于{日期}回复内容如下：{问题答案}
+
+    如果有文件，则在{问题答案}后方增加：该回答引用了以下文件，文件名：{文件名}，文件内容：{文件内容（pdf、excel、word提取信息，图片ocr信息）}
+    eg：
+
+    标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
+    内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
+    database = "t_knowledge_info"
+    knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
+    if not knowledge_info_dict_list:
+        # logger.info(f"{database}知识库数据已全部洗入")
+        # 抛出异常，终止程序
+        raise Exception(f"{database}知识库数据已全部洗入")
+    knowledge_base_model = []
+    for knowledge_info in knowledge_info_dict_list:
+        content = knowledge_info.get("content", "")
+        if knowledge_info.get("fileurl"):
+            content += file_to_text.urlToText(knowledge_info["fileurl"])
+        if knowledge_info.get("type") == 1:
+            name = knowledge_info.get("name")
+        else:
+            name = knowledge_info.get("filename")
+        db_id = str(knowledge_info["id"])
+        instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
+        output = f'{knowledge_info["founder"]}于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
+        link = {"url": f'https://knowledge.xiaoxiedu.com/details/filedetails?id={db_id}',
+                "title": name}
+
+        knowledge_base_model.append({
+            "database": database,
+            "db_id": db_id,
+            "instruction": instruction,
+            "input": "",
+            "output": output,
+            "keyword": f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}',
+            "file_info": "",
+            "url": link
+        })
+        print(knowledge_base_model)
+
+
 if __name__ == '__main__':
     # insert_college_library02_data()
-    insert_college_library07_data()
+    insert_t_knowledge_info_data()

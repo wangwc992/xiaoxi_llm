@@ -61,27 +61,33 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         logger.info(f"{database}知识库数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"{database}知识库数据已全部洗入")
+    knowledge_base_model = []
+    for knowledge_info in knowledge_info_dict_list:
+        content = knowledge_info.get("content", "")
+        if knowledge_info.get("fileurl"):
+            content += file_to_text.urlToText(knowledge_info["fileurl"])
 
-    knowledge_base_model = [{
-        "database": database,
-        "db_id": str(knowledge_info.get("id", '') or ''),
-        "instruction": get_string(knowledge_info.get("country", '') or '',
-                                  knowledge_info.get("school", '') or '',
-                                  knowledge_info.get("class", '') or '',
-                                  "的以下问题",
-                                  knowledge_info.get("name", '') or ''),
-        "input": "",
-        "output": ((knowledge_info.get("founder", '') or '') + "于" +
-                   ((knowledge_info.get("replyerTime").strftime("%Y-%m-%d %H:%M:%S"))
-                    if knowledge_info.get("replyerTime") else '') + "回复内容如下：" +
-                   HtmlUtils.replace_link_with_url(knowledge_info.get("content", '') or '')),
-        "keyword": get_string(knowledge_info.get("country", '') or '',
-                              knowledge_info.get("school", '') or '',
-                              knowledge_info.get("class", '') or ''),
-        # "file_info": file_to_text.urlToText(knowledge_info.get("fileurl", '') or '') if knowledge_info.get(
-        #     "fileurl") else "",
-        "file_info": "",
-    } for knowledge_info in knowledge_info_dict_list]
+        if knowledge_info.get("type") == 1:
+            name = knowledge_info.get("name")
+        else:
+            name = knowledge_info.get("filename")
+
+        db_id = str(knowledge_info["id"])
+        instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
+        output = f'{knowledge_info["founder"]}于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
+        link = {"url": f'https://knowledge.xiaoxiedu.com/details/filedetails?id={db_id}',
+                "title": name}
+
+        knowledge_base_model.append({
+            "database": database,
+            "db_id": db_id,
+            "instruction": instruction,
+            "input": "",
+            "output": output,
+            "keyword": f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}',
+            "file_info": "",
+            "link": link
+        })
 
     insert_weaviate_data_all(knowledge_base_model)
 
@@ -159,6 +165,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     logger.info(f"小希平台介绍数据已全部洗入")
     # 抛出异常，终止程序
     raise Exception(f'小希平台介绍数据已全部洗入')
+
 
 def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     '''院校库洗入格式如下
@@ -435,9 +442,11 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     key_name_list04 = [{"研究生专业": "graduate_majors"}, {"本科专业": "undergraduate_majors"},
                        {"研究生雅思成绩": "graduate_score_ielts"}, {"本科雅思成绩": "undergraduate_score_ielts"},
                        {"研究生托福成绩": "graduate_score_toefl"}, {"本科托福成绩": "undergraduate_score_toefl"},
-                       {"研究生申请截止日": "graduate_apply_deadline"}, {"本科申请截止日期": "undergraduate_apply_deadline"},
+                       {"研究生申请截止日": "graduate_apply_deadline"},
+                       {"本科申请截止日期": "undergraduate_apply_deadline"},
                        {"研究生申请要求": "graduate_requirements"}, {"本科申请要求": "undergraduate_requirements"},
-                       {"研究生作品集要求": "graduate_works_requirement"}, {"本科作品集要求": "undergraduate_works_requirement"}]
+                       {"研究生作品集要求": "graduate_works_requirement"},
+                       {"本科作品集要求": "undergraduate_works_requirement"}]
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, search_zn_school_recruit_graduate_2_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, search_zn_school_recruit_graduate_2_list)
     dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_2_list)
@@ -524,7 +533,7 @@ def insert_major_library_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = [{
         "database": database,
         "db_id": dict.get('db_id'),
-        "instruction": dict_list00[i].get('key_value')+"信息资料如下",
+        "instruction": dict_list00[i].get('key_value') + "信息资料如下",
         "input": "",
         "output": f"""{title01}: {dict_list01[i].get('key_value')}\n{title02}: {dict_list02[i].get('key_value')}\n{title03}: {dict_list03[i].get('key_value')}\n{title04}: {dict_list04[i].get('key_value')}\n{title05}: {dict_list05[i].get('key_value')}\n{title06}: {dict_list06[i].get('key_value')}""",
         "keyword": "",

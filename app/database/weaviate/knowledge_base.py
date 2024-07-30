@@ -21,6 +21,7 @@ class KnowledgeBaseModel(BaseModel):
     output: Optional[str] = Field(None, description="关键词")
     keyword: Optional[str] = Field(None, description="状态")
     file_info: Optional[str] = Field(None, description="文件信息")
+    link: Optional[dict] = Field(None, description="参考数据的link")
 
 
 class KnowledgeBaseWeaviate(WeaviateClient):
@@ -32,7 +33,8 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         Property(name='input', data_type=DataType.TEXT, description='输入'),
         Property(name='output', data_type=DataType.TEXT, description='输出'),
         Property(name='keyword', data_type=DataType.TEXT, description='关键词'),
-        Property(name='file_info', data_type=DataType.TEXT, description='文件信息')
+        Property(name='file_info', data_type=DataType.TEXT, description='文件信息'),
+        Property(name='link', data_type=DataType.TEXT, description='参考数据的link')
     ]
 
     def clear_all_data(self, database: str):

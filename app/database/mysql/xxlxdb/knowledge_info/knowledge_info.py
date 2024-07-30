@@ -67,7 +67,7 @@ class KnowledgeInfo(BaseModel):
 
 
 def search_knowledge_info_data(id=0, limit=10):
-    sql = f"SELECT id, country, school, class, name, founder, replyerTime, content, fileurl FROM t_knowledge_info where startup_status = 1 and id > {id}"
+    sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl FROM t_knowledge_info where startup_status = 1 and id > {id}"
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
@@ -359,6 +359,7 @@ def search_zn_school_recruit_graduate_2(id: int = 0, limit: int = 10):
         '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
+
 def search_zn_school_department_project(id: int = 0, limit: int = 300):
     sql = f'''
             select 
@@ -451,6 +452,7 @@ def search_zn_school_department_project(id: int = 0, limit: int = 300):
                 and znsdp.id > {id}
         '''
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
 
 def search_zn_school_department_project01(id: int = 0, limit: int = 300):
     sql = f'''
