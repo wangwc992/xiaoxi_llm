@@ -1,6 +1,7 @@
 import weaviate
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.collections.classes.grpc import HybridFusion
+from weaviate.proto.v1.base_pb2 import Filters
 
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
@@ -20,6 +21,7 @@ def delete_many():
         # verbose=True
     )
     logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
+
 
 query_bm25_database = 't_knowledge_info'
 
@@ -42,8 +44,13 @@ database = 't_knowledge_info'
 
 def clear_all_data(database: str):
     '''清空Weaviate数据库中的所有数据'''
+    filters = (
+           Filter.by_property("database").equal("t_knowledge_info")
+    )
     result = collection.data.delete_many(
-        where=Filter.by_property("database").equal(database)
+        where=filters,
+        dry_run=True,
+        verbose=True
     )
     logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
 
@@ -69,6 +76,7 @@ def hybrid_data(query, vec, limit=10):
 
     return response
 
+
 def search_hybrid(query, limit):
     '''在Weaviate数据库中搜索数据'''
     logger.info(f"Searching Weaviate database with query: {query}")
@@ -86,17 +94,31 @@ def search_hybrid(query, limit):
         knowledge_base = ObjectFormatter.dict_to_object(properties, KnowledgeBaseModel)
         response_list.append(knowledge_base)
     return response_list
+
+
+def fetch_objects():
+    response = collection.query.fetch_objects(
+        filters=(
+                Filter.by_property("db_id").equal("26487")
+                & Filter.by_property("database").equal("t_knowledge_info")
+        ),
+        limit=5,
+    )
+    for o in response.objects:
+        print(o.properties)
+
+
 if __name__ == "__main__":
     # delete_many()
     #
-    query_bm25(query_bm25_database)
+    # query_bm25(query_bm25_database)
 
     clear_all_data(database)
-    query_bm25(query_bm25_database)
+    # query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
 
     # search_hybrid("墨尔本大学怎么样", 10)
-
+    # fetch_objects()
     pass
