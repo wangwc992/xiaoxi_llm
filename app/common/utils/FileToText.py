@@ -29,10 +29,10 @@ class FileToText:
         except AttributeError:
             return ""
 
-    def fileToString(self, file_obj, file_type=None):
+    def fileToString(self, pdf_url, file_obj, file_type=None):
         text = ""
         if file_type == "pdf" or file_type == "pptx":
-            return self.pdfToString(file_obj)
+            return self.pdfToString(file_obj, pdf_url)
         elif file_type == "jpg" or file_type == "png" or file_type == "gif" or file_type == "jpeg":
             return self.imageToString(file_obj)
         elif file_type == "doc" or file_type == "docx":
@@ -80,7 +80,7 @@ class FileToText:
         text += pytesseract.image_to_string(img, lang='chi_sim+eng')
         return text
 
-    def pdfToString(self, file_obj):
+    def pdfToString(self, file_obj, pdf_url):
         with tempfile.NamedTemporaryFile(delete=False) as tmp_pdf_file:
             tmp_pdf_file.write(file_obj.read())
         tmp_pdf_file_path = tmp_pdf_file.name
@@ -93,18 +93,16 @@ class FileToText:
                 text += page_text
             else:
                 # 图片型，转为imageToString支持的形式
-                url = "http://59.108.41.117:5001/urlToText"
+                url = "http://192.168.0.139:5000/urlToText"
                 headers = {
                     "Content-Type": "application/json"
                 }
                 data = {
-                    "url": "http://xiaoxi-cdn.globeedu.com/2023/03/20/pdf/2023032019262545103013.pdf"
+                    "url": pdf_url
                 }
 
                 response = requests.post(url, headers=headers, json=data)
-
-
-
+                text = response.text.encode('utf-8').decode('unicode_escape')
 
         doc.close()
         return text
@@ -112,29 +110,29 @@ class FileToText:
     def urlToText(self, pdf_url):
         fileType = self.get_file_extension(pdf_url)
         file = self.download_file(pdf_url)
-        text = self.fileToString(file,fileType)
+        text = self.fileToString(pdf_url, file, fileType)
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
 
 if __name__ == '__main__':
     fileToText = FileToText()
-    #文字型PDF
-    pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/pdf/2023032019262545103013.pdf"  # 替换为你的PDF链接
+    # 文字型PDF
+    pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/pdf/2023032019265813703013.pdf"  # 替换为你的PDF链接
 
-    #图片型PDF
-    #pdf_url = "https://xiaoxi-cdn.globeedu.com/2024/07/19/pdf/2024071915530687603013.pdf"  # 替换为你的PDF链接
+    # 图片型PDF
+    # pdf_url = "https://xiaoxi-cdn.globeedu.com/2024/07/19/pdf/2024071915530687603013.pdf"  # 替换为你的PDF链接
 
-    #DOC和DOCX
-    #pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/docx/2023032018443820303013.docx"
-    #pdf_url = "D://123.doc"
+    # DOC和DOCX
+    # pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/docx/2023032018443820303013.docx"
+    # pdf_url = "D://123.doc"
 
-    #PNG
-    #pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/04/17/png/2023041711055944503013.png"
-    #JPG
-    #pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/04/17/jpg/2023041711083100403013.jpg"
+    # PNG
+    # pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/04/17/png/2023041711055944503013.png"
+    # JPG
+    # pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/04/17/jpg/2023041711083100403013.jpg"
 
-    #XLSX
+    # XLSX
     # pdf_url = "http://xiaoxi-cdn.globeedu.com/2023/03/20/xlsx/2023032018555339603013.xlsx"
     text = fileToText.urlToText(pdf_url)
 

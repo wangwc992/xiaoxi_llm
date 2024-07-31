@@ -37,7 +37,7 @@ def query_bm25(query_bm25: str):
         print(o.metadata.score)
 
 
-database = 'zn_school_department_project'
+database = 't_knowledge_info'
 
 
 def clear_all_data(database: str):
@@ -91,7 +91,8 @@ if __name__ == "__main__":
     #
     query_bm25(query_bm25_database)
 
-    # clear_all_data(database)
+    clear_all_data(database)
+    query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)

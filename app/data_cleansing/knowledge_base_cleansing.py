@@ -32,17 +32,6 @@ logger = get_logger(__name__)
 file_to_text = FileToText()
 
 
-def get_string(*string_list):
-    text = " ".join([str(s) for s in string_list if s])
-    return text
-
-
-# 拿出富文本中A标签和img标签的链接，我会传入一个字符串的富文本
-def get_file_info(file_url):
-    file_info = file_to_text.urlToText(file_url)
-    return file_info
-
-
 def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     '''知识库
     1、问答/文件相关知识库内容洗入向量库时注意事项：
@@ -104,6 +93,7 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
     以下为资讯附件：{附件标题}{附件内容}
     以下为资料正文中附件{附件内容}。
     '''
+    database = "notice_message"
     notice_massage_dict_list = search_notice_message_data(id=start_id, limit=limit)
     if not notice_massage_dict_list:
         logger.info(f"小希平台院校资讯数据已全部洗入")
@@ -127,7 +117,7 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
         以下是资料正文中附件{notice_massage.get('notice_title', '')}。"""
 
         knowledge_base_model.append({
-            "database": "notice_message",
+            "database": database,
             "db_id": db_id,
             "instruction": instruction,
             "input": "",
@@ -179,6 +169,7 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     b、内容信息：
     （*仅洗入字段内容不为空的字段，字段为（*我这里仅列出标题））：【*院校中文名：】【*院校英文名：】【*所属国家：】【所属地区：】【*官网地址：】【申请费支付维度：】【申请周期-算法统计：】【申请周期-人工配置：】
         '''
+    database = "zn_school_info"
     school_info_basic = search_school_info_basic_data(id=start_id, limit=limit)
     if not school_info_basic:
         logger.info(f"院校库基本信息数据已全部洗入")
@@ -193,7 +184,7 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_basic)
 
     knowledge_base_model = [{
-        "database": "zn_school_info",
+        "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的基本信息",
         "input": "",
@@ -213,6 +204,7 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
     b、内容信息：
     【世界USNEWS排名：】【世界泰晤士排名：】【世界QS排名：】【地区USNEWS排名：】【地区泰晤士排名：】【地区QS排名：】
     '''
+    database = "zn_school_info_rank"
     school_info_ranking_list = search_school_info_ranking_data(id=start_id, limit=limit)
     if not school_info_ranking_list:
         logger.info(f"院校库排名信息数据已全部洗入")
@@ -226,7 +218,7 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_ranking_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_ranking_list)
     knowledge_base_model = [{
-        "database": "zn_school_info",
+        "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校排名",
         "input": "",
@@ -246,6 +238,7 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
     b、内容信息：
     【就业率：】【毕业薪资：】【学生总数量：】【本科生数量：】【研究生数量：】【国际学生比例：】【师生比例：】【男女比例：】【院校简介：】【院校历史：】【地理位置：】【校园环境：】【学校宿舍：】【图书馆：】【学校设施：】【招生办信息：】【防疫信息：】
     '''
+    database = "zn_school_info_more"
     school_info_more_list = search_school_info_more_data(id=start_id, limit=limit)
     if not school_info_more_list:
         logger.info(f"院校库更多信息数据已全部洗入")
@@ -263,7 +256,7 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_more_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_more_list)
     knowledge_base_model = [{
-        "database": "zn_school_info",
+        "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校更多信息",
         "input": "",
@@ -321,7 +314,7 @@ def insert_college_library05_data(start_id: int = 0, limit: int = 10):
     3、考试要求如下：
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
-    database = "zn_school_recruit_graduate_1"
+    database = "zn_school_recruit_graduate_01"
     search_zn_school_recruit_graduate_1_list = search_zn_school_recruit_graduate_1(id=start_id, limit=limit)
     if not search_zn_school_recruit_graduate_1_list:
         logger.info(f"院校库本科生院校招生信息数据已全部洗入")
@@ -372,7 +365,7 @@ def insert_college_library06_data(start_id: int = 0, limit: int = 10):
     3、考试要求如下：
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
-    database = "zn_school_recruit_graduate_2"
+    database = "zn_school_recruit_graduate_02"
     search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_graduate_2(id=start_id, limit=limit)
     if not search_zn_school_recruit_graduate_2_list:
         logger.info(f"院校库研究生生院校招生信息数据已全部洗入")
