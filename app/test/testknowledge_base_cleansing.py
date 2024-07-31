@@ -249,7 +249,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 100):
     print(knowledge_base_model)
 
 
-def insert_institution_information_data(start_id: int = 0, limit: int = 100):
+def insert_institution_information_data(start_id: int = 0, limit: int = 10):
     '''小希平台院校资讯
     a、标题信息：
     {院校中文名}{院校英文名}{院校简称}于{时间}的{资讯类型}的{标题}资讯。
@@ -259,8 +259,10 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 100):
     以下为资讯附件：{附件标题}{附件内容}
     以下为资料正文中附件{附件内容}。
     '''
+    database = "notice_message"
     notice_massage_dict_list = search_notice_message_data(id=start_id, limit=limit)
     if not notice_massage_dict_list:
+        logger.info(f"小希平台院校资讯数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"小希平台院校资讯数据已全部洗入")
     knowledge_base_model = []
@@ -271,17 +273,19 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 100):
         instruction_list = [notice_massage.get('school_name', ''), notice_massage.get('school_english_name', ''),
                             notice_create_time, notice_massage.get('notice_category', ''),
                             notice_massage.get('notice_title', '')]
+        print(instruction_list)
+        instruction_list = [item for item in instruction_list if item is not None]
         instruction = " ".join(instruction_list)
-        file_info = ""
-        if notice_massage.get('attachment_url'):
-            # file_info = get_file_info(notice_massage.get('attachment_url'))
-            file_info = "************************"
+        file_info = ''
+        # if notice_massage.get('attachment_url'):
+        #     file_info = FileToText.urlToText(notice_massage.get('attachment_url'))
+        #     pass
         output = f"""以下是资讯正文：{notice_massage.get('notice_summary', '')}\n 
         以下是资讯附件：{notice_massage.get('attachment_name', '')}\n  {file_info}\n
         以下是资料正文中附件{notice_massage.get('notice_title', '')}。"""
 
         knowledge_base_model.append({
-            "database": "notice_message",
+            "database": database,
             "db_id": db_id,
             "instruction": instruction,
             "input": "",
@@ -290,7 +294,7 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 100):
             "file_info": file_info,
         })
 
-        print(knowledge_base_model)
+    print(knowledge_base_model)
 if __name__ == '__main__':
     # insert_college_library02_data()
-    insert_t_knowledge_info_data(start_id=50,limit=100)
+    insert_institution_information_data(start_id=0,limit=1000)

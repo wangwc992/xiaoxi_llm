@@ -112,6 +112,7 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
         instruction_list = [notice_massage.get('school_name', ''), notice_massage.get('school_english_name', ''),
                             notice_create_time, notice_massage.get('notice_category', ''),
                             notice_massage.get('notice_title', '')]
+        instruction_list = [item for item in instruction_list if item is not None]
         instruction = " ".join(instruction_list)
         file_info = ''
         # if notice_massage.get('attachment_url'):

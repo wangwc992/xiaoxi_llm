@@ -87,12 +87,12 @@ def search_hybrid(query, limit):
         response_list.append(knowledge_base)
     return response_list
 if __name__ == "__main__":
-    delete_many()
+    # delete_many()
     #
-    # query_bm25(query_bm25_database)
-    #
-    # clear_all_data(database)
-    # query_bm25(query_bm25_database)
+    query_bm25(query_bm25_database)
+
+    clear_all_data(database)
+    query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
