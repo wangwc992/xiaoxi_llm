@@ -107,8 +107,19 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         await process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id,
                                      message_list,
                                      start_time)
-        logger.info(f"message_dict:{ result}: {type(result)}")
-        result["reference_data"] = reference_data
+        # 将 JSONResponse 的内容提取并转换为字典
+        response_dict = json.loads(result.body.decode('utf-8'))
+
+        # 添加 reference_data 字段
+        response_dict["reference_data"] = reference_data
+
+        # 重新生成 JSONResponse 对象
+        result = JSONResponse(content=response_dict)
+
+        # 记录日志
+        logger.info(f"message_dict: {response_dict}: {type(result)}")
+
+        # 返回修改后的 JSONResponse 对象
         return result
 
 
@@ -217,7 +228,7 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
 async def load_reference_data(query, limit):
     """ Load reference data from the knowledge base. """
     response_list = knowledge_base_weaviate.search_hybrid(query, limit)
-    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}"
+    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
                                   for n in range(len(response_list))])
     knowledge_link = [response.link for response in response_list if
                       response.database == "t_knowledge_info" and response.link]
