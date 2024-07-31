@@ -107,6 +107,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         await process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id,
                                      message_list,
                                      start_time)
+        logger.info(f"message_dict:{ result}: {type(result)}")
+        result["reference_data"] = reference_data
         return result
 
 
