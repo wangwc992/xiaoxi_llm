@@ -65,7 +65,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
         # if knowledge_info.get("fileurl"):
-            # content += file_to_text.urlToText(knowledge_info["fileurl"])
+        # content += file_to_text.urlToText(knowledge_info["fileurl"])
 
         if knowledge_info.get("type") == 1:
             name = knowledge_info.get("name")
@@ -109,27 +109,32 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
         logger.info(f"小希平台院校资讯数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"小希平台院校资讯数据已全部洗入")
-    knowledge_base_model = [{
-        "database": "notice_message",
-        "db_id": str(notice_massage.get('notice_id', '')),
-        "instruction": (notice_massage.get('school_name', '') + " " +
-                        notice_massage.get('school_english_name', '') + "于" +
-                        (notice_massage.get('notice_create_time').strftime("%Y-%m-%d %H:%M:%S")
-                         if notice_massage.get('notice_create_time') else '') + " " +
-                        notice_massage.get('notice_category', '') + " " +
-                        notice_massage.get('notice_title', '')),
-        "input": "",
-        "output": ("以下是咨询正文：" + (notice_massage.get('notice_summary', '') or '') +
-                   "以下是咨询附件：" + (notice_massage.get('attachment_name', '') or '') + " " +
-                   (file_info if (file_info := (file_to_text.urlToText(notice_massage["attachment_url"])
-                                                if notice_massage.get("attachment_url") else '')) else '') +
-                   "以下是正文中的附件：" + (notice_massage.get('notice_title', '') or '')),
-        "keyword": get_string(notice_massage.get("school_name", '') or '',
-                              notice_massage.get("school_english_name", '') or '',
-                              notice_massage.get("class", '') or ''),
-        "file_info": file_info if (file_info := (file_to_text.urlToText(notice_massage["attachment_url"])
-                                                 if notice_massage.get("attachment_url") else '')) else '',
-    } for notice_massage in notice_massage_dict_list]
+    knowledge_base_model = []
+
+    for notice_massage in notice_massage_dict_list:
+        notice_create_time = notice_massage.get('notice_create_time').strftime("%Y-%m-%d %H:%M:%S")
+        db_id = str(notice_massage.get('notice_id'))
+        instruction_list = [notice_massage.get('school_name', ''), notice_massage.get('school_english_name', ''),
+                            notice_create_time, notice_massage.get('notice_category', ''),
+                            notice_massage.get('notice_title', '')]
+        instruction = " ".join(instruction_list)
+        file_info = ''
+        if notice_massage.get('attachment_url'):
+            # file_info = get_file_info(notice_massage.get('attachment_url'))
+            pass
+        output = f"""以下是资讯正文：{notice_massage.get('notice_summary', '')}\n 
+        以下是资讯附件：{notice_massage.get('attachment_name', '')}\n  {file_info}\n
+        以下是资料正文中附件{notice_massage.get('notice_title', '')}。"""
+
+        knowledge_base_model.append({
+            "database": "notice_message",
+            "db_id": db_id,
+            "instruction": instruction,
+            "input": "",
+            "output": output,
+            "keyword": '',
+            "file_info": file_info,
+        })
 
     insert_weaviate_data_all(knowledge_base_model)
     return notice_massage_dict_list[-1].get("notice_id")
