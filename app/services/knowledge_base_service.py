@@ -112,6 +112,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
         # 添加 reference_data 字段
         response_dict["reference_data"] = reference_data
+        response_dict["knowledge_link"] = knowledge_link
 
         # 重新生成 JSONResponse 对象
         result = JSONResponse(content=response_dict)

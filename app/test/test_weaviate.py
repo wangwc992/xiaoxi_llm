@@ -44,15 +44,18 @@ database = 't_knowledge_info'
 
 def clear_all_data(database: str):
     '''清空Weaviate数据库中的所有数据'''
-    filters = (
-           Filter.by_property("database").equal("t_knowledge_info")
-    )
-    result = collection.data.delete_many(
-        where=filters,
-        dry_run=True,
-        verbose=True
-    )
-    logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
+    while True:
+        filters = (
+               Filter.by_property("database").equal("t_knowledge_info")
+        )
+        result = collection.data.delete_many(
+            where=filters,
+            # dry_run=True,
+            # verbose=True
+        )
+        logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
+        if result.matches < 10000:
+            break
 
 
 hybrid_data_query = '瑞克大学院校排名'
@@ -111,10 +114,10 @@ def fetch_objects():
 if __name__ == "__main__":
     # delete_many()
     #
-    # query_bm25(query_bm25_database)
+    query_bm25(query_bm25_database)
 
     clear_all_data(database)
-    # query_bm25(query_bm25_database)
+    query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)

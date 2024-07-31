@@ -1,15 +1,19 @@
-import requests
+# 定义全局变量
+global_var = 0
 
-url = "http://59.108.41.117:5001/urlToText"
-headers = {
-    "Content-Type": "application/json"
-}
-data = {
-    "url": "http://xiaoxi-cdn.globeedu.com/2023/03/20/pdf/2023032019262545103013.pdf"
-}
+def increment_global_var():
+    global global_var
+    for _ in range(1000):
+        global_var += 1
 
-response = requests.post(url, headers=headers, json=data)
+# 创建多个线程，尝试修改全局变量
+import threading
+threads = [threading.Thread(target=increment_global_var) for _ in range(10)]
 
-# 打印返回的状态码和响应内容
-print("Status Code:", response.status_code)
-print("Response Text:", response.text)
+for thread in threads:
+    thread.start()
+
+for thread in threads:
+    thread.join()
+
+print(global_var)  # 输出结果可能小于10000，因为存在竞争条件
