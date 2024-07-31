@@ -206,8 +206,9 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     await save_redis(chat_message_history, chat_message_history_key, message_dict)
 
     # Save the message to chat history in Langfuse
-    await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
-                        end_time)
+    # TODO
+    # await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
+    #                     end_time)
 
 
 async def load_reference_data(query, limit):
