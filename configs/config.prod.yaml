@@ -8,7 +8,6 @@ embedding:
   device: "cuda:0"
   embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
 
-
 vllm:
   model: "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
   tensor_parallel_size: 4
@@ -38,4 +37,4 @@ redis:
   max_retries: 5
   retry_delay: 3
 
-
+urlToText: "http://59.108.41.117:5001/urlToText"

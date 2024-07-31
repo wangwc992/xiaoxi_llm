@@ -8,6 +8,8 @@ import fitz
 from docx import Document
 import re
 
+from app.common.core.config import settings
+
 
 class FileToText:
     def __init__(cls, tesseract_cmd=None):
@@ -93,14 +95,14 @@ class FileToText:
         tmp_pdf_file_path = tmp_pdf_file.name
         doc = fitz.open(tmp_pdf_file_path)
         text = ""
-        for page_num in range(len(doc)):
+        for page_num in range(min(len(doc), 3)):
             page = doc.load_page(page_num)
             page_text = page.get_text()
             if page_text.strip():
                 text += page_text
             else:
                 # 图片型，转为imageToString支持的形式
-                url = "http://192.168.0.139:5000/urlToText"
+                url = settings.get('urlToText')
                 headers = {
                     "Content-Type": "application/json"
                 }

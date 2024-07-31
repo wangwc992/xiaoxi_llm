@@ -293,4 +293,4 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 100):
         print(knowledge_base_model)
 if __name__ == '__main__':
     # insert_college_library02_data()
-    insert_t_knowledge_info_data(start_id=50,limit=10)
+    insert_t_knowledge_info_data(start_id=50,limit=100)

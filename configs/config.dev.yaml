@@ -8,7 +8,6 @@ embedding:
   device: "cpu"
   embedding_path: "D:/LLM/BAAI/bge-large-zh-v1.5"
 
-
 vllm:
   model: "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
   tensor_parallel_size: 4
@@ -38,4 +37,4 @@ redis:
   max_retries: 5
   retry_delay: 3
 
-
+urlToText: "http://192.168.0.139:5000/urlToText"
