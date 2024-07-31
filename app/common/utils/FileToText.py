@@ -97,7 +97,11 @@ class FileToText:
         text = ""
         for page_num in range(min(len(doc), 3)):
             page = doc.load_page(page_num)
-            page_text = page.get_text()
+            try:
+                page_text = page.get_text()
+            except AssertionError:
+                page_text = ""
+                # 可以在此处添加其他错误处理逻辑
             if page_text.strip():
                 text += page_text
             else:
