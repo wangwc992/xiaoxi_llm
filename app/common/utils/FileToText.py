@@ -10,11 +10,12 @@ import re
 
 
 class FileToText:
-    def __init__(self, tesseract_cmd=None):
+    def __init__(cls, tesseract_cmd=None):
         if tesseract_cmd:
             pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
-    def download_file(self, pdf_url):
+    @classmethod
+    def download_file(cls, pdf_url):
         if pdf_url.startswith("http://") or pdf_url.startswith("https://"):
             response = requests.get(pdf_url)
             response.raise_for_status()
@@ -22,27 +23,30 @@ class FileToText:
         else:
             return open(pdf_url, 'rb')
 
-    def get_file_extension(self, file_obj):
+    @classmethod
+    def get_file_extension(cls, file_obj):
         # 尝试从文件名中获取扩展名
         try:
             return file_obj.split('.')[-1].lower()
         except AttributeError:
             return ""
 
-    def fileToString(self, pdf_url, file_obj, file_type=None):
+    @classmethod
+    def fileToString(cls, pdf_url, file_obj, file_type=None):
         text = ""
         if file_type == "pdf" or file_type == "pptx":
-            return self.pdfToString(file_obj, pdf_url)
+            return cls.pdfToString(file_obj, pdf_url)
         elif file_type == "jpg" or file_type == "png" or file_type == "gif" or file_type == "jpeg":
-            return self.imageToString(file_obj)
+            return cls.imageToString(file_obj)
         elif file_type == "doc" or file_type == "docx":
-            return self.docToString(file_obj)
+            return cls.docToString(file_obj)
         elif file_type == "xls" or file_type == "xlsx":
-            return self.xlsToString(file_obj)
+            return cls.xlsToString(file_obj)
         else:
             return ""
 
-    def docToString(self, file_obj):
+    @classmethod
+    def docToString(cls, file_obj):
         text = ""
         try:
             doc = Document(file_obj)
@@ -52,7 +56,8 @@ class FileToText:
             print("Error:", e)
         return text
 
-    def xlsToString(self, file_obj):
+    @classmethod
+    def xlsToString(cls, file_obj):
         text = ""
         try:
             wb = openpyxl.load_workbook(file_obj, data_only=True)
@@ -66,7 +71,8 @@ class FileToText:
             print("Error:", e)
         return text
 
-    def imageToString(self, file_obj):
+    @classmethod
+    def imageToString(cls, file_obj):
         text = ""
         img = Image.open(file_obj)
         img = ImageOps.grayscale(img)
@@ -80,7 +86,8 @@ class FileToText:
         text += pytesseract.image_to_string(img, lang='chi_sim+eng')
         return text
 
-    def pdfToString(self, file_obj, pdf_url):
+    @classmethod
+    def pdfToString(cls, file_obj, pdf_url):
         with tempfile.NamedTemporaryFile(delete=False) as tmp_pdf_file:
             tmp_pdf_file.write(file_obj.read())
         tmp_pdf_file_path = tmp_pdf_file.name
@@ -107,10 +114,11 @@ class FileToText:
         doc.close()
         return text
 
-    def urlToText(self, pdf_url):
-        fileType = self.get_file_extension(pdf_url)
-        file = self.download_file(pdf_url)
-        text = self.fileToString(pdf_url, file, fileType)
+    @classmethod
+    def urlToText(cls, pdf_url):
+        fileType = cls.get_file_extension(pdf_url)
+        file = cls.download_file(pdf_url)
+        text = cls.fileToString(pdf_url, file, fileType)
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 

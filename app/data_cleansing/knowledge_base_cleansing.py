@@ -53,8 +53,11 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = []
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
-        # if knowledge_info.get("fileurl"):
-        # content += file_to_text.urlToText(knowledge_info["fileurl"])
+        if knowledge_info.get("fileurl"):
+            file_content = file_to_text.urlToText(knowledge_info["fileurl"])
+            filename = knowledge_info.get("filename", "")
+            if file_content:
+                content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
         if knowledge_info.get("type") == 1:
             name = knowledge_info.get("name")
@@ -110,7 +113,7 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
         instruction = " ".join(instruction_list)
         file_info = ''
         if notice_massage.get('attachment_url'):
-            # file_info = get_file_info(notice_massage.get('attachment_url'))
+            file_info = FileToText.urlToText(notice_massage.get('attachment_url'))
             pass
         output = f"""以下是资讯正文：{notice_massage.get('notice_summary', '')}\n 
         以下是资讯附件：{notice_massage.get('attachment_name', '')}\n  {file_info}\n
