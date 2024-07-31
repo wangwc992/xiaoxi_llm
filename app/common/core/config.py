@@ -15,3 +15,5 @@ def load_config():
     return config
 
 settings = load_config()
+
+urlToText = "http://59.108.41.117:5001/urlToText"

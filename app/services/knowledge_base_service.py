@@ -211,6 +211,7 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     #                     end_time)
 
 
+
 async def load_reference_data(query, limit):
     """ Load reference data from the knowledge base. """
     response_list = knowledge_base_weaviate.search_hybrid(query, limit)

@@ -93,17 +93,18 @@ class FileToText:
                 text += page_text
             else:
                 # 图片型，转为imageToString支持的形式
-                page_image = page.get_pixmap(dpi=300)  # 提高DPI
-                img = Image.frombytes("RGB", [page_image.width, page_image.height], page_image.samples)
-                # 增强图像处理步骤
-                img = ImageOps.grayscale(img)
-                img = img.resize((img.width * 2, img.height * 2), Image.LANCZOS)
-                enhancer = ImageEnhance.Contrast(img)
-                img = enhancer.enhance(2)  # 调整对比度
-                enhancer = ImageEnhance.Sharpness(img)
-                img = enhancer.enhance(2)  # 调整锐度
-                # 将图像转换为字符串
-                text += pytesseract.image_to_string(img, lang='chi_sim+eng')
+                url = "http://59.108.41.117:5001/urlToText"
+                headers = {
+                    "Content-Type": "application/json"
+                }
+                data = {
+                    "url": "http://xiaoxi-cdn.globeedu.com/2023/03/20/pdf/2023032019262545103013.pdf"
+                }
+
+                response = requests.post(url, headers=headers, json=data)
+
+
+
 
         doc.close()
         return text
