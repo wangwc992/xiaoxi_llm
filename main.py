@@ -7,7 +7,6 @@ from app.api.openai import api_server
 from app.api.knowledge_base import knowledge_base
 from app.api.text2vec_custom import text2vec_custom as encode
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.common.core.langchain_client import VllmClient
 
 _running_tasks = set()
