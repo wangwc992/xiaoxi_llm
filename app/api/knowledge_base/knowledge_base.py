@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import Request, APIRouter
 
 from app.common.utils.logging import get_logger
@@ -8,26 +10,32 @@ from app.services.knowledge_base_service import knowledge_base_generate, MyChatC
 router = APIRouter(prefix="/knowledge_base")
 logger = get_logger(__name__)
 
+# 使用锁来确保对共享资源的安全访问
+lock = asyncio.Lock()
 chat_visits_number = 0
 chat_visits_number_max = 30
 
 
 async def get_chat_visits_number(is_completions: bool = False) -> bool:
+    '''获取当前 chat_visits_number 的值，并根据 is_completions 参数来判断是否增加或减少 chat_visits_number 的值。'''
     global chat_visits_number
     global chat_visits_number_max
-
-    if is_completions:
-        if chat_visits_number >= chat_visits_number_max:
-            logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
-            return True
-        chat_visits_number += 1
-    else:
-        chat_visits_number -= 1
+    logger.info(f"当前 chat_visits_number: {chat_visits_number},{is_completions}")
+    async with lock:
+        if is_completions:
+            if chat_visits_number >= chat_visits_number_max:
+                logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
+                return True
+            chat_visits_number += 1
+        else:
+            chat_visits_number -= 1
     return False
 
 
 @router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
+    if await get_chat_visits_number(is_completions=True):
+        return {"error": "请求次数超过上限，请稍后再试。"}
     return await knowledge_base_generate(request, raw_request)
 
 

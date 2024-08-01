@@ -8,6 +8,8 @@ from langchain_core.prompts import PromptTemplate
 from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
+
+from app.api.knowledge_base.knowledge_base import get_chat_visits_number
 from app.api.openai.api_server import create_chat_completion
 from app.common.core.langchain_client import get_openai_serving_chat
 from app.common.utils.logging import get_logger
@@ -119,7 +121,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
         # 记录日志
         logger.info(f"message_dict: {response_dict}: {type(result)}")
-
+        # chat visits number increment after minus one
+        await get_chat_visits_number(is_completions=False)
         # 返回修改后的 JSONResponse 对象
         return result
 
@@ -166,6 +169,8 @@ async def stream_response(result, chat_message_history, chat_message_history_key
                     usage = ModelUsage(input=usage_or['prompt_tokens'], output=usage_or['completion_tokens'],
                                        total=usage_or['total_tokens'], unit='TOKENS')
                     logger.info(f"usage: {usage}")
+                # chat visits number increment after minus one
+                await get_chat_visits_number(is_completions=False)
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
@@ -217,6 +222,7 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     logger.info(f"message_dict: {message_dict}")
     end_time = datetime.now()
     # Save the message to chat history in Redis
+    # TODO
     # await save_redis(chat_message_history, chat_message_history_key, message_dict)
 
     # Save the message to chat history in Langfuse
