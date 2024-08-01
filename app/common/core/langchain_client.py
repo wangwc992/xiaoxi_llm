@@ -1,5 +1,6 @@
 import subprocess
 
+import torch
 from langchain_huggingface import HuggingFaceEmbeddings
 from typing import List
 
@@ -80,7 +81,13 @@ async def initialize_vllm_client():
 
 # These need to be awaited in an async context
 def get_openai_serving_chat():
-    return VllmClient.get_openai_serving_chat()
+    before = torch.cuda.memory_allocated()
+    # Model inference or other operations
+    v = VllmClient.get_openai_serving_chat()
+    after = torch.cuda.memory_allocated()
+    print(f'get_openai_serving_chat Memory usage increased by: {after - before}')
+
+    return v
 
 
 def get_openai_serving_completion():
