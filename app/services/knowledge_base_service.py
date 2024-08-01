@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 from datetime import datetime
@@ -9,7 +10,6 @@ from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
 
-from app.api.knowledge_base.knowledge_base import get_chat_visits_number
 from app.api.openai.api_server import create_chat_completion
 from app.common.core.langchain_client import get_openai_serving_chat
 from app.common.utils.logging import get_logger
@@ -272,3 +272,24 @@ async def save_langfuse(member_id, message_list, output, usage, start_time, end_
                                                 input=message_list, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
+
+# 使用锁来确保对共享资源的安全访问
+lock = asyncio.Lock()
+chat_visits_number = 0
+chat_visits_number_max = 30
+
+
+async def get_chat_visits_number(is_completions: bool = False) -> bool:
+    '''获取当前 chat_visits_number 的值，并根据 is_completions 参数来判断是否增加或减少 chat_visits_number 的值。'''
+    global chat_visits_number
+    global chat_visits_number_max
+    logger.info(f"当前 chat_visits_number: {chat_visits_number},{is_completions}")
+    async with lock:
+        if is_completions:
+            if chat_visits_number >= chat_visits_number_max:
+                logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
+                return True
+            chat_visits_number += 1
+        else:
+            chat_visits_number -= 1
+    return False
