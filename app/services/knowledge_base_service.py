@@ -217,7 +217,7 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     logger.info(f"message_dict: {message_dict}")
     end_time = datetime.now()
     # Save the message to chat history in Redis
-    await save_redis(chat_message_history, chat_message_history_key, message_dict)
+    # await save_redis(chat_message_history, chat_message_history_key, message_dict)
 
     # Save the message to chat history in Langfuse
     # TODO

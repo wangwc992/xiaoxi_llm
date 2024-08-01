@@ -8,6 +8,23 @@ from app.services.knowledge_base_service import knowledge_base_generate, MyChatC
 router = APIRouter(prefix="/knowledge_base")
 logger = get_logger(__name__)
 
+chat_visits_number = 0
+chat_visits_number_max = 30
+
+
+async def get_chat_visits_number(is_completions: bool = False) -> bool:
+    global chat_visits_number
+    global chat_visits_number_max
+
+    if is_completions:
+        if chat_visits_number >= chat_visits_number_max:
+            logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
+            return True
+        chat_visits_number += 1
+    else:
+        chat_visits_number -= 1
+    return False
+
 
 @router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
