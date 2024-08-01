@@ -51,8 +51,8 @@ class VllmClient:
     else:
         engine_args = vllm.get('qwen2_7B_instruct')
 
-    engine_args = AsyncEngineArgs(**engine_args)
-    engine = AsyncLLMEngine.from_engine_args(engine_args, usage_context=UsageContext.API_SERVER)
+    async_engineArgs = AsyncEngineArgs(**engine_args)
+    engine = AsyncLLMEngine.from_engine_args(async_engineArgs, usage_context=UsageContext.API_SERVER)
     model = engine_args.get('model')
     model_config = None
     openai_serving_chat = None
