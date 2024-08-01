@@ -46,7 +46,7 @@ class VllmClient:
     # 执行 nvidia-smi -L 命令并捕获输出
     vllm = settings.get('vllm')
     gpu_count = get_gpu_count()
-    if gpu_count == 4:
+    if gpu_count >= 4:
         engine_args = vllm.get('qwen2_72B_instruct_gptq_int4')
     else:
         engine_args = vllm.get('qwen2_7B_instruct')
