@@ -74,13 +74,11 @@ class VllmClient:
             prompt_adapters=None,
             request_logger=None,
             chat_template=None,
-            return_tokens_as_token_ids=None,
         )
         cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.served_model_names,
                                                                 lora_modules=None,
                                                                 prompt_adapters=None,
-                                                                request_logger=None,
-                                                                return_tokens_as_token_ids=None)
+                                                                request_logger=None,)
 
     @classmethod
     def get_openai_serving_chat(cls):
