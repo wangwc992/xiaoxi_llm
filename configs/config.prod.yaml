@@ -9,10 +9,15 @@ embedding:
   embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
 
 vllm:
-  model: "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
-  tensor_parallel_size: 4
-  quantization: "gptq"
-  seed: 42
+  qwen2_72B_instruct_gptq_int4:
+    model: "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
+    tensor_parallel_size: 4
+    quantization: "gptq"
+    seed: 42
+  qwen2_7B_instruct:
+    model: "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
+    tensor_parallel_size: 1
+    seed: 42
 
 mysql:
   xxlxdb:

@@ -1,3 +1,5 @@
+import subprocess
+
 from langchain_huggingface import HuggingFaceEmbeddings
 from typing import List
 
@@ -28,15 +30,30 @@ class Embedding:
     def embed_documents(cls, texts: List[str]) -> List[List[float]]:
         return cls.embedding.embed_documents(texts)
 
+def get_gpu_count():
+    result = subprocess.run(['nvidia-smi', '-L'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    if result.returncode == 0:
+        # 按行分割输出并计算行数，行数即为 GPU 的数量
+        gpu_lines = result.stdout.strip().split('\n')
+        return len(gpu_lines)
+    else:
+        print(f"Error executing nvidia-smi: {result.stderr}")
+        return 0
 
 class VllmClient:
-    model = "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
-    engine_args = {
-        "model": model,
-    }
+    # 通过 nvidia-smi -L 指令获取 GPU 个数
+    # 执行 nvidia-smi -L 命令并捕获输出
+    vllm = settings.get('vllm')
+    gpu_count = get_gpu_count()
+    if gpu_count == 4:
+        engine_args = vllm.get('qwen2_72B_instruct_gptq_int4')
+    else:
+        engine_args = vllm.get('qwen2_7B_instruct')
 
     engine_args = AsyncEngineArgs(**engine_args)
     engine = AsyncLLMEngine.from_engine_args(engine_args, usage_context=UsageContext.API_SERVER)
+    model = engine_args.get('model')
     model_config = None
     openai_serving_chat = None
     openai_serving_completion = None
