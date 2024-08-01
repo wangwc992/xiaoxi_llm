@@ -65,7 +65,6 @@ class VllmClient:
     @classmethod
     async def initialize(cls):
         cls.model_config = await cls.engine.get_model_config()
-        cls.openai_serving_chat = OpenAIServingChat(cls.engine, cls.model_config, cls.served_model_names, "assistant")
         cls.openai_serving_chat = OpenAIServingChat(
             cls.engine,
             cls.model_config,
