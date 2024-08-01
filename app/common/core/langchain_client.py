@@ -61,30 +61,15 @@ class VllmClient:
     openai_serving_completion = None
     response_role = "assistant"
 
-    engine = AsyncLLMEngine.from_engine_args(async_engineArgs, usage_context=UsageContext.API_SERVER)
+    engine = "AsyncLLMEngine.from_engine_args(async_engineArgs, usage_context=UsageContext.API_SERVER)"
 
     @classmethod
     async def initialize(cls):
         cls.model_config = await cls.engine.get_model_config()
         print(f'cls.model_config: {cls.model_config}')
-        cls.openai_serving_chat = OpenAIServingChat(
-            cls.engine,
-            cls.model_config,
-            cls.served_model_names,
-            cls.response_role,
-            lora_modules=None,
-            prompt_adapters=None,
-            request_logger=None,
-            chat_template=None,
-        )
+        cls.openai_serving_chat = ""
         print(f'cls.openai_serving_chat: {cls.openai_serving_chat}')
-        cls.openai_serving_completion = OpenAIServingCompletion(
-            cls.engine,
-            cls.model_config,
-            cls.served_model_names,
-            lora_modules=None,
-            prompt_adapters=None,
-            request_logger=None)
+        cls.openai_serving_completion = " "
         print(f'cls.openai_serving_completion: {cls.openai_serving_completion}')
 
     @classmethod
