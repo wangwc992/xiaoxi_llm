@@ -11,7 +11,7 @@ embedding:
 vllm:
   qwen2_72B_instruct_gptq_int4:
     model: "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
-    tensor_parallel_size: 8
+    tensor_parallel_size: 4
     quantization: "gptq"
     seed: 42
   qwen2_7B_instruct:

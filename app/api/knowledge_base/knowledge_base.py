@@ -12,8 +12,6 @@ router = APIRouter(prefix="/knowledge_base")
 logger = get_logger(__name__)
 
 
-
-
 @router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     if await get_chat_visits_number(is_completions=True):
