@@ -31,6 +31,7 @@ class Embedding:
     def embed_documents(cls, texts: List[str]) -> List[List[float]]:
         return cls.embedding.embed_documents(texts)
 
+
 def get_gpu_count():
     result = subprocess.run(['nvidia-smi', '-L'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
@@ -41,6 +42,7 @@ def get_gpu_count():
     else:
         print(f"Error executing nvidia-smi: {result.stderr}")
         return 0
+
 
 class VllmClient:
     # 通过 nvidia-smi -L 指令获取 GPU 个数
@@ -54,16 +56,32 @@ class VllmClient:
 
     async_engineArgs = AsyncEngineArgs(**engine_args)
     engine = AsyncLLMEngine.from_engine_args(async_engineArgs, usage_context=UsageContext.API_SERVER)
-    model = engine_args.get('model')
+    served_model_names = engine_args.get('model')
     model_config = None
     openai_serving_chat = None
     openai_serving_completion = None
+    response_role = "assistant"
 
     @classmethod
     async def initialize(cls):
         cls.model_config = await cls.engine.get_model_config()
-        cls.openai_serving_chat = OpenAIServingChat(cls.engine, cls.model_config, cls.model, "assistant")
-        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.model, None)
+        cls.openai_serving_chat = OpenAIServingChat(cls.engine, cls.model_config, cls.served_model_names, "assistant")
+        cls.openai_serving_chat = OpenAIServingChat(
+            cls.engine,
+            cls.model_config,
+            cls.served_model_names,
+            cls.response_role,
+            lora_modules=None,
+            prompt_adapters=None,
+            request_logger=None,
+            chat_template=None,
+            return_tokens_as_token_ids=None,
+        )
+        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.served_model_names,
+                                                                lora_modules=None,
+                                                                prompt_adapters=None,
+                                                                request_logger=None,
+                                                                return_tokens_as_token_ids=None)
 
     @classmethod
     def get_openai_serving_chat(cls):
@@ -86,4 +104,3 @@ def get_openai_serving_chat():
 
 def get_openai_serving_completion():
     return VllmClient.get_openai_serving_completion()
-
