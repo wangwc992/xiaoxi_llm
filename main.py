@@ -1,6 +1,8 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+import uvicorn
 
 from app.api.knowledge import knowledge_ik_index_controller
 from app.api.openai import api_server
@@ -10,7 +12,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.common.core.langchain_client import VllmClient
 
 _running_tasks = set()
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,8 +31,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# app = FastAPI()
-
 # 配置 CORS 中间件
 app.add_middleware(
     CORSMiddleware,
@@ -46,7 +45,10 @@ app.include_router(encode.router)
 app.include_router(api_server.router)
 app.include_router(knowledge_base.router)
 
+async def start_server():
+    config = uvicorn.Config(app, host='0.0.0.0', port=6006, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
+
 if __name__ == '__main__':
-    import uvicorn
-    # uvicorn main:app --host 0.0.0.0 --port 6006
-    uvicorn.run(app, host='0.0.0.0', port=6006)
+    asyncio.run(start_server())
