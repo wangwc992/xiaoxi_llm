@@ -53,14 +53,15 @@ class VllmClient:
         engine_args = vllm.get('qwen2_72B_instruct_gptq_int4')
     else:
         engine_args = vllm.get('qwen2_7B_instruct')
-
+    print(f"Using engine args: {engine_args}")
     async_engineArgs = AsyncEngineArgs(**engine_args)
-    engine = AsyncLLMEngine.from_engine_args(async_engineArgs, usage_context=UsageContext.API_SERVER)
     served_model_names = engine_args.get('model')
     model_config = None
     openai_serving_chat = None
     openai_serving_completion = None
     response_role = "assistant"
+
+    engine = AsyncLLMEngine.from_engine_args(async_engineArgs, usage_context=UsageContext.API_SERVER)
 
     @classmethod
     async def initialize(cls):
@@ -75,7 +76,9 @@ class VllmClient:
             request_logger=None,
             chat_template=None,
         )
-        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine, cls.model_config, cls.served_model_names,
+        cls.openai_serving_completion = OpenAIServingCompletion(cls.engine,
+                                                                cls.model_config,
+                                                                cls.served_model_names,
                                                                 lora_modules=None,
                                                                 prompt_adapters=None,
                                                                 request_logger=None,)
