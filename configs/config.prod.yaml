@@ -6,7 +6,7 @@ weaviate:
 
 embedding:
 #  使用第五个GPU
-  device: 0
+  device: "cuda:0"
   embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
 
 vllm:
