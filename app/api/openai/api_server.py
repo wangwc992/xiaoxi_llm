@@ -183,7 +183,7 @@ async def build_server(
     global openai_serving_completion
     global openai_serving_embedding
     global openai_serving_tokenization
-
+    logger.info("开始初始化服务端************")
     openai_serving_chat = OpenAIServingChat(
         engine,
         model_config,
