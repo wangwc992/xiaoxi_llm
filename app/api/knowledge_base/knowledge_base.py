@@ -42,5 +42,5 @@ async def cleansing(manner_execution: MannerExecution):
 
 
 @router.get("/weaviateSearch")
-async def reference_data(text: str):
-    return await get_reference_data(text)
+def reference_data(text: str):
+    return get_reference_data(text)
