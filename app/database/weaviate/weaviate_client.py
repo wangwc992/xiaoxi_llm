@@ -24,22 +24,26 @@ class WeaviateClient:
         )
     else:
         # 先连接到本地的Weaviate数据库，本地不存在在weaviate.WeaviateClient
-        client = weaviate.connect_to_local(
-            port=8079,
-            grpc_port=50060,
-        )
-        if not client.is_ready():
-            client = weaviate.WeaviateClient(
-                embedded_options=EmbeddedOptions(
-                    binary_path="/root/autodl-tmp/database/w2",
-                    additional_env_vars={
-                        # "ENABLE_MODULES": "text2vec-transformers",
-                        # "TRANSFORMERS_INFERENCE_API": 'http://127.0.0.1:8090',
-                        "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/w2"
-                    }
+        try:
+            client = weaviate.connect_to_local(port=8079, grpc_port=50060)
+            if not client.is_ready():
+                raise weaviate.exceptions.WeaviateConnectionError("Local Weaviate instance is not ready.")
+        except weaviate.exceptions.WeaviateConnectionError as e:
+            print(f"Error connecting to local Weaviate: {e}")
+            # 启动嵌入式 Weaviate
+            try:
+                client = weaviate.WeaviateClient(
+                    embedded_options=EmbeddedOptions(
+                        binary_path="/root/autodl-tmp/database/w2",
+                        additional_env_vars={
+                            "BACKUP_FILESYSTEM_PATH": "/root/autodl-tmp/database/w2"
+                        }
+                    )
                 )
-            )
-            client.connect()
+                client.connect()
+            except Exception as e:
+                print(f"Error starting embedded Weaviate: {e}")
+                raise
 
     def __init__(self, collections_name):
         self.collections_name = collections_name
