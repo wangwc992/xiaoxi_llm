@@ -15,7 +15,7 @@ _running_tasks = set()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await VllmClient.initialize()
-
+    yield
 app = FastAPI(lifespan=lifespan)
 
 # app = FastAPI()
