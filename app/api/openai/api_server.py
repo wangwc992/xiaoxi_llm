@@ -168,6 +168,7 @@ async def build_server(
     global engine, engine_args
 
     engine_args = AsyncEngineArgs.from_cli_args(args)
+    engine_args.tensor_parallel_size = 4
     engine = (llm_engine
               if llm_engine is not None else AsyncLLMEngine.from_engine_args(
                   engine_args, usage_context=UsageContext.OPENAI_API_SERVER))
