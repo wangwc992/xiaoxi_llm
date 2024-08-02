@@ -5,7 +5,7 @@ weaviate:
   port: "8079"
 
 embedding:
-  device: "cuda:0"
+  device: "cuda:4"
   embedding_path: "/root/autodl-tmp/llm/BAAI/bge-large-zh-v1.5"
 
 vllm:
