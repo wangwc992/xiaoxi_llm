@@ -11,11 +11,7 @@ class Embedding:
     # model_kwargs = {'device': embedding_arg["device"]}
     encode_kwargs = {'normalize_embeddings': False}
     print(f"Embedding: {embedding_arg['embedding_path']}，device: {embedding_arg['device']}，normalize_embeddings: {False}")
-    embedding = HuggingFaceEmbeddings(
-        model_name=embedding_arg['embedding_path'],
-        # model_kwargs=model_kwargs,
-        encode_kwargs=encode_kwargs
-    )
+    embedding = ''''''
 
     @classmethod
     def embed_query(cls, text: str) -> List[float]:
