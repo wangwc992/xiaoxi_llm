@@ -8,12 +8,12 @@ from app.common.core.config import settings
 
 class Embedding:
     embedding_arg = settings["embedding"]
-    model_kwargs = {'device': embedding_arg["device"]}
+    # model_kwargs = {'device': embedding_arg["device"]}
     encode_kwargs = {'normalize_embeddings': False}
     print(f"Embedding: {embedding_arg['embedding_path']}，device: {embedding_arg['device']}，normalize_embeddings: {False}")
     embedding = HuggingFaceEmbeddings(
         model_name=embedding_arg['embedding_path'],
-        model_kwargs=model_kwargs,
+        # model_kwargs=model_kwargs,
         encode_kwargs=encode_kwargs
     )
 
