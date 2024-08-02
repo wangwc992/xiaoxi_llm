@@ -1,44 +1,110 @@
 import asyncio
-import tiktoken
-from typing import Set, Optional
+import re
+from contextlib import asynccontextmanager
+from typing import Optional, Set
 
-from fastapi import Request, APIRouter
+import fastapi
+import uvicorn
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, Response, StreamingResponse
-from langfuse.decorators import observe, langfuse_context
+from prometheus_client import make_asgi_app
+from starlette.routing import Mount
+
+import vllm.envs as envs
+from vllm.engine.arg_utils import AsyncEngineArgs
+from vllm.engine.async_llm_engine import AsyncLLMEngine
+from vllm.entrypoints.logger import RequestLogger
 from vllm.entrypoints.openai.protocol import (ChatCompletionRequest,
                                               ChatCompletionResponse,
                                               CompletionRequest,
+                                              DetokenizeRequest,
+                                              DetokenizeResponse,
                                               EmbeddingRequest, ErrorResponse,
-                                              EmbeddingResponse, EmbeddingResponseData)
+                                              TokenizeRequest,
+                                              TokenizeResponse)
+# yapf: enable
+from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
+from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
 from vllm.entrypoints.openai.serving_embedding import OpenAIServingEmbedding
+from vllm.entrypoints.openai.serving_tokenization import (
+    OpenAIServingTokenization)
 from vllm.logger import init_logger
+from vllm.usage.usage_lib import UsageContext
 from vllm.version import __version__ as VLLM_VERSION
-
-from app.common.core.langchain_client import Embedding, get_openai_serving_chat, get_openai_serving_completion
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
+engine: AsyncLLMEngine
+engine_args: AsyncEngineArgs
+openai_serving_chat: OpenAIServingChat
+openai_serving_completion: OpenAIServingCompletion
 openai_serving_embedding: OpenAIServingEmbedding
+openai_serving_tokenization: OpenAIServingTokenization
+
 logger = init_logger('vllm.entrypoints.openai.api_server')
-# 获取编码器
-token_encoder = tiktoken.get_encoding("cl100k_base")
+
 _running_tasks: Set[asyncio.Task] = set()
 
+
+@asynccontextmanager
+async def lifespan(app: fastapi.FastAPI):
+
+    async def _force_log():
+        while True:
+            await asyncio.sleep(10)
+            await engine.do_log_stats()
+
+    if not engine_args.disable_log_stats:
+        task = asyncio.create_task(_force_log())
+        _running_tasks.add(task)
+        task.add_done_callback(_running_tasks.remove)
+
+    yield
+
+
 router = APIRouter()
+
+
+def mount_metrics(app: fastapi.FastAPI):
+    # Add prometheus asgi middleware to route /metrics requests
+    metrics_route = Mount("/metrics", make_asgi_app())
+    # Workaround for 307 Redirect for /metrics
+    metrics_route.path_regex = re.compile('^/metrics(?P<path>.*)$')
+    app.routes.append(metrics_route)
 
 
 @router.get("/health")
 async def health() -> Response:
     """Health check."""
-    openai_serving_chat = get_openai_serving_chat()
     await openai_serving_chat.engine.check_health()
     return Response(status_code=200)
 
 
+@router.post("/tokenize")
+async def tokenize(request: TokenizeRequest):
+    generator = await openai_serving_tokenization.create_tokenize(request)
+    if isinstance(generator, ErrorResponse):
+        return JSONResponse(content=generator.model_dump(),
+                            status_code=generator.code)
+    else:
+        assert isinstance(generator, TokenizeResponse)
+        return JSONResponse(content=generator.model_dump())
+
+
+@router.post("/detokenize")
+async def detokenize(request: DetokenizeRequest):
+    generator = await openai_serving_tokenization.create_detokenize(request)
+    if isinstance(generator, ErrorResponse):
+        return JSONResponse(content=generator.model_dump(),
+                            status_code=generator.code)
+    else:
+        assert isinstance(generator, DetokenizeResponse)
+        return JSONResponse(content=generator.model_dump())
+
+
 @router.get("/v1/models")
 async def show_available_models():
-    openai_serving_chat = get_openai_serving_chat()
-    models = await openai_serving_chat.show_available_models()
+    models = await openai_serving_completion.show_available_models()
     return JSONResponse(content=models.model_dump())
 
 
@@ -50,8 +116,7 @@ async def show_version():
 
 @router.post("/v1/chat/completions")
 async def create_chat_completion(request: ChatCompletionRequest,
-                                 raw_request:  Request):
-    openai_serving_chat = get_openai_serving_chat()
+                                 raw_request: Request):
     generator = await openai_serving_chat.create_chat_completion(
         request, raw_request)
     if isinstance(generator, ErrorResponse):
@@ -67,7 +132,6 @@ async def create_chat_completion(request: ChatCompletionRequest,
 
 @router.post("/v1/completions")
 async def create_completion(request: CompletionRequest, raw_request: Request):
-    openai_serving_completion = get_openai_serving_completion()
     generator = await openai_serving_completion.create_completion(
         request, raw_request)
     if isinstance(generator, ErrorResponse):
@@ -82,22 +146,76 @@ async def create_completion(request: CompletionRequest, raw_request: Request):
 
 @router.post("/v1/embeddings")
 async def create_embedding(request: EmbeddingRequest, raw_request: Request):
-    # generator = await openai_serving_embedding.create_embedding(
-    #     request, raw_request)
-    # 打印request
-    print(request)
-    if isinstance(request.input, list) and all(isinstance(token, int) for token in request.input):
-        # 对编码结果进行解码
-        decoded_text = token_encoder.decode(request.input)
-        request.input = [decoded_text]
+    generator = await openai_serving_embedding.create_embedding(
+        request, raw_request)
+    if isinstance(generator, ErrorResponse):
+        return JSONResponse(content=generator.model_dump(),
+                            status_code=generator.code)
+    else:
+        return JSONResponse(content=generator.model_dump())
 
-    generator = Embedding.embed_documents(request.input)
 
-    list1 = []
-    for g in generator:
-        s = EmbeddingResponseData(input=request.input, embedding=g, index=0)
-        list1.append(s)
-    content = EmbeddingResponse(data=list1, object="list", model="HuggingFaceEmbeddings",
-                                usage={"prompt_tokens": 8, "total_tokens": 8})
+async def build_server(
+    args,
+    llm_engine: Optional[AsyncLLMEngine] = None
+) -> uvicorn.Server:
 
-    return JSONResponse(content=content.dict())
+    if args.served_model_name is not None:
+        served_model_names = args.served_model_name
+    else:
+        served_model_names = [args.model]
+
+    global engine, engine_args
+
+    engine_args = AsyncEngineArgs.from_cli_args(args)
+    engine = (llm_engine
+              if llm_engine is not None else AsyncLLMEngine.from_engine_args(
+                  engine_args, usage_context=UsageContext.OPENAI_API_SERVER))
+
+    model_config = await engine.get_model_config()
+
+    if args.disable_log_requests:
+        request_logger = None
+    else:
+        request_logger = RequestLogger(max_log_len=args.max_log_len)
+
+    global openai_serving_chat
+    global openai_serving_completion
+    global openai_serving_embedding
+    global openai_serving_tokenization
+
+    openai_serving_chat = OpenAIServingChat(
+        engine,
+        model_config,
+        served_model_names,
+        args.response_role,
+        lora_modules=args.lora_modules,
+        prompt_adapters=args.prompt_adapters,
+        request_logger=request_logger,
+        chat_template=args.chat_template,
+    )
+    openai_serving_completion = OpenAIServingCompletion(
+        engine,
+        model_config,
+        served_model_names,
+        lora_modules=args.lora_modules,
+        prompt_adapters=args.prompt_adapters,
+        request_logger=request_logger,
+    )
+    openai_serving_embedding = OpenAIServingEmbedding(
+        engine,
+        model_config,
+        served_model_names,
+        request_logger=request_logger,
+    )
+    openai_serving_tokenization = OpenAIServingTokenization(
+        engine,
+        model_config,
+        served_model_names,
+        lora_modules=args.lora_modules,
+        request_logger=request_logger,
+        chat_template=args.chat_template,
+    )
+
+
+

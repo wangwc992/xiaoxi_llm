@@ -10,8 +10,7 @@ from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
 
-from app.api.openai.api_server import create_chat_completion
-from app.common.core.langchain_client import get_openai_serving_chat
+from app.api.openai.api_server import create_chat_completion, openai_serving_chat
 from app.common.utils.logging import get_logger
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
@@ -44,7 +43,6 @@ async def engine_abort(request_id: str):
     Args:
         request_id (str): The ID of the request to abort.
     """
-    openai_serving_chat = get_openai_serving_chat()
     await openai_serving_chat.engine.abort(request_id)
 
 
