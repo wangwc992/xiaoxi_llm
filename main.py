@@ -16,18 +16,6 @@ _running_tasks = set()
 async def lifespan(app: FastAPI):
     await VllmClient.initialize()
 
-    # async def _force_log():
-    #     while True:
-    #         await asyncio.sleep(10)
-    #         await VllmClient.engine.do_log_stats()
-    #
-    # if not VllmClient.engine_args.disable_log_stats:
-    #     task = asyncio.create_task(_force_log())
-    #     _running_tasks.add(task)
-    #     task.add_done_callback(_running_tasks.remove)
-
-    yield
-
 app = FastAPI(lifespan=lifespan)
 
 # app = FastAPI()
