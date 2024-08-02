@@ -10,20 +10,20 @@ class Embedding:
     embedding_arg = settings["embedding"]
     model_kwargs = {'device': embedding_arg["device"]}
     encode_kwargs = {'normalize_embeddings': False}
-
-    # embedding = HuggingFaceEmbeddings(
-    #     model_name=embedding_arg['embedding_path'],
-    #     model_kwargs=model_kwargs,
-    #     encode_kwargs=encode_kwargs
-    # )
+    print(f"Embedding: {embedding_arg['embedding_path']}，device: {embedding_arg['device']}，normalize_embeddings: {False}")
+    embedding = HuggingFaceEmbeddings(
+        model_name=embedding_arg['embedding_path'],
+        model_kwargs=model_kwargs,
+        encode_kwargs=encode_kwargs
+    )
 
     @classmethod
     def embed_query(cls, text: str) -> List[float]:
-        return [1]
+        return cls.embedding.embed_query(text)
 
     @classmethod
     def embed_documents(cls, texts: List[str]) -> List[List[float]]:
-        return [[1]]
+        return cls.embedding.embed_documents(texts)
 
 
 def get_gpu_count():
