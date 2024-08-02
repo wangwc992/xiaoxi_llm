@@ -16,15 +16,15 @@ logger = get_logger(__name__)
 @router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     if await get_chat_visits_number(is_completions=True):
-        result = {"choices": [
+        result = '''data: {"choices": [
             {
                 "index": 0,
                 "delta": {
-                    "role": "error",
+                    "role": "2",
                     "content": "chatOutnumber"
                 },
             }
-        ]}
+        ]}'''
         return StreamingResponse(content=result,
                                  media_type="text/event-stream")
     return await knowledge_base_generate(request, raw_request)
