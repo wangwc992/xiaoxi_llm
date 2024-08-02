@@ -86,16 +86,15 @@ def search_hybrid(query, limit):
     response = collection.query.hybrid(
         query=query,
         fusion_type=HybridFusion.RELATIVE_SCORE,
-        # target_vector="instruction",
+        query_properties=["instruction"],
         vector=Embedding.embed_query(query),
         return_metadata=MetadataQuery(score=True, explain_score=True),
         limit=limit,
     )
     response_list = []
     for o in response.objects:
-        properties = o.properties
-        knowledge_base = ObjectFormatter.dict_to_object(properties, KnowledgeBaseModel)
-        response_list.append(knowledge_base)
+        print(o.properties)
+        print(o.metadata.score, o.metadata.explain_score)
     return response_list
 
 
@@ -114,14 +113,14 @@ def fetch_objects():
 if __name__ == "__main__":
     # delete_many()
     #
-    query_bm25(query_bm25_database)
-
-    clear_all_data(database)
-    query_bm25(query_bm25_database)
+    # query_bm25(query_bm25_database)
+    #
+    # clear_all_data(database)
+    # query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
 
-    # search_hybrid("墨尔本大学怎么样", 10)
+    search_hybrid("墨尔本大学 怎么样", 10)
     # fetch_objects()
     pass

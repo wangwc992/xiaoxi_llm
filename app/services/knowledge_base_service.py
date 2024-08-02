@@ -36,6 +36,10 @@ class MyChatCompletionRequestModel(BaseModel):
     model: str
 
 
+async def get_reference_data(text: str):
+    return await knowledge_base_weaviate.search_hybrid_or(text, 10)
+
+
 async def engine_abort(request_id: str):
     """
     Abort the request with the given ID.

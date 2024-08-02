@@ -7,7 +7,7 @@ from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
 
 from app.services.knowledge_base_service import knowledge_base_generate, MyChatCompletionRequestModel, engine_abort, \
-    get_chat_visits_number
+    get_chat_visits_number, get_reference_data
 
 router = APIRouter(prefix="/knowledge_base")
 logger = get_logger(__name__)
@@ -39,3 +39,8 @@ async def abort(request_id: str):
 async def cleansing(manner_execution: MannerExecution):
     logger.info("Received cleansing request with args: %s", manner_execution)
     return await cleansing_manner_execution(manner_execution)
+
+
+@router.get("/weaviateSearch")
+async def reference_data(text: str):
+    return await get_reference_data(text)
