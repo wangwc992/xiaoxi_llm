@@ -58,7 +58,7 @@ class VllmClient:
     model_config = None
     openai_serving_chat = None
     openai_serving_completion = None
-    response_role = "assistant"
+    response_role = "1"
 
     engine = AsyncLLMEngine.from_engine_args(async_engineArgs, usage_context=UsageContext.API_SERVER)
 

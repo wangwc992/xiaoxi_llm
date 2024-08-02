@@ -80,7 +80,11 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     logger.info(f"message_list: {message_list}")
 
     # Load reference data
-    reference_data, knowledge_link = await load_reference_data(request.query, 10)
+    reference_data_dict = await load_reference_data(request.query, 10)
+
+    reference_data = reference_data_dict.get("reference_data")
+    knowledge_link = reference_data_dict.get("knowledge_link")
+    reference_number = reference_data_dict.get("reference_number")
     # 加载prompt
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
@@ -231,15 +235,19 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     #                     end_time)
 
 
-
 async def load_reference_data(query, limit):
     """ Load reference data from the knowledge base. """
     response_list = knowledge_base_weaviate.search_hybrid(query, limit)
-    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
-                                  for n in range(len(response_list))])
+    reference_data = "\n\n".join([
+        f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
+        for n in range(len(response_list))])
     knowledge_link = [response.link for response in response_list if
                       response.database == "t_knowledge_info" and response.link]
-    return reference_data, knowledge_link
+    knowledge_link.append(len(response_list))
+    return {"reference_data": reference_data,
+            "knowledge_link": knowledge_link,
+            "reference_number": len(response_list),
+            }
 
 
 async def save_redis(chat_message_history, chat_message_history_key, message_dict):
@@ -272,6 +280,7 @@ async def save_langfuse(member_id, message_list, output, usage, start_time, end_
                                                 input=message_list, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
+
 
 # 使用锁来确保对共享资源的安全访问
 lock = asyncio.Lock()

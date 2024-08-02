@@ -1,6 +1,7 @@
 import asyncio
 
 from fastapi import Request, APIRouter
+from starlette.responses import StreamingResponse
 
 from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
@@ -15,7 +16,17 @@ logger = get_logger(__name__)
 @router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
     if await get_chat_visits_number(is_completions=True):
-        return {"error": "请求次数超过上限，请稍后再试。"}
+        result = {"choices": [
+            {
+                "index": 0,
+                "delta": {
+                    "role": "error",
+                    "content": "chatOutnumber"
+                },
+            }
+        ]}
+        return StreamingResponse(content=result,
+                                 media_type="text/event-stream")
     return await knowledge_base_generate(request, raw_request)
 
 
