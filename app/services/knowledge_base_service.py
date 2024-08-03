@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 from datetime import datetime
@@ -8,8 +9,8 @@ from langchain_core.prompts import PromptTemplate
 from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
+
 from app.api.openai.api_server import create_chat_completion
-from app.common.core.langchain_client import get_openai_serving_chat
 from app.common.utils.logging import get_logger
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
@@ -35,6 +36,10 @@ class MyChatCompletionRequestModel(BaseModel):
     model: str
 
 
+def get_reference_data(text: str):
+    return knowledge_base_weaviate.search_hybrid_or(text, 10)
+
+
 async def engine_abort(request_id: str):
     """
     Abort the request with the given ID.
@@ -42,8 +47,7 @@ async def engine_abort(request_id: str):
     Args:
         request_id (str): The ID of the request to abort.
     """
-    openai_serving_chat = get_openai_serving_chat()
-    await openai_serving_chat.engine.abort(request_id)
+    # await openai_serving_chat.engine.abort(request_id)
 
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request):
@@ -78,7 +82,11 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     logger.info(f"message_list: {message_list}")
 
     # Load reference data
-    reference_data, knowledge_link = await load_reference_data(request.query, 10)
+    reference_data_dict = await load_reference_data(request.query, 10)
+
+    reference_data = reference_data_dict.get("reference_data")
+    knowledge_link = reference_data_dict.get("knowledge_link")
+    reference_number = reference_data_dict.get("reference_number")
     # 加载prompt
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
@@ -119,7 +127,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
         # 记录日志
         logger.info(f"message_dict: {response_dict}: {type(result)}")
-
+        # chat visits number increment after minus one
+        await get_chat_visits_number(is_completions=False)
         # 返回修改后的 JSONResponse 对象
         return result
 
@@ -146,7 +155,7 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     async for chunk in result.body_iterator:
         logger.info(f"chunk: {chunk}")
         if first_chunk:
-            chunk = chunk.replace('"role":"assistant"', f'"role":"assistant","content":{json.dumps(knowledge_link)}')
+            chunk = chunk.replace('"role":"1"', f'"role":"1","content":{json.dumps(knowledge_link)}')
         yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False
@@ -166,6 +175,8 @@ async def stream_response(result, chat_message_history, chat_message_history_key
                     usage = ModelUsage(input=usage_or['prompt_tokens'], output=usage_or['completion_tokens'],
                                        total=usage_or['total_tokens'], unit='TOKENS')
                     logger.info(f"usage: {usage}")
+                # chat visits number increment after minus one
+                await get_chat_visits_number(is_completions=False)
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
@@ -217,7 +228,8 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     logger.info(f"message_dict: {message_dict}")
     end_time = datetime.now()
     # Save the message to chat history in Redis
-    await save_redis(chat_message_history, chat_message_history_key, message_dict)
+    # TODO
+    # await save_redis(chat_message_history, chat_message_history_key, message_dict)
 
     # Save the message to chat history in Langfuse
     # TODO
@@ -225,15 +237,19 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
     #                     end_time)
 
 
-
 async def load_reference_data(query, limit):
     """ Load reference data from the knowledge base. """
     response_list = knowledge_base_weaviate.search_hybrid(query, limit)
-    reference_data = "\n\n".join([f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
-                                  for n in range(len(response_list))])
+    reference_data = "\n\n".join([
+        f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
+        for n in range(len(response_list))])
     knowledge_link = [response.link for response in response_list if
                       response.database == "t_knowledge_info" and response.link]
-    return reference_data, knowledge_link
+    knowledge_link.append(len(response_list))
+    return {"reference_data": reference_data,
+            "knowledge_link": knowledge_link,
+            "reference_number": len(response_list),
+            }
 
 
 async def save_redis(chat_message_history, chat_message_history_key, message_dict):
@@ -266,3 +282,25 @@ async def save_langfuse(member_id, message_list, output, usage, start_time, end_
                                                 input=message_list, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
+
+
+# # 使用锁来确保对共享资源的安全访问
+lock = asyncio.Lock()
+chat_visits_number = 0
+chat_visits_number_max = 30
+
+
+async def get_chat_visits_number(is_completions: bool = False) -> bool:
+    '''获取当前 chat_visits_number 的值，并根据 is_completions 参数来判断是否增加或减少 chat_visits_number 的值。'''
+    global chat_visits_number
+    global chat_visits_number_max
+    logger.info(f"当前 chat_visits_number: {chat_visits_number},{is_completions}")
+    async with lock:
+        if is_completions:
+            if chat_visits_number >= chat_visits_number_max:
+                logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
+                return True
+            chat_visits_number += 1
+        else:
+            chat_visits_number -= 1
+    return False

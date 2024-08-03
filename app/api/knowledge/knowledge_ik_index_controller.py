@@ -9,14 +9,13 @@ from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
 from langchain_core.prompts import PromptTemplate
 
-from app.common.core.langchain_client import VllmClient
+from app.api.openai.api_server import engine
 from app.database.weaviate.knowledge_ik_index_mapper import KnowledgeIkIndexMapper
 
 router = APIRouter(prefix="/chat")
 
 # 初始化全局服务实例
 knowledgeIkIndexService = KnowledgeIkIndexMapper()
-engine = VllmClient.engine
 sampling_params = SamplingParams(
         temperature=0.3,
         top_p=0.9,

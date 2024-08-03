@@ -13,6 +13,7 @@ from app.common.core.langchain_client import Embedding
 
 logger = get_logger(__name__)
 
+
 class KnowledgeBaseModel(BaseModel):
     db_id: Optional[str] = Field(None, description="数据库的id")
     database: Optional[str] = Field(None, description="数据库")
@@ -43,9 +44,8 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         result = self.collection.data.delete_many(
             where=Filter.by_property("database").equal(database)
         )
-    #     DeleteManyReturn(failed=0, matches=4480, objects=None, successful=4480)
+        #     DeleteManyReturn(failed=0, matches=4480, objects=None, successful=4480)
         logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
-
 
     def search_hybrid(self, query, limit):
         '''在Weaviate数据库中搜索数据'''
@@ -63,6 +63,24 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             properties = o.properties
             knowledge_base = ObjectFormatter.dict_to_object(properties, KnowledgeBaseModel)
             response_list.append(knowledge_base)
+        return response_list
+
+    def search_hybrid_or(self, query, limit):
+        '''在Weaviate数据库中搜索数据'''
+        logger.info(f"Searching Weaviate database with query: {query}")
+        response = self.collection.query.hybrid(
+            query=query,
+            fusion_type=HybridFusion.RELATIVE_SCORE,
+            # target_vector="instruction",
+            vector=Embedding.embed_query(query),
+            return_metadata=MetadataQuery(score=True, explain_score=True),
+            limit=limit,
+        )
+        response_list = []
+        for o in response.objects:
+            properties = o.properties
+            content = properties['database'] + properties['db_id'] + properties['instruction'] + properties['output']
+            response_list.append({"content": content, "score": o.metadata.score})
         return response_list
 
     def delete_data_by_id(self, id: str, database: str):
