@@ -33,6 +33,12 @@ mysql:
     user: "read"
     password: "Xxedu_only_Read123!@#"
     database: "smart_counselor"
+  yhj:
+    host: "121.37.172.238"
+    port: 3306
+    user: "root"
+    password: "Yhj18835534246"
+    database: "test_db"
 #120.92.38.14
 #58818
 redis:

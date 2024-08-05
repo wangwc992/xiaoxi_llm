@@ -15,7 +15,7 @@ df = pd.read_excel(file_path, engine='openpyxl')
 data = df.to_dict(orient='records')
 
 # Initialize the starting index and a lock for thread safety
-start_index = 0
+start_index = 3360
 index_lock = threading.Lock()
 
 # Store the outputs to avoid simultaneous writes to the Excel file

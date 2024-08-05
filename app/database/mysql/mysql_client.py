@@ -22,6 +22,7 @@ class MySQLConnect:
             cursorclass=MySQLdb.cursors.DictCursor  # 使用字典游标类
         )
         self.__cur = self.conn.cursor()
+        self.mysql_client = self.__cur
 
     def connect(self):
         """连接数据库"""
@@ -50,6 +51,7 @@ class MySQLConnect:
         logger.info("Executing query: %s", self.__cur.mogrify(sql, params))
         try:
             self.__cur.execute(sql, params)
+            self.__cur.connection.commit()
         except MySQLdb.Error as e:
             logger.error("Error executing query: %s", e)
             self.connect()  # 尝试重新连接
@@ -148,6 +150,7 @@ class MySQLConnect:
 
 xxlxdb = MySQLConnect("xxlxdb")
 smart_counselor = MySQLConnect("smart_counselor")
+yhj = MySQLConnect("yhj")
 
 if __name__ == '__main__':
     sql = "SELECT * FROM `school_info`"
