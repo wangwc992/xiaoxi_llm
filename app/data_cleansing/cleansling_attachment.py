@@ -78,7 +78,7 @@ def knowledge_info_fjtq():
 
         while True:
             # Fetch records where fileurl is not null and not empty
-            select_query = "SELECT * FROM weaviate_knowledge_info WHERE fileurl IS NOT NULL AND fileurl != '' AND id > %s and attachment_content IS NOT NULL"
+            select_query = "SELECT * FROM weaviate_knowledge_info WHERE fileurl IS NOT NULL AND fileurl != '' AND attachment_content IS NULL"
             knowledge_info_dict_list = yhj.execute_all2dict(select_query, limit=limit, params=(start_id,))
 
             if not knowledge_info_dict_list:
