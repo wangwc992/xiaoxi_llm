@@ -94,6 +94,8 @@ def knowledge_info_fjtq():
             # Update start_id for the next iteration
             start_id = knowledge_info_dict_list[-1]['id']
 
+        knowledge_info_fjtq()
+
 
 def notice_message():
     global start_id
