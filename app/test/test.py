@@ -1,39 +1,23 @@
-import http.client
+import os
+import pandas as pd
 import json
+import http.client
 import threading
 import time
 import random
+from openpyxl import load_workbook
 
-# 留学相关问题列表
-study_abroad_questions = [
-    "我应该选择哪个国家作为留学目的地，如何比较不同国家的留学优势？",
-    "如何选择适合我的专业和背景的院校？",
-    "申请海外院校时，通常需要准备哪些材料？",
-    "推荐信应该找谁写？内容如何把握？",
-    "留学的总费用大概是多少，包括学费和生活费？",
-    "我是否可以申请奖学金或助学金？申请条件是什么？",
-    "IELTS和TOEFL之间有何区别？我应该选择哪个？",
-    "如何有效备考语言考试以达到申请要求？",
-    "留学签证的申请流程是什么？需要哪些材料？",
-    "在签证面试中，我应该注意哪些问题？",
-    "我如何选择适合我职业发展的专业或课程？",
-    "不同专业的就业前景如何？",
-    "在国外留学期间，选择校内宿舍还是校外住宿更好？",
-    "生活费预算应该如何规划？",
-    "如何适应国外的文化差异？有哪些常见的文化冲突需要注意？",
-    "我应该如何在留学期间建立和维护社交圈？",
-    "留学后回国和留在国外就业各有哪些优劣势？",
-    "我如何利用留学经历提升自己的职业竞争力？",
-    "当前全球疫情对留学计划有何影响？有哪些应对措施？",
-    "如果疫情期间无法入境，我可以选择哪些在线课程或远程学习方案？"
-]
+# Define the file path
+base_dir = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(base_dir, 'data/zy.xlsx')
 
+# Read the Excel file
+df = pd.read_excel(file_path)
 
-# 定义发送请求的函数
-def send_request():
-    # 随机选择一个问题
-    random_question = random.choice(study_abroad_questions)
+# Convert the DataFrame to a list of dictionaries
+data = df.to_dict(orient='records')
 
+def send_request(question):
     conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
     payload = json.dumps({
         "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
@@ -44,7 +28,7 @@ def send_request():
             },
             {
                 "role": "user",
-                "content": random_question
+                "content": question
             }
         ]
     })
@@ -60,31 +44,57 @@ def send_request():
         conn.request("POST", "/v1/chat/completions", payload, headers)
         res = conn.getresponse()
         data = res.read()
-        print(data.decode("utf-8"))
+        return data.decode("utf-8")
     except Exception as e:
         print(f"Request failed: {e}")
+        return None
     finally:
         conn.close()
 
 
-# 定义定时循环发送请求的函数
 def periodic_request():
     while True:
-        # 随机生成1到10个线程
-        num_requests = random.randint(1, 10)
+        # Randomly generate 30 parallel requests
+        num_requests = 30
         threads = []
+        results = []
+
         for _ in range(num_requests):
-            thread = threading.Thread(target=send_request)
+            # Randomly select a question
+            random_question = random.choice(data)['chinese_name']
+
+            # Define the thread
+            thread = threading.Thread(target=lambda q=random_question: results.append(send_request(q)))
             threads.append(thread)
             thread.start()
 
-        # 等待所有线程完成
+        # Wait for all threads to complete
         for thread in threads:
             thread.join()
 
-        # 随机等待 5 到 10 秒
+        # Write results back to the Excel file
+        if results:
+            write_results_to_excel(results)
+
+        # Random wait between 5 to 10 seconds before sending new requests
         time.sleep(random.randint(5, 10))
 
+def write_results_to_excel(results):
+    # Load the existing Excel file
+    book = load_workbook(file_path)
+    writer = pd.ExcelWriter(file_path, engine='openpyxl')
+    writer.book = book
 
-# 启动定时请求
+    # Convert results to DataFrame
+    results_df = pd.DataFrame({'Response': results})
+
+    # Write the DataFrame to the Excel file, starting at the first empty row
+    startrow = book['Sheet1'].max_row
+    results_df.to_excel(writer, startrow=startrow, index=False, header=False)
+
+    # Save the Excel file
+    writer.save()
+    writer.close()
+
+# Start sending requests
 periodic_request()

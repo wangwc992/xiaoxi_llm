@@ -34,26 +34,26 @@ def send_request():
     # 随机选择一个问题
     random_question = random.choice(study_abroad_questions)
 
-    conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
+    conn = http.client.HTTPSConnection("u430182-ac52-9e557856.cqa1.seetacloud.com")
     payload = json.dumps({
-        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
+        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct",
         "messages": [
             {
                 "role": "system",
-                "content": "小希留学助手"
+                "content": "你是一个留学院校专业介绍大师"
             },
             {
                 "role": "user",
-                "content": random_question
+                "content": "悉尼大学申请怎么申请"
             }
         ]
     })
     headers = {
-        'Authorization': '1003',
+        'Authorization': '1001',
         'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
         'Content-Type': 'application/json',
         'Accept': '*/*',
-        'Host': 'u430182-ac52-13068849.cqa1.seetacloud.com',
+        'Host': 'u430182-ac52-9e557856.cqa1.seetacloud.com',
         'Connection': 'keep-alive'
     }
     try:
