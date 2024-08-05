@@ -1,3 +1,4 @@
+import os
 import tempfile
 import requests
 import pytesseract
@@ -17,13 +18,28 @@ class FileToText:
             pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
 
     @classmethod
-    def download_file(cls, pdf_url):
+    def download_file(cls, pdf_url, save_directory="downloads"):
+        # Ensure the save directory exists
+        os.makedirs(save_directory, exist_ok=True)
+
         if pdf_url.startswith("http://") or pdf_url.startswith("https://"):
             response = requests.get(pdf_url)
             response.raise_for_status()
-            return BytesIO(response.content)
+
+            # Create a file path to save the file
+            file_name = pdf_url.split('/')[-1]  # Extract the file name from the URL
+            file_path = os.path.join(save_directory, file_name)
+
+            # Save the file content
+            with open(file_path, 'wb') as f:
+                f.write(response.content)
+
+            print(f"File downloaded and saved to: {file_path}")
+            return BytesIO(response.content), file_path
         else:
-            return open(pdf_url, 'rb')
+            file_path = pdf_url
+            print(f"File path provided: {file_path}")
+            return open(file_path, 'rb'), file_path
 
     @classmethod
     def get_file_extension(cls, file_obj):
@@ -123,9 +139,11 @@ class FileToText:
     @classmethod
     def urlToText(cls, pdf_url):
         fileType = cls.get_file_extension(pdf_url)
-        file = cls.download_file(pdf_url)
+        file,file_path = cls.download_file(pdf_url)
         text = cls.fileToString(pdf_url, file, fileType)
         text = re.sub(r'\s+', ' ', text).strip()
+        # 删除临时文件
+        os.remove(file_path)
         return text
 
 

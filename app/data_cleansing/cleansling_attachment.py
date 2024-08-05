@@ -1,3 +1,5 @@
+import concurrent.futures
+
 from app.common.utils.FileToText import FileToText
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
     search_notice_message_data
@@ -59,25 +61,38 @@ def knowledge_info():
 
 
 def knowledge_info_fjtq():
-    global start_id
-    global limit
-    # 获取 weaviate_knowledge_info 表fileurl 不为空的数据
-    while True:
-        select_query = "SELECT * FROM weaviate_knowledge_info WHERE fileurl IS NOT NULL AND fileurl != '' and id > %s "
-        knowledge_info_dict_list = yhj.execute_all2dict(select_query, limit=limit, params=(start_id,))
-        for knowledge_info in knowledge_info_dict_list:
+    def process_record(knowledge_info):
+        try:
             file_info = FileToText.urlToText(knowledge_info.get('fileurl'))
             knowledge_info['attachment_content'] = file_info
-            # 更新 weaviate_knowledge_info 表fileurl 不为空的数据
+            # Update the record in the database
             update_query = "UPDATE weaviate_knowledge_info SET attachment_content = %s WHERE id = %s"
             yhj.execute(update_query, (file_info, knowledge_info.get('id')))
             print(f"Updated record with id {knowledge_info.get('id')}.")
+        except Exception as e:
+            print(f"Failed to process record with id {knowledge_info.get('id')}: {e}")
 
-        if len(knowledge_info_dict_list) < limit:
-            break
+    def knowledge_info_fjtq():
+        global start_id
+        global limit
 
-        # Update start_id for the next iteration
-        start_id = knowledge_info_dict_list[-1]['id']
+        while True:
+            # Fetch records where fileurl is not null and not empty
+            select_query = "SELECT * FROM weaviate_knowledge_info WHERE fileurl IS NOT NULL AND fileurl != '' AND id > %s and attachment_content IS NOT NULL"
+            knowledge_info_dict_list = yhj.execute_all2dict(select_query, limit=limit, params=(start_id,))
+
+            if not knowledge_info_dict_list:
+                break
+
+            # Use ThreadPoolExecutor to process 30 records concurrently
+            with concurrent.futures.ThreadPoolExecutor(max_workers=30) as executor:
+                executor.map(process_record, knowledge_info_dict_list)
+
+            if len(knowledge_info_dict_list) < limit:
+                break
+
+            # Update start_id for the next iteration
+            start_id = knowledge_info_dict_list[-1]['id']
 
 
 def notice_message():
