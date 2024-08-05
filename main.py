@@ -20,7 +20,7 @@ from vllm.logger import init_logger
 from vllm.utils import FlexibleArgumentParser
 from vllm.version import __version__ as VLLM_VERSION
 
-from app.api.openai.api_server import build_server, engine, engine_args
+from app.api.openai.api_server import build_server
 from app.api.openai import api_server
 from app.api.knowledge_base import knowledge_base
 
@@ -29,19 +29,19 @@ logger = init_logger('vllm.entrypoints.openai.api_server')
 _running_tasks: Set[asyncio.Task] = set()
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
-@asynccontextmanager
-async def lifespan(app: fastapi.FastAPI):
-    async def _force_log():
-        while True:
-            await asyncio.sleep(10)
-            await engine.do_log_stats()
-
-    if not engine_args.disable_log_stats:
-        task = asyncio.create_task(_force_log())
-        _running_tasks.add(task)
-        task.add_done_callback(_running_tasks.remove)
-
-    yield
+# @asynccontextmanager
+# async def lifespan(app: fastapi.FastAPI):
+#     async def _force_log():
+#         while True:
+#             await asyncio.sleep(10)
+#             await engine.do_log_stats()
+#
+#     if not engine_args.disable_log_stats:
+#         task = asyncio.create_task(_force_log())
+#         _running_tasks.add(task)
+#         task.add_done_callback(_running_tasks.remove)
+#
+#     yield
 
 
 
@@ -54,7 +54,7 @@ def mount_metrics(app: fastapi.FastAPI):
 
 
 def build_app(args, **uvicorn_kwargs):
-    app = fastapi.FastAPI(lifespan=lifespan)
+    app = fastapi.FastAPI()
     app.include_router(api_server.router)
     app.include_router(knowledge_base.router)
     app.root_path = args.root_path
