@@ -59,17 +59,25 @@ def knowledge_info():
 
 
 def knowledge_info_fjtq():
+    global start_id
+    global limit
     # 获取 weaviate_knowledge_info 表fileurl 不为空的数据
-    select_query = "SELECT * FROM weaviate_knowledge_info WHERE fileurl IS NOT NULL AND fileurl != ''"
-    d = yhj.execute_all2dict(select_query)
-    for notice_massage in d:
-        file_info = FileToText.urlToText(notice_massage.get('fileurl'))
-        notice_massage['attachment_content'] = file_info
-        # 更新 weaviate_knowledge_info 表fileurl 不为空的数据
-        update_query = "UPDATE weaviate_knowledge_info SET attachment_content = %s WHERE id = %s"
-        yhj.execute(update_query, (file_info, notice_massage.get('id')))
-        print(f"Updated record with id {notice_massage.get('id')}.")
-    pass
+    while True:
+        select_query = "SELECT * FROM weaviate_knowledge_info WHERE fileurl IS NOT NULL AND fileurl != '' and id > %s "
+        knowledge_info_dict_list = yhj.execute_all2dict(select_query, limit=limit, params=(start_id,))
+        for knowledge_info in knowledge_info_dict_list:
+            file_info = FileToText.urlToText(knowledge_info.get('fileurl'))
+            knowledge_info['attachment_content'] = file_info
+            # 更新 weaviate_knowledge_info 表fileurl 不为空的数据
+            update_query = "UPDATE weaviate_knowledge_info SET attachment_content = %s WHERE id = %s"
+            yhj.execute(update_query, (file_info, knowledge_info.get('id')))
+            print(f"Updated record with id {knowledge_info.get('id')}.")
+
+        if len(knowledge_info_dict_list) < limit:
+            break
+
+        # Update start_id for the next iteration
+        start_id = knowledge_info_dict_list[-1]['id']
 
 
 def notice_message():
