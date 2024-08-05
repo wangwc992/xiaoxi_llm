@@ -144,7 +144,7 @@ class FileToText:
         text = re.sub(r'\s+', ' ', text).strip()
         # 删除临时文件
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(base_dir, "../../test/downloads/"+file_path)
+        file_path = os.path.join(base_dir, "../../downloads/"+file_path)
         print("Deleted temporary file:", file_path)
         os.remove(file_path)
         return text
