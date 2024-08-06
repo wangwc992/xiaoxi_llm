@@ -23,7 +23,6 @@ from vllm.entrypoints.openai.protocol import (ChatCompletionRequest,
                                               TokenizeRequest,
                                               TokenizeResponse)
 # yapf: enable
-from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
 from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
 from vllm.entrypoints.openai.serving_embedding import OpenAIServingEmbedding
 from vllm.entrypoints.openai.serving_tokenization import (
@@ -31,6 +30,8 @@ from vllm.entrypoints.openai.serving_tokenization import (
 from vllm.logger import init_logger
 from vllm.usage.usage_lib import UsageContext
 from vllm.version import __version__ as VLLM_VERSION
+
+from app.api.openai.serving_chat import OpenAIServingChat
 
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
