@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 import requests
@@ -138,15 +139,18 @@ class FileToText:
 
     @classmethod
     def urlToText(cls, pdf_url):
-        fileType = cls.get_file_extension(pdf_url)
-        file,file_path = cls.download_file(pdf_url)
-        text = cls.fileToString(pdf_url, file, fileType)
-        text = re.sub(r'\s+', ' ', text).strip()
-        # 删除临时文件
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        file_path = os.path.join(base_dir, "../../../"+file_path)
-        print("Deleted temporary file:", file_path)
-        os.remove(file_path)
+        url = settings.get('urlToText')
+        headers = {
+            "Content-Type": "application/json"
+        }
+        data = {
+            "url": pdf_url
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        text = response.text.encode('utf-8').decode('unicode_escape')
+        # text 变成json格式，需要转换为字符串
+        text = json.loads(text).get('text')
         return text
 
 
