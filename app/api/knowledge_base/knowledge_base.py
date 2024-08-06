@@ -1,6 +1,6 @@
 import asyncio
 
-from fastapi import Request, APIRouter
+from fastapi import Request, APIRouter, BackgroundTasks
 from starlette.responses import StreamingResponse
 
 from app.common.utils.logging import get_logger
@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 
 @router.post("/chat/completions", description="Create a chat completion.")
-async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
+async def generate(request: MyChatCompletionRequestModel, raw_request: Request,background_tasks: BackgroundTasks):
     if await get_chat_visits_number(is_completions=True):
         result = '''data: {"choices": [
             {
@@ -27,7 +27,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
         ]}'''
         return StreamingResponse(content=result,
                                  media_type="text/event-stream")
-    return await knowledge_base_generate(request, raw_request)
+    return await knowledge_base_generate(request, raw_request, background_tasks)
 
 
 @router.post("/cleansing", description="Cleansing the knowledge base.")
