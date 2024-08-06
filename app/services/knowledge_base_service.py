@@ -48,16 +48,16 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     message_list = [{"role": message.type, "content": message.content} for message in chat_message_history.messages]
     logger.info(f"message_list: {message_list}")
 
-    reference_data_dict = await load_reference_data(request.query, 10)
-
-    reference_data = reference_data_dict.get("reference_data")
-    knowledge_link = reference_data_dict.get("knowledge_link")
-
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
-    template = PromptTemplate.from_file(file_path)
-    prompt = template.format(input=request.query, reference_data=reference_data)
-    message_list[-1]['content'] = prompt
+    # reference_data_dict = await load_reference_data(request.query, 10)
+    #
+    reference_data = 'reference_data_dict.get("reference_data")'
+    knowledge_link = 'reference_data_dict.get("knowledge_link")'
+    #
+    # base_dir = os.path.dirname(os.path.abspath(__file__))
+    # file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
+    # template = PromptTemplate.from_file(file_path)
+    # prompt = template.format(input=request.query, reference_data=reference_data)
+    # message_list[-1]['content'] = prompt
 
     stream_options = StreamOptions(include_usage=True) if request.stream else None
 
