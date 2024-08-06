@@ -47,7 +47,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         #     DeleteManyReturn(failed=0, matches=4480, objects=None, successful=4480)
         logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
 
-    def search_hybrid(self, query, limit):
+    async def search_hybrid(self, query, limit):
         '''在Weaviate数据库中搜索数据'''
         logger.info(f"Searching Weaviate database with query: {query}")
         response = self.collection.query.hybrid(
