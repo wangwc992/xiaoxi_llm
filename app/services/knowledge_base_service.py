@@ -159,6 +159,7 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
 
 async def load_reference_data(query, limit):
     response_list = await knowledge_base_weaviate.search_hybrid(query, limit)
+    logger.info(f"weaviate 查询结果 response_list: {response_list}")
     reference_data = "\n\n".join([
         f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
         for n in range(len(response_list))])
