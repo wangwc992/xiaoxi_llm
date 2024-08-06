@@ -87,7 +87,7 @@ def set_object(key: str, obj: Any, expire: int = None):
 # 使用 Pickle 获取对象的方法
 # 使用 Pickle 获取对象的方法
 @retry_on_failure
-def get_object(key: str, obj_type: Type[Any] = None) -> Any:
+async def get_object(key: str, obj_type: Type[Any] = None) -> Any:
     """
     从 Redis 中获取对象并反序列化。
 

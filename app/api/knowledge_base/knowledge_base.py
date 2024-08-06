@@ -6,7 +6,7 @@ from starlette.responses import StreamingResponse
 from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
 
-from app.services.knowledge_base_service import knowledge_base_generate, MyChatCompletionRequestModel, engine_abort, \
+from app.services.knowledge_base_service import knowledge_base_generate, MyChatCompletionRequestModel, \
     get_chat_visits_number, get_reference_data
 
 router = APIRouter(prefix="/knowledge_base")
@@ -28,11 +28,6 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request):
         return StreamingResponse(content=result,
                                  media_type="text/event-stream")
     return await knowledge_base_generate(request, raw_request)
-
-
-@router.get("/chat/abort", description="Abort the request with the given ID.")
-async def abort(request_id: str):
-    return await engine_abort(request_id)
 
 
 @router.post("/cleansing", description="Cleansing the knowledge base.")

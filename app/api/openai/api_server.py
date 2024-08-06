@@ -48,7 +48,6 @@ _running_tasks: Set[asyncio.Task] = set()
 
 @asynccontextmanager
 async def lifespan(app: fastapi.FastAPI):
-
     async def _force_log():
         while True:
             await asyncio.sleep(10)
@@ -155,11 +154,16 @@ async def create_embedding(request: EmbeddingRequest, raw_request: Request):
         return JSONResponse(content=generator.model_dump())
 
 
-async def build_server(
-    args,
-    llm_engine: Optional[AsyncLLMEngine] = None
-) -> uvicorn.Server:
+@router.get("/chat/abort", description="Abort the request with the given ID.")
+async def abort(request_id: str):
+    openai_serving_chat.engine.abort(request_id)
+    return JSONResponse(content={"message": "Request aborted."})
 
+
+async def build_server(
+        args,
+        llm_engine: Optional[AsyncLLMEngine] = None
+) -> uvicorn.Server:
     if args.served_model_name is not None:
         served_model_names = args.served_model_name
     else:
@@ -170,7 +174,7 @@ async def build_server(
     engine_args = AsyncEngineArgs.from_cli_args(args)
     engine = (llm_engine
               if llm_engine is not None else AsyncLLMEngine.from_engine_args(
-                  engine_args, usage_context=UsageContext.OPENAI_API_SERVER))
+        engine_args, usage_context=UsageContext.OPENAI_API_SERVER))
 
     model_config = await engine.get_model_config()
 
@@ -216,6 +220,3 @@ async def build_server(
         request_logger=request_logger,
         chat_template=args.chat_template,
     )
-
-
-

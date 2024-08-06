@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import torch
 from datetime import datetime
 from fastapi import Request, APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -23,14 +24,6 @@ logger = get_logger(__name__)
 
 
 class MyChatCompletionRequestModel(BaseModel):
-    """
-    Pydantic model for chat completion request data.
-
-    Attributes:
-        query (str): The user's query to generate a response for.
-        stream (bool): Flag indicating if the response should be streamed.
-        model (str): The model to use for generating the response.
-    """
     query: str
     stream: bool
     model: str
@@ -40,115 +33,66 @@ def get_reference_data(text: str):
     return knowledge_base_weaviate.search_hybrid_or(text, 10)
 
 
-async def engine_abort(request_id: str):
-    """
-    Abort the request with the given ID.
-
-    Args:
-        request_id (str): The ID of the request to abort.
-    """
-    # await openai_serving_chat.engine.abort(request_id)
-
-
-async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request):
-    """
-    Generate text or stream the generated text as a response.
-
-    Args:
-        request (MyChatCompletionRequestModel): The request model containing the query, stream flag, and model.
-        raw_request (Request): The original HTTP request.
-        background_tasks (BackgroundTasks): Background tasks for FastAPI.
-
-    Returns:
-        StreamingResponse or JSONResponse: The generated response, either streamed or as a complete response.
-    """
-    # Record start time
+async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
+                                  background_tasks: BackgroundTasks):
     start_time = datetime.now()
-    # Extract Authorization header as member ID
     member_id = raw_request.headers.get("Authorization")
 
-    # Retrieve or initialize chat message history for the user
     chat_message_history_key = f"chat:message:history:{member_id}"
-    chat_message_history = get_object(chat_message_history_key, ChatMessageHistory) or ChatMessageHistory()
+    chat_message_history = await get_object(chat_message_history_key, ChatMessageHistory) or ChatMessageHistory()
 
-    # Add a system message if the chat history is empty
     if not chat_message_history.messages:
         chat_message_history.add_message(SystemMessage(content="你是小希留学顾问助手"))
 
-    # Add the user's query to the chat history
     chat_message_history.add_user_message(request.query)
-    # Convert messages to the required format
     message_list = [{"role": message.type, "content": message.content} for message in chat_message_history.messages]
     logger.info(f"message_list: {message_list}")
 
-    # Load reference data
     reference_data_dict = await load_reference_data(request.query, 10)
 
     reference_data = reference_data_dict.get("reference_data")
     knowledge_link = reference_data_dict.get("knowledge_link")
-    reference_number = reference_data_dict.get("reference_number")
-    # 加载prompt
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
     template = PromptTemplate.from_file(file_path)
     prompt = template.format(input=request.query, reference_data=reference_data)
     message_list[-1]['content'] = prompt
 
-    # Set stream options if the request is for streaming
     stream_options = StreamOptions(include_usage=True) if request.stream else None
 
-    # Create a ChatCompletionRequest object
-    chat_request = ChatCompletionRequest(messages=message_list, stream=request.stream, model=request.model,
-                                         stream_options=stream_options)
+    chat_request = ChatCompletionRequest(
+        messages=message_list,
+        stream=request.stream,
+        model=request.model,
+        stream_options=stream_options
+    )
 
-    # Call create_chat_completion and get the result
     result = await create_chat_completion(chat_request, raw_request)
 
-    # Return a streaming response if requested
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
             stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list,
                             start_time, knowledge_link),
-            media_type="text/event-stream")
+            media_type="text/event-stream"
+        )
     else:
         message_dict = await extract_message(result)
-        await process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id,
-                                     message_list,
-                                     start_time)
-        # 将 JSONResponse 的内容提取并转换为字典
-        response_dict = json.loads(result.body.decode('utf-8'))
+        background_tasks.add_task(process_after_response, message_dict, chat_message_history, chat_message_history_key,
+                                  member_id, message_list, start_time)
 
-        # 添加 reference_data 字段
+        response_dict = json.loads(result.body.decode('utf-8'))
         response_dict["reference_data"] = reference_data
         response_dict["knowledge_link"] = knowledge_link
-
-        # 重新生成 JSONResponse 对象
         result = JSONResponse(content=response_dict)
 
-        # 记录日志
         logger.info(f"message_dict: {response_dict}: {type(result)}")
-        # chat visits number increment after minus one
         await get_chat_visits_number(is_completions=False)
-        # 返回修改后的 JSONResponse 对象
         return result
 
 
 async def stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list, start_time,
                           knowledge_link):
-    """
-    Handle streaming response.
-
-    Args:
-        result (StreamingResponse): The streaming response from the chat completion request.
-        chat_message_history (ChatMessageHistory): The user's chat message history.
-        chat_message_history_key (str): Redis key for the user's chat message history.
-        member_id (str): The user's member ID.
-        message_list (list): List of messages in the chat.
-        start_time (datetime): The start time of the request.
-
-    Yields:
-        str: Chunks of the streaming response.
-    """
     output = ''
     usage = None
     first_chunk = True
@@ -175,7 +119,6 @@ async def stream_response(result, chat_message_history, chat_message_history_key
                     usage = ModelUsage(input=usage_or['prompt_tokens'], output=usage_or['completion_tokens'],
                                        total=usage_or['total_tokens'], unit='TOKENS')
                     logger.info(f"usage: {usage}")
-                # chat visits number increment after minus one
                 await get_chat_visits_number(is_completions=False)
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
@@ -186,15 +129,6 @@ async def stream_response(result, chat_message_history, chat_message_history_key
 
 
 async def extract_message(result):
-    """
-    Extract message from non-streaming output.
-
-    Args:
-        result (JSONResponse): The response from the chat completion request.
-
-    Returns:
-        dict: A dictionary containing the output text and usage information.
-    """
     output = ''
     usage = None
     logger.info(f"result:{result}，type:{type(result)}")
@@ -214,32 +148,17 @@ async def extract_message(result):
 
 async def process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id, message_list,
                                  start_time):
-    """
-    Process actions after receiving the response.
-
-    Args:
-        message_dict (dict): A dictionary containing the output text and usage information.
-        chat_message_history (ChatMessageHistory): The user's chat message history.
-        chat_message_history_key (str): Redis key for the user's chat message history.
-        member_id (str): The user's member ID.
-        message_list (list): List of messages in the chat.
-        start_time (datetime): The start time of the request.
-    """
     logger.info(f"message_dict: {message_dict}")
     end_time = datetime.now()
-    # Save the message to chat history in Redis
+    torch.cuda.empty_cache()
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, message_dict)
-
-    # Save the message to chat history in Langfuse
-    # TODO
     # await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
     #                     end_time)
 
 
 async def load_reference_data(query, limit):
-    """ Load reference data from the knowledge base. """
-    response_list = knowledge_base_weaviate.search_hybrid(query, limit)
+    response_list = await knowledge_base_weaviate.search_hybrid(query, limit)
     reference_data = "\n\n".join([
         f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
         for n in range(len(response_list))])
@@ -253,45 +172,24 @@ async def load_reference_data(query, limit):
 
 
 async def save_redis(chat_message_history, chat_message_history_key, message_dict):
-    """
-    Save the message to chat history in Redis.
-
-    Args:
-        chat_message_history (ChatMessageHistory): The user's chat message history.
-        chat_message_history_key (str): Redis key for the user's chat message history.
-        message_dict (dict): A dictionary containing the output text.
-    """
     chat_message_history.add_ai_message(message_dict.get('output'))
-    set_object(chat_message_history_key, chat_message_history)
+    await set_object(chat_message_history_key, chat_message_history)
 
 
 @observe()
 async def save_langfuse(member_id, message_list, output, usage, start_time, end_time):
-    """
-    Save the message to chat history in Langfuse.
-
-    Args:
-        member_id (str): The user's member ID.
-        message_list (list): List of messages in the chat.
-        output (str): The generated response text.
-        usage (ModelUsage): Usage information of the model.
-        start_time (datetime): The start time of the request.
-        end_time (datetime): The end time of the request.
-    """
     langfuse_context.update_current_observation(user_id=member_id, metadata={"test": "test value"},
                                                 input=message_list, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
 
 
-# # 使用锁来确保对共享资源的安全访问
 lock = asyncio.Lock()
 chat_visits_number = 0
 chat_visits_number_max = 30
 
 
 async def get_chat_visits_number(is_completions: bool = False) -> bool:
-    '''获取当前 chat_visits_number 的值，并根据 is_completions 参数来判断是否增加或减少 chat_visits_number 的值。'''
     global chat_visits_number
     global chat_visits_number_max
     logger.info(f"当前 chat_visits_number: {chat_visits_number},{is_completions}")
