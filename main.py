@@ -1,3 +1,7 @@
+import os
+# 保证启动的时候 不会报显卡数量不一致的错误
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4'
+
 import asyncio
 import importlib
 import inspect

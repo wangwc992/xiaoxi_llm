@@ -48,16 +48,16 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     message_list = [{"role": message.type, "content": message.content} for message in chat_message_history.messages]
     logger.info(f"message_list: {message_list}")
 
-    # reference_data_dict = await load_reference_data(request.query, 10)
+    reference_data_dict = await load_reference_data(request.query, 10)
     #
-    reference_data = 'reference_data_dict.get("reference_data")'
-    knowledge_link = 'reference_data_dict.get("knowledge_link")'
+    reference_data = reference_data_dict.get("reference_data")
+    knowledge_link = reference_data_dict.get("knowledge_link")
     #
-    # base_dir = os.path.dirname(os.path.abspath(__file__))
-    # file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
-    # template = PromptTemplate.from_file(file_path)
-    # prompt = template.format(input=request.query, reference_data=reference_data)
-    # message_list[-1]['content'] = prompt
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
+    template = PromptTemplate.from_file(file_path)
+    prompt = template.format(input=request.query, reference_data=reference_data)
+    message_list[-1]['content'] = prompt
 
     stream_options = StreamOptions(include_usage=True) if request.stream else None
 
@@ -77,7 +77,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             media_type="text/event-stream"
         )
     else:
-        message_dict = await extract_message(result)
+        message_dict = await extract_message(result,raw_request)
         background_tasks.add_task(process_after_response, message_dict, chat_message_history, chat_message_history_key,
                                   member_id, message_list, start_time)
 
@@ -128,11 +128,13 @@ async def stream_response(result, chat_message_history, chat_message_history_key
                                  start_time)
 
 
-async def extract_message(result):
+async def extract_message(result,raw_request):
     output = ''
     usage = None
     logger.info(f"result:{result}，type:{type(result)}")
     if isinstance(result, JSONResponse):
+        if raw_request.is_disconnected():
+            logger.info("************************************,输出已经断开")
         logger.info("非流式输出")
         result_body = result.body
         result_content = json.loads(result_body.decode('utf-8'))
