@@ -198,6 +198,7 @@ async def build_server(
         prompt_adapters=args.prompt_adapters,
         request_logger=request_logger,
         chat_template=args.chat_template,
+        return_tokens_as_token_ids=False,
     )
     openai_serving_completion = OpenAIServingCompletion(
         engine,
