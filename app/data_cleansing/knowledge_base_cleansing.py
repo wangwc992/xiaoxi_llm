@@ -61,6 +61,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         #     if file_content:
         #         content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
+        content = HtmlUtils.replace_link_with_url(content)
         if knowledge_info.get("type") == 1:
             name = knowledge_info.get("name")
         else:
@@ -118,7 +119,8 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
         # if notice_massage.get('attachment_url'):
         #     file_info = FileToText.urlToText(notice_massage.get('attachment_url'))
         #     pass
-        output = f"""以下是资讯正文：{notice_massage.get('notice_summary', '')}\n 
+        content = HtmlUtils.replace_link_with_url(notice_massage.get('notice_summary', ''))
+        output = f"""以下是资讯正文：{content}\n 
         以下是资讯附件：{notice_massage.get('attachment_name', '')}\n  {file_info}\n
         以下是资料正文中附件{notice_massage.get('notice_title', '')}。"""
 
