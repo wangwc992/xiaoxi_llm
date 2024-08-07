@@ -73,11 +73,11 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
             stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list,
-                            start_time, knowledge_link,raw_request),
+                            start_time, knowledge_link),
             media_type="text/event-stream"
         )
     else:
-        message_dict = await extract_message(result,raw_request)
+        message_dict = await extract_message(result)
         background_tasks.add_task(process_after_response, message_dict, chat_message_history, chat_message_history_key,
                                   member_id, message_list, start_time)
 
@@ -91,7 +91,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
 
 async def stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list, start_time,
-                          knowledge_link,raw_request):
+                          knowledge_link):
     output = ''
     usage = None
     first_chunk = True
@@ -117,36 +117,36 @@ async def stream_response(result, chat_message_history, chat_message_history_key
                 if usage_or:
                     usage = ModelUsage(input=usage_or['prompt_tokens'], output=usage_or['completion_tokens'],
                                        total=usage_or['total_tokens'], unit='TOKENS')
-                    logger.info(f"usage: {usage}")
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
     message_dict = {"output": output, "usage": usage}
+    logger.info(f"message_dict: {message_dict}")
     await process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id, message_list,
                                  start_time)
 
 
-async def extract_message(result,raw_request):
+async def extract_message(result):
     output = ''
     usage = None
     logger.info(f"result:{result}，type:{type(result)}")
     if isinstance(result, JSONResponse):
         logger.info("非流式输出")
-        result_body = result.body
-        result_content = json.loads(result_body.decode('utf-8'))
-        logger.info(f"result_content: {result_content}")
-        output += result_content['choices'][0]['message']['content']
-        usage_or = result_content.get('usage')
-        if usage_or:
-            usage = ModelUsage(input=usage_or['prompt_tokens'], output=usage_or['completion_tokens'],
-                               total=usage_or['total_tokens'], unit='TOKENS')
-            logger.info(f"usage: {usage}")
+        result_body = result.body.decode('utf-8')
+        result_content = json.loads(result_body)
+        if result_content.get('object') == 'error':
+            output = result_body
+        else:
+            output += result_content['choices'][0]['message']['content']
+            usage_or = result_content.get('usage')
+            if usage_or:
+                usage = ModelUsage(input=usage_or['prompt_tokens'], output=usage_or['completion_tokens'],
+                                   total=usage_or['total_tokens'], unit='TOKENS')
     return {"output": output, "usage": usage}
 
 
 async def process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id, message_list,
                                  start_time):
-    logger.info(f"message_dict: {message_dict}")
     end_time = datetime.now()
     torch.cuda.empty_cache()
     # TODO
@@ -181,5 +181,3 @@ async def save_langfuse(member_id, message_list, output, usage, start_time, end_
                                                 input=message_list, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
-
-
