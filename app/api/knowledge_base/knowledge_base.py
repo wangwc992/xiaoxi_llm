@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 @router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request,background_tasks: BackgroundTasks):
-    if await get_chat_visits_number(is_completions=True):
+    if get_chat_visits_number(is_completions=True):
         result = '''data: {"choices": [
             {
                 "index": 0,
