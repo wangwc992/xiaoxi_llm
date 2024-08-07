@@ -10,9 +10,11 @@ from langchain_core.prompts import PromptTemplate
 from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel
+from weaviate.classes.query import Filter
 
 from app.api.openai.api_server import create_chat_completion
 from app.common.utils.logging import get_logger
+from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from langchain_community.chat_message_histories import ChatMessageHistory
@@ -156,7 +158,14 @@ async def process_after_response(message_dict, chat_message_history, chat_messag
 
 
 async def load_reference_data(query, limit):
-    response_list = await knowledge_base_weaviate.search_hybrid(query, limit)
+    # 匹配关键字使用特定知识库
+    filters = None
+    for key, values in ai_knowledge_base_keyword_dict.items():
+        if any(v in query for v in values):
+            filters = Filter.by_property("database").equal(key)
+            break
+
+    response_list = await knowledge_base_weaviate.search_hybrid(query, limit,filters)
     logger.info(f"weaviate 查询结果 response_list: {response_list}")
     reference_data = "\n\n".join([
         f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"

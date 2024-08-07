@@ -87,6 +87,7 @@ def search_hybrid(query, limit):
         query=query,
         fusion_type=HybridFusion.RELATIVE_SCORE,
         query_properties=["instruction"],
+        filters=Filter.by_property("database").equal("notice_message"),
         vector=Embedding.embed_query(query),
         return_metadata=MetadataQuery(score=True, explain_score=True),
         limit=limit,
