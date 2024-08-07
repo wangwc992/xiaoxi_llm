@@ -14,7 +14,7 @@ chat_visits_number = 0
 chat_visits_number_max = 30
 
 
-def get_chat_visits_number(is_completions: bool = False) -> bool:
+async def get_chat_visits_number(is_completions: bool = False) -> bool:
     global chat_visits_number
     global chat_visits_number_max
     logger.info(f"当前 chat_visits_number: {chat_visits_number},{is_completions}")
