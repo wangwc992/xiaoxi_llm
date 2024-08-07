@@ -1,4 +1,7 @@
 import os
+
+from app.data.dictionaries import sensitive_words
+
 # 保证启动的时候 不会报显卡数量不一致的错误
 os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4'
 
@@ -78,6 +81,24 @@ def build_app(args, **uvicorn_kwargs):
         # err = openai_serving_chat.create_error_response(message=str(exc))
         # return JSONResponse(err.model_dump(),
         #                     status_code=HTTPStatus.BAD_REQUEST)
+
+    @app.middleware("http")
+    async def sensitive_word_filter(request: Request, call_next):
+        # 获取请求的body内容
+        body = await request.body()
+        body_text = body.decode("utf-8")
+
+        # 检查是否包含敏感词
+        for word in sensitive_words:
+            if word in body_text:
+                return JSONResponse(
+                    content={"error": "Request contains sensitive words"},
+                    status_code=400
+                )
+
+        # 如果不包含敏感词，继续处理请求
+        response = await call_next(request)
+        return response
 
     if token := envs.VLLM_API_KEY or args.api_key:
 

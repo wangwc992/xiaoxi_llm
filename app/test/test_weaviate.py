@@ -122,6 +122,6 @@ if __name__ == "__main__":
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
 
-    search_hybrid("墨尔本大学 怎么样", 10)
+    # search_hybrid("墨尔本大学 怎么样", 10)
     # fetch_objects()
     pass
