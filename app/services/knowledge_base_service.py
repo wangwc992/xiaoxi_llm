@@ -73,7 +73,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
             stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list,
-                            start_time, knowledge_link),
+                            start_time, knowledge_link,raw_request),
             media_type="text/event-stream"
         )
     else:
@@ -92,11 +92,14 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
 
 async def stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list, start_time,
-                          knowledge_link):
+                          knowledge_link,raw_request):
     output = ''
     usage = None
     first_chunk = True
     async for chunk in result.body_iterator:
+        if isinstance(result, JSONResponse):
+            if raw_request.is_disconnected():
+                logger.info("************************************,输出已经断开")
         logger.info(f"chunk: {chunk}")
         if first_chunk:
             chunk = chunk.replace('"role":"1"', f'"role":"1","content":{json.dumps(knowledge_link)}')
