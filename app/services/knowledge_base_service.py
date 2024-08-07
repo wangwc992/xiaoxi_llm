@@ -97,9 +97,7 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     usage = None
     first_chunk = True
     async for chunk in result.body_iterator:
-        if raw_request is not None and await raw_request.is_disconnected():
-            logger.info("************************************,输出已经断开")
-        logger.info(f"chunk: {chunk}")
+        # logger.info(f"chunk: {chunk}")
         if first_chunk:
             chunk = chunk.replace('"role":"1"', f'"role":"1","content":{json.dumps(knowledge_link)}')
         yield chunk
@@ -135,8 +133,6 @@ async def extract_message(result,raw_request):
     usage = None
     logger.info(f"result:{result}，type:{type(result)}")
     if isinstance(result, JSONResponse):
-        if raw_request.is_disconnected():
-            logger.info("************************************,输出已经断开")
         logger.info("非流式输出")
         result_body = result.body
         result_content = json.loads(result_body.decode('utf-8'))

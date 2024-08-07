@@ -228,7 +228,6 @@ class OpenAIServingChat(OpenAIServing):
 
         try:
             async for res in result_generator:
-                print('*' * 20, raw_request.is_disconnected())
                 # We need to do it here, because if there are exceptions in
                 # the result_generator, it needs to be sent as the FIRST
                 # response (by the try...catch).
