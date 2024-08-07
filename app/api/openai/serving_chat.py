@@ -40,16 +40,16 @@ logger = init_logger(__name__)
 class OpenAIServingChat(OpenAIServing):
 
     def __init__(
-        self,
-        engine: AsyncLLMEngine,
-        model_config: ModelConfig,
-        served_model_names: List[str],
-        response_role: str,
-        *,
-        lora_modules: Optional[List[LoRAModulePath]],
-        prompt_adapters: Optional[List[PromptAdapterPath]],
-        request_logger: Optional[RequestLogger],
-        chat_template: Optional[str],
+            self,
+            engine: AsyncLLMEngine,
+            model_config: ModelConfig,
+            served_model_names: List[str],
+            response_role: str,
+            *,
+            lora_modules: Optional[List[LoRAModulePath]],
+            prompt_adapters: Optional[List[PromptAdapterPath]],
+            request_logger: Optional[RequestLogger],
+            chat_template: Optional[str],
     ):
         print("自定义 OpenAIServingChat************")
         super().__init__(engine=engine,
@@ -65,11 +65,11 @@ class OpenAIServingChat(OpenAIServing):
         self.chat_template = load_chat_template(chat_template)
 
     async def create_chat_completion(
-        self,
-        request: ChatCompletionRequest,
-        raw_request: Optional[Request] = None
+            self,
+            request: ChatCompletionRequest,
+            raw_request: Optional[Request] = None
     ) -> Union[ErrorResponse, AsyncGenerator[str, None],
-               ChatCompletionResponse]:
+    ChatCompletionResponse]:
         """Completion API similar to OpenAI's API.
 
         See https://platform.openai.com/docs/api-reference/chat/create
@@ -136,7 +136,7 @@ class OpenAIServingChat(OpenAIServing):
             sampling_params = request.to_sampling_params()
             decoding_config = await self.engine.get_decoding_config()
             guided_decoding_backend = request.guided_decoding_backend \
-                or decoding_config.guided_decoding_backend
+                                      or decoding_config.guided_decoding_backend
             guided_decode_logits_processor = (
                 await
                 get_guided_decoding_logits_processor(guided_decoding_backend,
@@ -190,7 +190,7 @@ class OpenAIServingChat(OpenAIServing):
         # Streaming response
         if request.stream:
             return self.chat_completion_stream_generator(
-                request, result_generator, request_id, conversation, tokenizer)
+                request, result_generator, request_id, conversation, tokenizer, raw_request)
         else:
             try:
                 return await self.chat_completion_full_generator(
@@ -207,12 +207,13 @@ class OpenAIServingChat(OpenAIServing):
             return request.messages[-1]["role"]
 
     async def chat_completion_stream_generator(
-        self,
-        request: ChatCompletionRequest,
-        result_generator: AsyncIterator[RequestOutput],
-        request_id: str,
-        conversation: List[ConversationMessage],
-        tokenizer: PreTrainedTokenizer,
+            self,
+            request: ChatCompletionRequest,
+            result_generator: AsyncIterator[RequestOutput],
+            request_id: str,
+            conversation: List[ConversationMessage],
+            tokenizer: PreTrainedTokenizer,
+            raw_request
     ) -> AsyncGenerator[str, None]:
         model_name = self.served_model_names[0]
         created_time = int(time.time())
@@ -227,6 +228,7 @@ class OpenAIServingChat(OpenAIServing):
 
         try:
             async for res in result_generator:
+                print('*' * 20, raw_request.is_disconnected())
                 # We need to do it here, because if there are exceptions in
                 # the result_generator, it needs to be sent as the FIRST
                 # response (by the try...catch).
@@ -258,7 +260,7 @@ class OpenAIServingChat(OpenAIServing):
                         last_msg_content = ""
                         if conversation and conversation[-1].get(
                                 "content") and conversation[-1].get(
-                                    "role") == role:
+                            "role") == role:
                             last_msg_content = conversation[-1]["content"]
 
                         if last_msg_content:
@@ -292,7 +294,7 @@ class OpenAIServingChat(OpenAIServing):
 
                     delta_token_ids = output.token_ids[previous_num_tokens[i]:]
                     out_logprobs = output.logprobs[
-                        previous_num_tokens[i]:] if output.logprobs else None
+                                   previous_num_tokens[i]:] if output.logprobs else None
 
                     if request.logprobs and request.top_logprobs is not None:
                         assert out_logprobs is not None, (
@@ -389,13 +391,13 @@ class OpenAIServingChat(OpenAIServing):
         yield "data: [DONE]\n\n"
 
     async def chat_completion_full_generator(
-        self,
-        request: ChatCompletionRequest,
-        raw_request: Optional[Request],
-        result_generator: AsyncIterator[RequestOutput],
-        request_id: str,
-        conversation: List[ConversationMessage],
-        tokenizer: PreTrainedTokenizer,
+            self,
+            request: ChatCompletionRequest,
+            raw_request: Optional[Request],
+            result_generator: AsyncIterator[RequestOutput],
+            request_id: str,
+            conversation: List[ConversationMessage],
+            tokenizer: PreTrainedTokenizer,
     ) -> Union[ErrorResponse, ChatCompletionResponse]:
 
         model_name = self.served_model_names[0]
@@ -492,11 +494,11 @@ class OpenAIServingChat(OpenAIServing):
         ]
 
     def _create_chat_logprobs(
-        self,
-        token_ids: GenericSequence[int],
-        top_logprobs: GenericSequence[Optional[Dict[int, Logprob]]],
-        tokenizer: PreTrainedTokenizer,
-        num_output_top_logprobs: Optional[int] = None,
+            self,
+            token_ids: GenericSequence[int],
+            top_logprobs: GenericSequence[Optional[Dict[int, Logprob]]],
+            tokenizer: PreTrainedTokenizer,
+            num_output_top_logprobs: Optional[int] = None,
     ) -> ChatCompletionLogProbs:
         """Create OpenAI-style logprobs."""
 
