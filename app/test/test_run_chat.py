@@ -66,7 +66,7 @@ def send_request():
 
     conn = http.client.HTTPSConnection("u430182-ac52-9e557856.cqa1.seetacloud.com")
     payload = json.dumps({
-        "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
+        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
         "query": random_question,
         "stream": False
     })
@@ -93,7 +93,7 @@ def send_request():
 def periodic_request():
     while True:
         # 随机生成1到10个线程
-        num_requests = random.randint(1, 10)
+        num_requests = random.randint(1, 40)
         threads = []
         for _ in range(num_requests):
             thread = threading.Thread(target=send_request)
@@ -105,7 +105,7 @@ def periodic_request():
             thread.join()
 
         # 随机等待 5 到 10 秒
-        time.sleep(random.randint(5, 10))
+        time.sleep(random.randint(20, 30))
 
 
 # 启动定时请求
