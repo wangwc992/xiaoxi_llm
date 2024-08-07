@@ -97,9 +97,8 @@ async def stream_response(result, chat_message_history, chat_message_history_key
     usage = None
     first_chunk = True
     async for chunk in result.body_iterator:
-        if isinstance(result, JSONResponse):
-            if raw_request.is_disconnected():
-                logger.info("************************************,输出已经断开")
+        if raw_request.is_disconnected():
+            logger.info("************************************,输出已经断开")
         logger.info(f"chunk: {chunk}")
         if first_chunk:
             chunk = chunk.replace('"role":"1"', f'"role":"1","content":{json.dumps(knowledge_link)}')
