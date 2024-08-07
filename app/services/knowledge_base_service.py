@@ -87,7 +87,6 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         result = JSONResponse(content=response_dict)
 
         logger.info(f"message_dict: {response_dict}: {type(result)}")
-        await get_chat_visits_number(is_completions=False)
         return result
 
 
@@ -119,7 +118,6 @@ async def stream_response(result, chat_message_history, chat_message_history_key
                     usage = ModelUsage(input=usage_or['prompt_tokens'], output=usage_or['completion_tokens'],
                                        total=usage_or['total_tokens'], unit='TOKENS')
                     logger.info(f"usage: {usage}")
-                await get_chat_visits_number(is_completions=False)
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
@@ -185,21 +183,3 @@ async def save_langfuse(member_id, message_list, output, usage, start_time, end_
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
 
 
-lock = asyncio.Lock()
-chat_visits_number = 0
-chat_visits_number_max = 30
-
-
-async def get_chat_visits_number(is_completions: bool = False) -> bool:
-    global chat_visits_number
-    global chat_visits_number_max
-    logger.info(f"当前 chat_visits_number: {chat_visits_number},{is_completions}")
-    async with lock:
-        if is_completions:
-            if chat_visits_number >= chat_visits_number_max:
-                logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
-                return True
-            chat_visits_number += 1
-        else:
-            chat_visits_number -= 1
-    return False
