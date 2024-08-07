@@ -51,6 +51,7 @@ class OpenAIServingChat(OpenAIServing):
         request_logger: Optional[RequestLogger],
         chat_template: Optional[str],
     ):
+        print("自定义 OpenAIServingChat************")
         super().__init__(engine=engine,
                          model_config=model_config,
                          served_model_names=served_model_names,
