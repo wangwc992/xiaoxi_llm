@@ -6,6 +6,7 @@ from weaviate.proto.v1.base_pb2 import Filters
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
+from app.data_cleansing.knowledge_base_cleansing import create_collection_name, delete_collection_name
 from app.database.weaviate.knowledge_base import KnowledgeBaseModel
 
 logger = get_logger(__name__)
@@ -15,12 +16,16 @@ collection = client.collections.get(collections_name)
 
 
 def delete_many():
-    result = collection.data.delete_many(
-        where=Filter.by_property("database").like("*"),
-        # dry_run=True,
-        # verbose=True
-    )
-    logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
+    while True:
+        result = collection.data.delete_many(
+            where=Filter.by_property("database").like("*"),
+            # dry_run=True,
+            # verbose=True
+        )
+        logger.info(f" result: {result}")
+
+        if result.matches < 10000:
+            break
 
 
 query_bm25_database = 't_knowledge_info'
@@ -31,7 +36,7 @@ def query_bm25(query_bm25: str):
         query=query_bm25,
         query_properties=["database"],
         return_metadata=MetadataQuery(score=True),
-        limit=3
+        limit=2
     )
 
     for o in response.objects:
@@ -46,7 +51,7 @@ def clear_all_data(database: str):
     '''清空Weaviate数据库中的所有数据'''
     while True:
         filters = (
-               Filter.by_property("database").equal("t_knowledge_info")
+            Filter.by_property("database").equal("t_knowledge_info")
         )
         result = collection.data.delete_many(
             where=filters,
@@ -113,9 +118,11 @@ def fetch_objects():
 
 if __name__ == "__main__":
     # delete_many()
+    # delete_collection_name()
+    # create_collection_name()
     #
-    # query_bm25(query_bm25_database)
-    #
+    query_bm25(query_bm25_database)
+
     # clear_all_data(database)
     # query_bm25(query_bm25_database)
 

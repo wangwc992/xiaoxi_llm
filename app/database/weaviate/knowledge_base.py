@@ -26,7 +26,7 @@ class KnowledgeBaseModel(BaseModel):
 
 
 class KnowledgeBaseWeaviate(WeaviateClient):
-    collections_name = "qwen_data_base"
+    collections_name = "Qwen_data_base"
     properties = [
         Property(name='database', data_type=DataType.TEXT, description='数据库'),
         Property(name='db_id', data_type=DataType.TEXT, description='数据库的id'),

@@ -79,9 +79,8 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
             "database": database,
             "db_id": db_id,
             "instruction": instruction,
-            "input": "",
             "output": output,
-            "keyword": f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}',
+            "input": "",
             "file_info": file_content,
             "link": link
         })
@@ -893,18 +892,18 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
 
 if __name__ == '__main__':
     manner_execution = {
-        "method_name": "clear_all_data",
-        "datasets": "zn_school_department_project_01",
-        "limit": 300,
-        "start_id": 212513,
-        "is_while": True,
-        "uuid": "123e4567-e89b-12d3-a456-426614174000",
-        "query": "SELECT * FROM knowledge_info",
-        "properties": {
-            "key1": "value1",
-            "key2": "value2"
-        },
-        "frequency": -1
-    }
+  "method_name": "insert_t_knowledge_info_data",
+  "datasets": "knowledge_info",
+  "limit": 2,
+  "start_id": 0,
+  "is_while": True,
+  "uuid": "123e4567-e89b-12d3-a456-426614174000",
+  "query": "SELECT * FROM knowledge_info",
+  "properties": {
+    "key1": "value1",
+    "key2": "value2"
+  },
+  "frequency": 1
+}
     manner_execution = MannerExecution(**manner_execution)
     asyncio.run(cleansing_manner_execution(manner_execution))

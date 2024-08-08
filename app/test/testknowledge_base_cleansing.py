@@ -3,8 +3,8 @@ import os
 import pandas as pd
 
 from app.common.core.langchain_client import Embedding
+from app.common.utils.html_util import HtmlUtils
 from app.common.utils.object_utils import ObjectFormatter
-from app.data_cleansing.knowledge_base_cleansing import file_to_text
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_school_info_basic_data, \
     search_school_info_ranking_data, search_zn_school_recruit_art, search_knowledge_info_data, \
     search_notice_message_data
@@ -215,36 +215,44 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 100):
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
     database = "t_knowledge_info"
-    knowledge_info_dict_list = search_knowledge_info_data(id=50, limit=limit)
+    knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
     if not knowledge_info_dict_list:
-        # logger.info(f"{database}知识库数据已全部洗入")
+        logger.info(f"{database}知识库数据已全部洗入")
         # 抛出异常，终止程序
         raise Exception(f"{database}知识库数据已全部洗入")
     knowledge_base_model = []
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
-        if knowledge_info.get("fileurl"):
-            print(knowledge_info["fileurl"])
-            content += file_to_text.urlToText(knowledge_info["fileurl"])
+        file_content = ""
+        # if knowledge_info.get("fileurl"):
+        #     file_content = urlToText(knowledge_info["fileurl"])
+        #     filename = knowledge_info.get("filename", "")
+        #     if file_content:
+        #         content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
+
+        content = HtmlUtils.replace_link_with_url(content)
         if knowledge_info.get("type") == 1:
             name = knowledge_info.get("name")
         else:
             name = knowledge_info.get("filename")
+
+        if knowledge_info.get("type") == 1:
+            url = f'{{"object":"json","type": 1,"title":"{name}","id":"{knowledge_info["id"]}"}}'
+        else:
+            url = f'{{"object":"json","type": 2,"title":"{name}","id":"{knowledge_info["id"]}"}}'
+
         db_id = str(knowledge_info["id"])
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
         output = f'{knowledge_info["founder"]}于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
-        link = {"url": f'https://knowledge.xiaoxiedu.com/details/filedetails?id={db_id}',
-                "title": name}
+        link = url
 
         knowledge_base_model.append({
             "database": database,
             "db_id": db_id,
             "instruction": instruction,
-            "input": "",
             "output": output,
-            "keyword": f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}',
-            "file_info": "",
-            "url": link
+            "file_info": file_content,
+            "link": link
         })
     print(knowledge_base_model)
 
@@ -297,4 +305,4 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
     print(knowledge_base_model)
 if __name__ == '__main__':
     # insert_college_library02_data()
-    insert_institution_information_data(start_id=0,limit=1000)
+    insert_t_knowledge_info_data(start_id=0,limit=1000)
