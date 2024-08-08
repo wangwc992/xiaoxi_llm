@@ -65,18 +65,15 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         else:
             name = knowledge_info.get("filename")
 
-        cjwt = 'https://knowledge.xiaoxiedu.com/details/questiondetails?id='
-        wjfx = 'https://knowledge.xiaoxiedu.com/details/filedetails?id='
         if knowledge_info.get("type") == 1:
-            url = cjwt + str(knowledge_info["id"])
+            url = f'{{"object":"json","type": 1,"title":"{name}","id":"{knowledge_info["id"]}"}}'
         else:
-            url = wjfx + str(knowledge_info["id"])
+            url = f'{{"object":"json","type": 2,"title":"{name}","id":"{knowledge_info["id"]}"}}'
 
         db_id = str(knowledge_info["id"])
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
         output = f'{knowledge_info["founder"]}于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
-        link = {"url": url,
-                "title": name}
+        link = url
 
         knowledge_base_model.append({
             "database": database,
