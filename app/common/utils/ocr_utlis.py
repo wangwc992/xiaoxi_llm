@@ -86,7 +86,7 @@ def pdfToString(file_path):
 
 
 def urlToText(url):
-    file_path = download_file(url, "D:\Downloads\downloads")
+    file_path = download_file(url, "downloads")
     fileType = get_file_extension(file_path)
     text = fileToString(file_path, fileType)
     # 删除临时文件
