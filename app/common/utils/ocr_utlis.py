@@ -1,6 +1,4 @@
-import pytesseract
 import openpyxl
-from PIL import Image, ImageOps, ImageEnhance
 import fitz
 from docx import Document
 
@@ -27,7 +25,7 @@ def fileToString(file_path, file_type=None):
         text = xlsToString(file_path)
     else:
         text = ""
-    return text
+    return text.strip()
 
 
 def docToString(file_obj):
@@ -38,21 +36,24 @@ def docToString(file_obj):
             text += paragraph.text + "\n"
     except Exception as e:
         print("Error:", e)
-    return text
+    return text.strip()
 
 
 def xlsToString(file_obj):
-    text = ""
+    result_text = ""
     try:
         wb = openpyxl.load_workbook(file_obj, data_only=True)
         for sheet_name in wb.sheetnames:
             sheet = wb[sheet_name]
-            text += f"Sheet: {sheet_name}"
+            result_text += f"Sheet: {sheet_name}"
             merged_cells = sheet.merged_cells.ranges  # Get merged cell ranges
             for row in sheet.iter_rows():
+                text = ""
                 for cell in row:
                     if cell is not None and cell.value is not None:
-                        text += str(cell.value)
+                        text = str(cell.value).replace("None", "").strip()
+                        if text:
+                            result_text += text + " "
                     else:
                         # Check if the cell is part of a merged cell range
                         for merged_range in merged_cells:
@@ -60,12 +61,15 @@ def xlsToString(file_obj):
                                                                column=cell.column).coordinate in merged_range:
                                 # Get the value of the top-left cell of the merged range
                                 top_left_cell = sheet.cell(row=merged_range.min_row, column=merged_range.min_col)
-                                text += str(top_left_cell.value)
+                                text = str(top_left_cell.value).replace("None", "").strip()
+                                if text:
+                                    result_text += text + " "
                                 break
-                text += "\n"
+                if text:
+                    result_text += "\n"
     except Exception as e:
         print("Error:", e)
-    return text
+    return result_text.strip()
 
 
 def pdfToString(file_path):
@@ -82,7 +86,7 @@ def pdfToString(file_path):
             text += page_text
         else:
             text = process_pdf(file_path)
-    return text
+    return text.strip()
 
 
 def urlToText(url):

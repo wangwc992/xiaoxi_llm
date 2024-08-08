@@ -39,4 +39,4 @@ def process_pdf(pdf_path):
             continue
         for line in res:
             text += line[1][0] + ' '
-    return text
+    return text.strip()
