@@ -41,10 +41,7 @@ class JiebaTool:
         with self.lock:
             self.initialize()
             words = jieba.cut_for_search(text)
-            for word in words:
-                if word.strip() not in self.stopwords:
-                    print(word)
-            return [word for word in words if word not in self.stopwords]
+            return [word for word in words if word not in self.stopwords and len(word) > 1]
 
     def lcut_for_search(self, text):
         with self.lock:

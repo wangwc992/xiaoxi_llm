@@ -6,6 +6,7 @@ from weaviate.collections.classes.config import Configure
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from weaviate.embedded import EmbeddedOptions
 from app.common.core.config import settings
+from app.common.utils.jieba_utils import jieba_tool
 from app.common.utils.logging import get_logger
 
 # Load environment variables from .env file
@@ -98,6 +99,8 @@ class WeaviateClient:
         uuid_list = []
         with self.collection.batch.dynamic() as batch:
             for properties in properties_list:
+                keyword = jieba_tool.cut_for_search(properties["instruction"])
+                properties["keyword"] = ' '.join(keyword)
                 uuid = batch.add_object(properties=properties, vector=vecs.pop(0))  # 从vecs中取出一个向量
                 uuid_list.append(uuid)
         return uuid_list

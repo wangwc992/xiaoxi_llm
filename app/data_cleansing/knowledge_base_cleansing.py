@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
+from app.common.utils.ocr_utlis import urlToText
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_knowledge_info_data,
                                                                      search_notice_message_data,
                                                                      search_school_info_basic_data,
@@ -51,13 +52,12 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = []
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
-        # if knowledge_info.get("fileurl"):
-        #     logger.info(f"文件路径：{knowledge_info['fileurl']}")
-        #     file_content = file_to_text.urlToText(knowledge_info["fileurl"])
-        #     logger.info(f"文件内容：{file_content}")
-        #     filename = knowledge_info.get("filename", "")
-        #     if file_content:
-        #         content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
+        file_content = ""
+        if knowledge_info.get("fileurl"):
+            file_content = urlToText(knowledge_info["fileurl"])
+            filename = knowledge_info.get("filename", "")
+            if file_content:
+                content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
         content = HtmlUtils.replace_link_with_url(content)
         if knowledge_info.get("type") == 1:
@@ -65,10 +65,17 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         else:
             name = knowledge_info.get("filename")
 
+        cjwt = 'https://knowledge.xiaoxiedu.com/details/questiondetails?id='
+        wjfx = 'https://knowledge.xiaoxiedu.com/details/filedetails?id='
+        if knowledge_info.get("type") == 1:
+            url = cjwt + str(knowledge_info["id"])
+        else:
+            url = wjfx + str(knowledge_info["id"])
+
         db_id = str(knowledge_info["id"])
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
         output = f'{knowledge_info["founder"]}于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
-        link = {"url": f'https://knowledge.xiaoxiedu.com/details/filedetails?id={db_id}',
+        link = {"url": url,
                 "title": name}
 
         knowledge_base_model.append({
@@ -78,7 +85,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
             "input": "",
             "output": output,
             "keyword": f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}',
-            "file_info": "",
+            "file_info": file_content,
             "link": link
         })
 
@@ -156,10 +163,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
         "database": datasets,
         "db_id": str(i),
         "instruction": info.get('instruction'),
-        "input": "",
         "output": info.get('output'),
-        "keyword": "",
-        "file_info": "",
     } for i, info in enumerate(data)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -193,10 +197,7 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的基本信息",
-        "input": "",
         "output": dict_list02[i].get("key_value"),
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list01)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -227,10 +228,7 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校排名",
-        "input": "",
         "output": dict_list02[i].get("key_value"),
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list01)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -265,10 +263,7 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校更多信息",
-        "input": "",
         "output": dict_list02[i].get("key_value"),
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list01)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -300,10 +295,7 @@ def insert_college_library04_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校择校理由",
-        "input": "",
         "output": dict_list02[i].get("key_value"),
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list01)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -351,10 +343,7 @@ def insert_college_library05_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的本科生院校招生信息",
-        "input": "",
         "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list01)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -403,10 +392,7 @@ def insert_college_library06_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的研究生生院校招生信息",
-        "input": "",
         "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list01)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -459,10 +445,7 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的艺术生院校招生信息",
-        "input": "",
         "output": f"""{title01}: {dict_list01[i].get("key_value")}\n{title02}: {dict_list02[i].get("key_value")}\n{title03}: {dict_list03[i].get("key_value")}\n{title04}: {dict_list04[i].get("key_value")}""",
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list01)]
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -538,10 +521,7 @@ def insert_major_library_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": dict_list00[i].get('key_value') + "信息资料如下",
-        "input": "",
         "output": f"""{title01}: {dict_list01[i].get('key_value')}\n{title02}: {dict_list02[i].get('key_value')}\n{title03}: {dict_list03[i].get('key_value')}\n{title04}: {dict_list04[i].get('key_value')}\n{title05}: {dict_list05[i].get('key_value')}\n{title06}: {dict_list06[i].get('key_value')}""",
-        "keyword": "",
-        "file_info": "",
     } for i, dict in enumerate(dict_list00)]
     insert_weaviate_data_all(knowledge_base_model)
 
@@ -779,10 +759,7 @@ def insert_major_library06_data(start_id: int = 0, limit: int = 10):
         "database": database,
         "db_id": dict.get('db_id'),
         "instruction": f"{dict.get('key_value')} 的其它申请要求",
-        "input": "",
         "output": dict.get('key_value'),
-        "keyword": dict.get('key_value'),
-        "file_info": "",
     } for dict in dict_list]
 
     insert_weaviate_data_all(knowledge_base_model)
