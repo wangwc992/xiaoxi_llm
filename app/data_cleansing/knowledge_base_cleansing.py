@@ -26,10 +26,8 @@ from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_know
                                                                      search_zn_school_department_project)
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
-from app.common.utils.FileToText import FileToText
 
 logger = get_logger(__name__)
-file_to_text = FileToText()
 
 
 def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):

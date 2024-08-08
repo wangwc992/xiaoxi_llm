@@ -1,6 +1,5 @@
 import concurrent.futures
 
-from app.common.utils.FileToText import FileToText
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
     search_notice_message_data
 from app.database.mysql.mysql_client import yhj
@@ -63,7 +62,7 @@ def knowledge_info():
 def knowledge_info_fjtq():
     def process_record(knowledge_info):
         try:
-            file_info = FileToText.urlToText(knowledge_info.get('fileurl'))
+            file_info = ""
             knowledge_info['attachment_content'] = file_info
             # Update the record in the database
             update_query = "UPDATE weaviate_knowledge_info SET attachment_content = %s WHERE id = %s"
