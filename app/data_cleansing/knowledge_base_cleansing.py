@@ -80,8 +80,6 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
             "db_id": db_id,
             "instruction": instruction,
             "output": output,
-            "input": "",
-            "file_info": file_content,
             "link": link
         })
 
