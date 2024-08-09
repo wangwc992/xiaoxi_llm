@@ -36,7 +36,7 @@ def query_bm25(query_bm25: str):
         query=query_bm25,
         query_properties=["database"],
         return_metadata=MetadataQuery(score=True),
-        limit=2
+        limit=10
     )
 
     for o in response.objects:
@@ -123,8 +123,8 @@ if __name__ == "__main__":
     #
     query_bm25(query_bm25_database)
 
-    # clear_all_data(database)
-    # query_bm25(query_bm25_database)
+    clear_all_data(database)
+    query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)

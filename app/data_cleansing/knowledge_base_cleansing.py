@@ -60,12 +60,13 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
                 content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
         content = HtmlUtils.replace_link_with_url(content)
-        name = knowledge_info.get("name") if knowledge_info.get("type") == 1 else knowledge_info.get("filename")
-
-        url = {"object": "json", "type": 1 if knowledge_info.get("type") == 1 else 2, "title": name,
-               "id": knowledge_info["id"]}
 
         db_id = str(knowledge_info["id"])
+
+        type = "1" if knowledge_info.get("type") == 1 else "2"
+        name = knowledge_info.get("name" if type == "1" else "filename")
+
+        url = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id}}}'
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
         output = f'{knowledge_info["founder"]}于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
         link = url
@@ -75,7 +76,10 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
             "db_id": db_id,
             "instruction": instruction,
             "output": output,
-            "link": link
+            "link": link,
+            # "keyword": "",
+            # "file_info": file_content,
+            # "input": "",
         })
 
     insert_weaviate_data_all(knowledge_base_model)
@@ -887,7 +891,7 @@ if __name__ == '__main__':
     manner_execution = {
         "method_name": "insert_t_knowledge_info_data",
         "datasets": "knowledge_info",
-        "limit": 2,
+        "limit": 5,
         "start_id": 0,
         "is_while": True,
         "uuid": "123e4567-e89b-12d3-a456-426614174000",
