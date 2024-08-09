@@ -1,5 +1,6 @@
 import concurrent.futures
 
+from app.common.utils.ocr_utlis import urlToText
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
     search_notice_message_data
 from app.database.mysql.mysql_client import yhj, MySQLConnect
@@ -63,12 +64,10 @@ def knowledge_info_fjtq():
     def process_record(knowledge_info):
         try:
             yhj1 = MySQLConnect("yhj")
-            file_info = ""
-            knowledge_info['attachment_content'] = file_info
-            # Update the record in the database
+            file_info = urlToText(knowledge_info["attachment_url"])
             update_query = "UPDATE weaviate_knowledge_info SET attachment_content = %s WHERE id = %s"
             yhj1.execute(update_query, (file_info, knowledge_info.get('id')))
-            print(f"Updated record with id {knowledge_info.get('id')}.")
+            yhj1.close()
         except Exception as e:
             print(f"Failed to process record with id {knowledge_info.get('id')}: {e}")
 
@@ -156,6 +155,6 @@ def notice_message():
 
 if __name__ == '__main__':
     # knowledge_info()
-    # notice_message()
-    knowledge_info_fjtq()
+    notice_message()
+    # knowledge_info_fjtq()
     pass
