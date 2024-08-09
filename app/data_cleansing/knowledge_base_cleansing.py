@@ -52,6 +52,8 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = []
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
+        if content is None:
+            content = ""
         file_content = ""
         if knowledge_info.get("fileurl"):
             file_content = urlToText(knowledge_info["fileurl"])
