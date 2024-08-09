@@ -2,7 +2,7 @@ import concurrent.futures
 
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
     search_notice_message_data
-from app.database.mysql.mysql_client import yhj
+from app.database.mysql.mysql_client import yhj, MySQLConnect
 
 start_id = 0
 limit = 1000
@@ -62,11 +62,12 @@ def knowledge_info():
 def knowledge_info_fjtq():
     def process_record(knowledge_info):
         try:
+            yhj1 = MySQLConnect("yhj")
             file_info = ""
             knowledge_info['attachment_content'] = file_info
             # Update the record in the database
             update_query = "UPDATE weaviate_knowledge_info SET attachment_content = %s WHERE id = %s"
-            yhj.execute(update_query, (file_info, knowledge_info.get('id')))
+            yhj1.execute(update_query, (file_info, knowledge_info.get('id')))
             print(f"Updated record with id {knowledge_info.get('id')}.")
         except Exception as e:
             print(f"Failed to process record with id {knowledge_info.get('id')}: {e}")

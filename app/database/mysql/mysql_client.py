@@ -40,7 +40,7 @@ class MySQLConnect:
     def check_connection(self):
         """检查连接状态，如果断开则重新连接"""
         try:
-            self.conn.ping()
+            self.conn.ping(reconnect=True)
         except MySQLdb.Error as e:
             print(f"Database connection error: {e}")
             self.connect()
@@ -56,7 +56,12 @@ class MySQLConnect:
         except MySQLdb.Error as e:
             logger.error("Error executing query: %s", e)
             self.connect()  # 尝试重新连接
-            self.__cur.execute(sql, params)  # 再次尝试执行
+            try:
+                self.__cur.execute(sql, params)  # 再次尝试执行
+                self.__cur.connection.commit()
+            except MySQLdb.Error as second_e:
+                logger.error("Failed to execute query after reconnect: %s", second_e)
+                raise
 
     def fetchall(self) -> List[Dict[str, Any]]:
         """获取所有查询结果"""
