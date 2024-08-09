@@ -26,8 +26,11 @@ def knowledge_info_fjtq():
 
     while True:
         # Fetch records where fileurl is not null and not empty           weaviate_notice_message:attachment_url      weaviate_knowledge_info
-        select_query = "SELECT * FROM weaviate_notice_message WHERE attachment_url IS NOT NULL AND attachment_url != '' AND (attachment_content IS NULL OR   attachment_content != '') and notice_id > %s"
+        select_query = "SELECT * FROM weaviate_notice_message WHERE attachment_url IS NOT NULL AND attachment_url != '' AND (attachment_content IS NULL OR   attachment_content != '') and notice_id > %s order by notice_id"
+
         knowledge_info_dict_list = yhj.execute_all2dict(select_query, limit=limit, params=(start_id,))
+        # 排除notice_id重复的数据
+        knowledge_info_dict_list = [dict(t) for t in set([tuple(d.items()) for d in knowledge_info_dict_list])]
 
         if not knowledge_info_dict_list:
             break
