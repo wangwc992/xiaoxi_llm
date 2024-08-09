@@ -5,7 +5,7 @@ from starlette.responses import StreamingResponse
 
 from app.common.core.context import get_chat_visits_number
 from app.common.utils.logging import get_logger
-from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
+from app.data_cleansing1.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
 
 from app.services.knowledge_base_service import knowledge_base_generate, MyChatCompletionRequestModel, \
      get_reference_data

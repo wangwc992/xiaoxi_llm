@@ -85,7 +85,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     datasets = 'platform_introduction'
     # 加载小希平台介绍数据的xlsx文件
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, '../data_cleansing/data/platform_introduction.xlsx')
+    file_path = os.path.join(base_dir, '../data_cleansing1/data/platform_introduction.xlsx')
     df = pd.read_excel(file_path)
 
     # Extract the necessary information

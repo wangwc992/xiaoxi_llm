@@ -6,7 +6,7 @@ from weaviate.proto.v1.base_pb2 import Filters
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
-from app.data_cleansing.knowledge_base_cleansing import create_collection_name, delete_collection_name
+from app.data_cleansing1.knowledge_base_cleansing import create_collection_name, delete_collection_name
 from app.database.weaviate.knowledge_base import KnowledgeBaseModel
 
 logger = get_logger(__name__)
@@ -117,14 +117,16 @@ def fetch_objects():
 
 
 if __name__ == "__main__":
-    # delete_many()
+    delete_many()
     # delete_collection_name()
     # create_collection_name()
     #
-    query_bm25(query_bm25_database)
+    # query_bm25(query_bm25_database)
+    # query_bm25("notice_message")
 
-    clear_all_data(database)
-    query_bm25(query_bm25_database)
+    # clear_all_data(database)
+    # clear_all_data("notice_message")
+    # query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
