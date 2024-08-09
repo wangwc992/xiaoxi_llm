@@ -60,15 +60,10 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
                 content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
         content = HtmlUtils.replace_link_with_url(content)
-        if knowledge_info.get("type") == 1:
-            name = knowledge_info.get("name")
-        else:
-            name = knowledge_info.get("filename")
+        name = knowledge_info.get("name") if knowledge_info.get("type") == 1 else knowledge_info.get("filename")
 
-        if knowledge_info.get("type") == 1:
-            url = f'{{"object":"json","type": 1,"title":"{name}","id":"{knowledge_info["id"]}"}}'
-        else:
-            url = f'{{"object":"json","type": 2,"title":"{name}","id":"{knowledge_info["id"]}"}}'
+        url = {"object": "json", "type": 1 if knowledge_info.get("type") == 1 else 2, "title": name,
+               "id": knowledge_info["id"]}
 
         db_id = str(knowledge_info["id"])
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
@@ -890,18 +885,18 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
 
 if __name__ == '__main__':
     manner_execution = {
-  "method_name": "insert_t_knowledge_info_data",
-  "datasets": "knowledge_info",
-  "limit": 2,
-  "start_id": 0,
-  "is_while": True,
-  "uuid": "123e4567-e89b-12d3-a456-426614174000",
-  "query": "SELECT * FROM knowledge_info",
-  "properties": {
-    "key1": "value1",
-    "key2": "value2"
-  },
-  "frequency": 1
-}
+        "method_name": "insert_t_knowledge_info_data",
+        "datasets": "knowledge_info",
+        "limit": 2,
+        "start_id": 0,
+        "is_while": True,
+        "uuid": "123e4567-e89b-12d3-a456-426614174000",
+        "query": "SELECT * FROM knowledge_info",
+        "properties": {
+            "key1": "value1",
+            "key2": "value2"
+        },
+        "frequency": 1
+    }
     manner_execution = MannerExecution(**manner_execution)
     asyncio.run(cleansing_manner_execution(manner_execution))

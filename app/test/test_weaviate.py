@@ -117,11 +117,11 @@ def fetch_objects():
 
 
 if __name__ == "__main__":
-    delete_many()
+    # delete_many()
     # delete_collection_name()
     # create_collection_name()
     #
-    # query_bm25(query_bm25_database)
+    query_bm25(query_bm25_database)
 
     # clear_all_data(database)
     # query_bm25(query_bm25_database)
