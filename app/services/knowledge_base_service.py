@@ -172,9 +172,8 @@ async def load_reference_data(query, limit):
         for n in range(len(response_list))])
     knowledge_link = [response.link for response in response_list if
                       response.database == "t_knowledge_info" and response.link]
-    knowledge_link.append(len(response_list))
     return {"reference_data": reference_data,
-            "knowledge_link": knowledge_link
+            "knowledge_link": knowledge_link,
             }
 
 
