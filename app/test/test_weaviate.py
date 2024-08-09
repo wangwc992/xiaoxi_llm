@@ -6,7 +6,7 @@ from weaviate.proto.v1.base_pb2 import Filters
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
-from app.data_cleansing1.knowledge_base_cleansing import create_collection_name, delete_collection_name
+from app.data_cleansing.knowledge_base_cleansing import create_collection_name, delete_collection_name
 from app.database.weaviate.knowledge_base import KnowledgeBaseModel
 
 logger = get_logger(__name__)
