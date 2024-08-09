@@ -107,7 +107,7 @@ class MySQLConnect:
             return None
         return self.dict_list2bean_list(result, bean)
 
-    def execute_all2dict(self, sql: str, limit = None, params: tuple = ()) -> List[Dict[str, Any]]:
+    def execute_all2dict(self, sql: str, limit=None, params: tuple = ()) -> List[Dict[str, Any]]:
         """执行 SQL 语句并返回所有结果"""
         # 如果 limit 为 None，则不限制查询数量
         if limit is not None:
@@ -152,6 +152,13 @@ class MySQLConnect:
             return None
 
         return self.dict_list2bean_list(result, bean)
+
+    def close(self):
+        """关闭数据库连接"""
+        if self.__cur:
+            self.__cur.close()
+        if self.conn:
+            self.conn.close()
 
 
 xxlxdb = MySQLConnect("xxlxdb")
