@@ -1,6 +1,7 @@
 import openpyxl
 import fitz
 from docx import Document
+from pptx import Presentation
 
 from app.common.core.paddle_ocr import process_pdf
 from app.common.utils.file_utils import download_file, delete_file
@@ -12,20 +13,6 @@ def get_file_extension(file_obj):
         return file_obj.split('.')[-1].lower()
     except AttributeError:
         return ""
-
-
-def fileToString(file_path, file_type=None):
-    if file_type == "pdf" or file_type == "pptx":
-        text = pdfToString(file_path)
-    elif file_type == "jpg" or file_type == "png" or file_type == "gif" or file_type == "jpeg":
-        text = process_pdf(file_path)
-    elif file_type == "doc" or file_type == "docx":
-        text = docToString(file_path)
-    elif file_type == "xls" or file_type == "xlsx":
-        text = xlsToString(file_path)
-    else:
-        text = ""
-    return text.strip()
 
 
 def docToString(file_obj):
@@ -72,6 +59,30 @@ def xlsToString(file_obj):
     return result_text.strip()
 
 
+def pptToString(file_path):
+    prs = Presentation(file_path)
+    extracted_content = []
+
+    for slide in prs.slides:
+        slide_content = []
+
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                # 提取文本内容
+                slide_content.append(shape.text.strip())
+
+            if shape.has_table:
+                # 提取表格内容
+                table = shape.table
+                for row in table.rows:
+                    row_text = [cell.text for cell in row.cells]
+                    slide_content.append("\t".join(row_text).strip())  # 用制表符分隔单元格内容
+        if slide_content:
+            extracted_content.append(" ".join(slide_content))
+
+    return "\n\n".join(extracted_content)
+
+
 def pdfToString(file_path):
     doc = fitz.open(file_path)
     text = ""
@@ -88,6 +99,20 @@ def pdfToString(file_path):
             text = process_pdf(file_path)
     return text.strip()
 
+def fileToString(file_path, file_type=None):
+    if file_type == "pdf":
+        text = pdfToString(file_path)
+    elif file_type == "jpg" or file_type == "png" or file_type == "gif" or file_type == "jpeg":
+        text = process_pdf(file_path)
+    elif file_type == "doc" or file_type == "docx":
+        text = docToString(file_path)
+    elif file_type == "xls" or file_type == "xlsx":
+        text = xlsToString(file_path)
+    elif file_type in "pptx":
+        text = pptToString(file_path)
+    else:
+        text = ""
+    return text.strip()
 
 def urlToText(url):
     file_path = download_file(url, "downloads")
