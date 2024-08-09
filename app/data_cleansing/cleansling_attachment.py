@@ -189,6 +189,7 @@ def notice_message_fjtq():
             # Update start_id for the next iteration
             start_id = knowledge_info_dict_list[-1]['notice_id']
 
+    knowledge_info_fjtq()
 
 if __name__ == '__main__':
     # knowledge_info()
