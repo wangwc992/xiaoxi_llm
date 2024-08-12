@@ -112,7 +112,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     else:
         message_dict = await extract_message(result)
         background_tasks.add_task(process_after_response, message_dict,
-                                  member_id, message_list, start_time,conversation_id)
+                                  member_id, message_list, start_time, conversation_id)
 
         response_dict = json.loads(result.body.decode('utf-8'))
         response_dict["reference_data"] = reference_data
@@ -155,7 +155,7 @@ async def stream_response(result, member_id, message_list, start_time, knowledge
 
     message_dict = {"output": output, "usage": usage}
     logger.info(f"message_dict: {message_dict}")
-    await process_after_response(message_dict, member_id, message_list, start_time,conversation_id)
+    await process_after_response(message_dict, member_id, message_list, start_time, conversation_id)
 
 
 async def extract_message(result):
@@ -188,12 +188,12 @@ async def save_weaviste(conversation_id):
         reference_data_uuids=["123"]
     )
     vector = Embedding.embed_query(ai_chat_log_model.output)
-    uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(),vector)
+    uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
     print(uuid)
     pass
 
 
-async def process_after_response(message_dict, member_id, message_list, start_time,conversation_id):
+async def process_after_response(message_dict, member_id, message_list, start_time, conversation_id):
     end_time = datetime.now()
     await save_weaviste(conversation_id)
     # TODO

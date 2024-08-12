@@ -50,9 +50,9 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
     async def search_hybrid(self, query, limit, filters=None):
         '''在Weaviate数据库中搜索数据'''
-        query = jieba_tool.cut_for_search(query)
+        query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
-            query=query,
+            query=query_keyword,
             fusion_type=HybridFusion.RELATIVE_SCORE,
             filters=filters,
             query_properties=["instruction"],
