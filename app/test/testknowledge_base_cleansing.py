@@ -224,11 +224,12 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 100):
     for knowledge_info in knowledge_info_dict_list:
         content = knowledge_info.get("content", "")
         file_content = ""
-        # if knowledge_info.get("fileurl"):
-        #     file_content = urlToText(knowledge_info["fileurl"])
-        #     filename = knowledge_info.get("filename", "")
-        #     if file_content:
-        #         content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
+        if knowledge_info.get("fileurl"):
+            # file_content = urlToText(knowledge_info["fileurl"])
+            file_content = knowledge_info.get("attachment_content", "")
+            filename = knowledge_info.get("filename", "")
+            if file_content:
+                content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
         content = HtmlUtils.replace_link_with_url(content)
         if knowledge_info.get("type") == 1:
