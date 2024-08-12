@@ -1,3 +1,4 @@
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -30,6 +31,7 @@ def meta():
     # return json.dumps(meta_info, ensure_ascii=False)
     return meta_info
 
+
 # {
 #   "text": "ai _ chat _ log 你好",
 #   "dims": 0,
@@ -42,9 +44,10 @@ def meta():
 class Text2VecRequest(BaseModel):
     text: str
     dims: int = 0
-    vector: str = ""
+    vector: Optional[str] = None  # 允许 vector 为 None
     error: str = ""
     config: dict = {"pooling_strategy": "masked_mean"}
+
 
 # 获取文本向量
 @router.post('/vectors')
