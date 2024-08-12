@@ -82,8 +82,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         message_list = await get_weaviste_history(conversation_id, query)
 
     logger.info(f"message_list: {message_list}")
-    message_list.append({"role": "human", "content": query})
-    reference_data_dict = await load_reference_data(request.query, 10)
+
+    reference_data_dict = await load_reference_data(query, 10)
     #
     reference_data = reference_data_dict.get("reference_data")
     knowledge_link = reference_data_dict.get("knowledge_link")
@@ -91,9 +91,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
     template = PromptTemplate.from_file(file_path)
-    prompt = template.format(input=request.query, reference_data=reference_data)
-    message_list[-1]['content'] = prompt
-
+    prompt = template.format(input=query, reference_data=reference_data)
+    message_list.append({"role": "human", "content": prompt})
     stream_options = StreamOptions(include_usage=True) if request.stream else None
 
     chat_request = ChatCompletionRequest(
@@ -102,7 +101,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         model=request.model,
         stream_options=stream_options
     )
-
+    message_list[-1]["content"] = message_list
     result = await create_chat_completion(chat_request, raw_request)
 
     if isinstance(result, StreamingResponse):
@@ -132,7 +131,14 @@ async def stream_response(result, member_id, message_list, start_time, knowledge
     async for chunk in result.body_iterator:
         # logger.info(f"chunk: {chunk}")
         if first_chunk:
-            chunk = chunk.replace('"role":"1"', f'"role":"1","content":{json.dumps(knowledge_link)}')
+            chunk = chunk[len("data: "):]
+            chunk_data = json.loads(chunk)
+            delta = chunk_data.get('choices')[0]['delta']
+            delta['role'] = "1"
+            delta['content'] = json.dumps(knowledge_link)
+            chunk_data['conversation_id'] = conversation_id
+            chunk = f"data: {json.dumps(chunk_data)}\n"
+            logger.info(f"***************************first_chunk: {chunk}")
         yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False
@@ -214,9 +220,8 @@ async def load_reference_data(query, limit):
             break
 
     response_list = await knowledge_base_weaviate.search_hybrid(query, limit, filters)
-    logger.info(f"weaviate 查询结果 response_list: {response_list}")
     reference_data = "\n\n".join([
-        f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
+        f"{response_list[n].instruction}: {response_list[n].output}"
         for n in range(len(response_list))])
     knowledge_link = [response.link for response in response_list if
                       response.database == "t_knowledge_info" and response.link]
