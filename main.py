@@ -36,6 +36,7 @@ logger = init_logger('vllm.entrypoints.openai.api_server')
 _running_tasks: Set[asyncio.Task] = set()
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
+
 # @asynccontextmanager
 # async def lifespan(app: fastapi.FastAPI):
 #     async def _force_log():
@@ -49,7 +50,6 @@ TIMEOUT_KEEP_ALIVE = 5  # seconds
 #         task.add_done_callback(_running_tasks.remove)
 #
 #     yield
-
 
 
 def mount_metrics(app: fastapi.FastAPI):
@@ -78,9 +78,9 @@ def build_app(args, **uvicorn_kwargs):
 
     # @app.exception_handler(RequestValidationError)
     # async def validation_exception_handler(_, exc):
-        # err = openai_serving_chat.create_error_response(message=str(exc))
-        # return JSONResponse(err.model_dump(),
-        #                     status_code=HTTPStatus.BAD_REQUEST)
+    # err = openai_serving_chat.create_error_response(message=str(exc))
+    # return JSONResponse(err.model_dump(),
+    #                     status_code=HTTPStatus.BAD_REQUEST)
 
     @app.middleware("http")
     async def sensitive_word_filter(request: Request, call_next):
@@ -100,10 +100,8 @@ def build_app(args, **uvicorn_kwargs):
                         }},
                     }}
                 ]}}'''
-                return JSONResponse(
-                    content=result,
-                    status_code=400
-                )
+                return StreamingResponse(content=result,
+                                         media_type="text/event-stream")
 
         # 如果不包含敏感词，继续处理请求
         response = await call_next(request)
