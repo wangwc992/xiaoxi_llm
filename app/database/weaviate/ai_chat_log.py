@@ -32,7 +32,7 @@ class AiChatLogWeaviate(WeaviateClient):
         Property(name='reference_data_uuids', data_type=DataType.TEXT_ARRAY, description='参考数据uuids')
     ]
 
-    def search_hybrid(self, query, limit, filters=None):
+    async def search_hybrid(self, query, limit, filters=None):
         '''在Weaviate数据库中搜索数据'''
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
