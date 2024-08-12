@@ -16,7 +16,7 @@ class AiChatLogModel(BaseModel):
     user_id: str = Field(description="用户id，用于标识一个用户")
     input: str = Field(description="用户输入的问题")
     output: str = Field(description="小希的回答")
-    created_time: datetime = Field(description="消息创建时间")
+    created_time: str = Field(description="消息创建时间")
     reference_data_uuids: list = Field(description="参考数据uuids")
 
 
@@ -58,15 +58,17 @@ if __name__ == '__main__':
     # 创建集合
     # ai_chat_log_weaviate.create_collection(ai_chat_log_weaviate.properties)
 
-    ai_chat_log_model = AiChatLogModel(
-        conversation_id="conversation_id",
-        message_id="123",
-        user_id="123",
-        input="你好",
-        output="你好",
-        created_time="2022-01-01T00:00:00Z",
-        reference_data_uuids=["123"]
-    )
-    vector = Embedding.embed_query(ai_chat_log_model.output)
-    uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
-    print(uuid)
+    # ai_chat_log_model = AiChatLogModel(
+    #     conversation_id="conversation_id",
+    #     message_id="123",
+    #     user_id="123",
+    #     input="你好",
+    #     output="你好",
+    #     created_time="2022-01-01T00:00:00Z",
+    #     reference_data_uuids=["123"]
+    # )
+    # vector = Embedding.embed_query(ai_chat_log_model.output)
+    # uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
+    # print(uuid)
+    x= ai_chat_log_weaviate.search_hybrid("你好", 10)
+    print(x)
