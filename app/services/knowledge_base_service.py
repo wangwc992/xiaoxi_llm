@@ -101,7 +101,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         model=request.model,
         stream_options=stream_options
     )
-    message_list[-1]["content"] = message_list
+    message_list[-1]["content"] = query
     result = await create_chat_completion(chat_request, raw_request)
 
     if isinstance(result, StreamingResponse):
@@ -137,7 +137,7 @@ async def stream_response(result, member_id, message_list, start_time, knowledge
             delta['role'] = "1"
             delta['content'] = json.dumps(knowledge_link)
             chunk_data['conversation_id'] = conversation_id
-            chunk = f"data: {json.dumps(chunk_data)}\n"
+            chunk = f"data: {json.dumps(chunk_data)}\n\n"
             logger.info(f"***************************first_chunk: {chunk}")
         yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
