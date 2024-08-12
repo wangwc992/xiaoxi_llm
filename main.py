@@ -85,6 +85,15 @@ def build_app(args, **uvicorn_kwargs):
     #                     status_code=HTTPStatus.BAD_REQUEST)
 
     @app.middleware("http")
+    async def log_request_body(request: Request, call_next):
+        if request.method == "POST":
+            # 获取请求体并打印
+            body = await request.json()
+            print(f"Request Body: {body}")
+        response = await call_next(request)
+        return response
+
+    @app.middleware("http")
     async def sensitive_word_filter(request: Request, call_next):
         # 获取请求的body内容
         body = await request.body()
