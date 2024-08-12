@@ -112,7 +112,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     else:
         message_dict = await extract_message(result)
         background_tasks.add_task(process_after_response, message_dict,
-                                  member_id, message_list, start_time)
+                                  member_id, message_list, start_time,conversation_id)
 
         response_dict = json.loads(result.body.decode('utf-8'))
         response_dict["reference_data"] = reference_data
@@ -177,14 +177,14 @@ async def extract_message(result):
     return {"output": output, "usage": usage}
 
 
-async def save_weaviste():
+async def save_weaviste(conversation_id):
     ai_chat_log_model = AiChatLogModel(
-        conversation_id="123",
+        conversation_id=conversation_id,
         message_id="123",
         user_id="123",
         input="你好",
         output="你好",
-        created_time="2021-08-01",
+        created_time="2022-01-01T00:00:00Z",
         reference_data_uuids=["123"]
     )
     vector = Embedding.embed_query(ai_chat_log_model.output)
@@ -195,7 +195,7 @@ async def save_weaviste():
 
 async def process_after_response(message_dict, member_id, message_list, start_time,conversation_id):
     end_time = datetime.now()
-    await save_weaviste()
+    await save_weaviste(conversation_id)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, message_dict)
     # await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
