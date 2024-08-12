@@ -117,9 +117,9 @@ def fetch_objects():
 
 
 if __name__ == "__main__":
-    delete_many()
-    # delete_collection_name()
-    # create_collection_name()
+    # delete_many()
+    delete_collection_name()
+    create_collection_name()
     #
     # query_bm25(query_bm25_database)
     # query_bm25("notice_message")

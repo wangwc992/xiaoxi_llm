@@ -63,8 +63,12 @@ class WeaviateClient:
     @classmethod
     def exists(cls, collection_name):
         '''判断集合是否存在'''
-        logger.info(f"Checking if collection exists: {collection_name}")
-        return cls.client.collections.exists(collection_name)
+        is_exists = cls.client.collections.exists(collection_name)
+        if is_exists:
+            logger.info(f"Collection exists: {collection_name}")
+        else:
+            logger.info(f"Collection not exists: {collection_name}")
+        return is_exists
 
     def get_collection_config(self):
         '''获取集合配置'''
