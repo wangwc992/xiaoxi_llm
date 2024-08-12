@@ -1,6 +1,8 @@
 import asyncio
 import json
 import os
+from typing import Optional
+
 import torch
 from datetime import datetime
 from fastapi import Request, APIRouter, BackgroundTasks
@@ -32,7 +34,7 @@ class MyChatCompletionRequestModel(BaseModel):
     query: str
     stream: bool
     model: str
-    conversation_id: str = Field(description="会话id，用于标识一个会话")
+    conversation_id: Optional[str] = Field(description="会话id，用于标识一个会话")
 
 
 def get_reference_data(text: str):
