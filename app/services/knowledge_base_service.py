@@ -34,7 +34,7 @@ class MyChatCompletionRequestModel(BaseModel):
     query: str
     stream: bool
     model: str
-    conversation_id: Optional[str] = Field(description="会话id，用于标识一个会话")
+    conversation_id: Optional[str] = Field(None,description="会话id，用于标识一个会话")
 
 
 def get_reference_data(text: str):
