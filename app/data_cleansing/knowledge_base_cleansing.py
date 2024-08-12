@@ -24,7 +24,8 @@ from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_know
                                                                      search_zn_school_recruit_graduate_1,
                                                                      search_zn_school_recruit_graduate_2,
                                                                      search_zn_school_recruit_art,
-                                                                     search_zn_school_department_project)
+                                                                     search_zn_school_department_project,
+                                                                     search_knowledge_info_data2)
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
@@ -44,7 +45,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
     database = "t_knowledge_info"
-    knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
+    knowledge_info_dict_list = search_knowledge_info_data2(id=start_id, limit=limit)
     if not knowledge_info_dict_list:
         logger.info(f"{database}知识库数据已全部洗入")
         # 抛出异常，终止程序
