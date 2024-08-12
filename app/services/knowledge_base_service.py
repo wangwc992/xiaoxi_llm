@@ -197,7 +197,7 @@ async def save_weaviste(conversation_id,member_id,input,output):
 async def process_after_response(message_dict, member_id, message_list, start_time, conversation_id):
     end_time = datetime.now()
     output = message_dict.get('output')
-    input = message_list[-1]['content'] = output
+    input = message_list[-1]['content']
     await save_weaviste(conversation_id,member_id,input,output)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, message_dict)
