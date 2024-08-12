@@ -1,3 +1,5 @@
+import time
+
 from pydantic import BaseModel, Field
 from weaviate.classes.config import Configure, Property, DataType
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
@@ -14,7 +16,7 @@ class AiChatLogModel(BaseModel):
     user_id: str = Field(description="用户id，用于标识一个用户")
     input: str = Field(description="用户输入的问题")
     output: str = Field(description="小希的回答")
-    created_time: str = Field(description="消息创建时间")
+    created_time: time = Field(description="消息创建时间")
     reference_data_uuids: list = Field(description="参考数据uuids")
 
 
