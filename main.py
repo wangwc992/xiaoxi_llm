@@ -91,8 +91,17 @@ def build_app(args, **uvicorn_kwargs):
         # 检查是否包含敏感词
         for word in sensitive_words:
             if word in body_text:
+                result = '''data: {"choices": [
+                    {
+                        "index": 0,
+                        "delta": {
+                            "role": "3",
+                            "content": "您的问题涉及敏感内容，小希无法回答呦~请换个话题吧~"
+                        },
+                    }
+                ]}'''
                 return JSONResponse(
-                    content={"error": "Request contains sensitive words"},
+                    content=result,
                     status_code=400
                 )
 
