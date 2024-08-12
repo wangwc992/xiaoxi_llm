@@ -107,8 +107,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
-            stream_response(result, message_list, member_id, message_list,
-                            start_time, knowledge_link),
+            stream_response(result, message_list, member_id, start_time, knowledge_link,conversation_id),
             media_type="text/event-stream"
         )
     else:
