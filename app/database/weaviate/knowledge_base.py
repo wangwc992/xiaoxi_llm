@@ -6,6 +6,7 @@ from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from weaviate.classes.config import Property
 from langchain_core.pydantic_v1 import BaseModel, Field
 
+from app.common.utils.jieba_utils import jieba_tool
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.weaviate_client import WeaviateClient
@@ -49,11 +50,12 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
     async def search_hybrid(self, query, limit, filters=None):
         '''在Weaviate数据库中搜索数据'''
-        logger.info(f"Searching Weaviate database with query: {query}")
+        query = jieba_tool.cut_for_search(query)
         response = self.collection.query.hybrid(
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
             filters=filters,
+            query_properties=["instruction"],
             vector=Embedding.embed_query(query),
             return_metadata=MetadataQuery(score=True, explain_score=True),
             limit=limit,

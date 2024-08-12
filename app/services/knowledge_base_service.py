@@ -9,16 +9,19 @@ from langchain_core.messages import SystemMessage
 from langchain_core.prompts import PromptTemplate
 from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from weaviate.classes.query import Filter
 
 from app.api.openai.api_server import create_chat_completion
+from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
+from vllm.utils import random_uuid
 from langchain_community.chat_message_histories import ChatMessageHistory
 
+from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatLogModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 router = APIRouter(prefix="/chat")
@@ -29,25 +32,53 @@ class MyChatCompletionRequestModel(BaseModel):
     query: str
     stream: bool
     model: str
+    conversation_id: str = Field(description="会话id，用于标识一个会话")
 
 
 def get_reference_data(text: str):
     return knowledge_base_weaviate.search_hybrid_or(text, 10)
 
 
+async def get_weaviste_history(conversation_id, query):
+    filters = Filter.by_property("conversation_id").equal(conversation_id)
+    ai_chat_log_list = ai_chat_log_weaviate.search_hybrid(query, filters)
+
+    message_list = []
+
+    for ai_chat_log in ai_chat_log_list:
+        human = {"role": "human", "content": ai_chat_log.input}
+        ai = {"role": "ai", "content": ai_chat_log.output}
+        message_list.append(human)
+        message_list.append(ai)
+    return message_list
+
+
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
     start_time = datetime.now()
     member_id = raw_request.headers.get("Authorization")
+    #
+    # chat_message_history_key = f"chat:message:history:{member_id}"
+    # chat_message_history = await get_object(chat_message_history_key, ChatMessageHistory) or ChatMessageHistory()
+    #
+    # if not chat_message_history.messages:
+    #     chat_message_history.add_message(SystemMessage(content="你是小希留学顾问助手"))
+    #
+    # chat_message_history.add_user_message(request.query)
+    # message_list = [{"role": message.type, "content": message.content} for message in chat_message_history.messages]
 
-    chat_message_history_key = f"chat:message:history:{member_id}"
-    chat_message_history = await get_object(chat_message_history_key, ChatMessageHistory) or ChatMessageHistory()
+    conversation_id = request.conversation_id
+    query = request.query
+    message_list = []
+    if not conversation_id:
+        conversation_id = f"conversation-{random_uuid()}"
+        system = {"role": "system", "content": "你是小希留学顾问助手"}
+        human = {"role": "human", "content": query}
+        message_list.append(system)
+        message_list.append(human)
+    else:
+        message_list = await get_weaviste_history(conversation_id, query)
 
-    if not chat_message_history.messages:
-        chat_message_history.add_message(SystemMessage(content="你是小希留学顾问助手"))
-
-    chat_message_history.add_user_message(request.query)
-    message_list = [{"role": message.type, "content": message.content} for message in chat_message_history.messages]
     logger.info(f"message_list: {message_list}")
 
     reference_data_dict = await load_reference_data(request.query, 10)
@@ -74,13 +105,13 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
-            stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list,
+            stream_response(result, message_list, member_id, message_list,
                             start_time, knowledge_link),
             media_type="text/event-stream"
         )
     else:
         message_dict = await extract_message(result)
-        background_tasks.add_task(process_after_response, message_dict, chat_message_history, chat_message_history_key,
+        background_tasks.add_task(process_after_response, message_dict,
                                   member_id, message_list, start_time)
 
         response_dict = json.loads(result.body.decode('utf-8'))
@@ -92,11 +123,11 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         return result
 
 
-async def stream_response(result, chat_message_history, chat_message_history_key, member_id, message_list, start_time,
-                          knowledge_link):
+async def stream_response(result, member_id, message_list, start_time, knowledge_link, conversation_id):
     output = ''
     usage = None
     first_chunk = True
+    message_id = ''
     async for chunk in result.body_iterator:
         # logger.info(f"chunk: {chunk}")
         if first_chunk:
@@ -124,8 +155,7 @@ async def stream_response(result, chat_message_history, chat_message_history_key
 
     message_dict = {"output": output, "usage": usage}
     logger.info(f"message_dict: {message_dict}")
-    await process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id, message_list,
-                                 start_time)
+    await process_after_response(message_dict, member_id, message_list, start_time,conversation_id)
 
 
 async def extract_message(result):
@@ -147,10 +177,25 @@ async def extract_message(result):
     return {"output": output, "usage": usage}
 
 
-async def process_after_response(message_dict, chat_message_history, chat_message_history_key, member_id, message_list,
-                                 start_time):
+async def save_weaviste():
+    ai_chat_log_model = AiChatLogModel(
+        conversation_id="123",
+        message_id="123",
+        user_id="123",
+        input="你好",
+        output="你好",
+        created_time="2021-08-01",
+        reference_data_uuids=["123"]
+    )
+    vector = Embedding.embed_query(ai_chat_log_model.output)
+    uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(),vector)
+    print(uuid)
+    pass
+
+
+async def process_after_response(message_dict, member_id, message_list, start_time,conversation_id):
     end_time = datetime.now()
-    torch.cuda.empty_cache()
+    await save_weaviste()
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, message_dict)
     # await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
@@ -165,7 +210,7 @@ async def load_reference_data(query, limit):
             filters = Filter.by_property("database").equal(key)
             break
 
-    response_list = await knowledge_base_weaviate.search_hybrid(query, limit,filters)
+    response_list = await knowledge_base_weaviate.search_hybrid(query, limit, filters)
     logger.info(f"weaviate 查询结果 response_list: {response_list}")
     reference_data = "\n\n".join([
         f"Reference data {n + 1}: {response_list[n].instruction}: {response_list[n].output}————{response_list[n].database}: {response_list[n].db_id}"
