@@ -1,6 +1,6 @@
-import datetime
+from datetime import datetime
 
-from pydantic import BaseModel, Field
+from langchain_core.pydantic_v1 import BaseModel, Field
 from weaviate.classes.config import Configure, Property, DataType
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 
@@ -11,13 +11,13 @@ from app.database.weaviate.weaviate_client import WeaviateClient
 
 
 class AiChatLogModel(BaseModel):
-    conversation_id: str = Field(description="会话id，用于标识一个会话")
-    message_id: str = Field(description="消息id，用于标识一个消息")
-    user_id: str = Field(description="用户id，用于标识一个用户")
-    input: str = Field(description="用户输入的问题")
-    output: str = Field(description="小希的回答")
-    created_time: str = Field(description="消息创建时间")
-    reference_data_uuids: list = Field(description="参考数据uuids")
+    conversation_id: str = Field(None, description="会话id，用于标识一个会话")
+    message_id: str = Field(None, description="消息id，用于标识一个消息")
+    user_id: str = Field(None, description="用户id，用于标识一个用户")
+    input: str = Field(None, description="用户输入的问题")
+    output: str = Field(None, description="小希的回答")
+    created_time: datetime = Field(None, description="消息创建时间")
+    reference_data_uuids: list = Field(None, description="参考数据uuids")
 
 
 class AiChatLogWeaviate(WeaviateClient):
@@ -32,7 +32,7 @@ class AiChatLogWeaviate(WeaviateClient):
         Property(name='reference_data_uuids', data_type=DataType.TEXT_ARRAY, description='参考数据uuids')
     ]
 
-    async def search_hybrid(self, query, limit, filters=None):
+    def search_hybrid(self, query, limit, filters=None):
         '''在Weaviate数据库中搜索数据'''
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
@@ -70,5 +70,5 @@ if __name__ == '__main__':
     # vector = Embedding.embed_query(ai_chat_log_model.output)
     # uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
     # print(uuid)
-    x= ai_chat_log_weaviate.search_hybrid("你好", 10)
+    x = ai_chat_log_weaviate.search_hybrid("你好", 10)
     print(x)
