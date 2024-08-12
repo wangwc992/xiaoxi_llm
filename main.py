@@ -111,9 +111,10 @@ def build_app(args, **uvicorn_kwargs):
                         }},
                     }}
                 ]}}'''
-                return StreamingResponse(content=result,
-                                         media_type="text/event-stream")
-
+                return JSONResponse(
+                    content=result,
+                    status_code=500
+                )
         # 如果不包含敏感词，继续处理请求
         response = await call_next(request)
         return response
