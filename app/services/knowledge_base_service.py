@@ -41,7 +41,7 @@ def get_reference_data(text: str):
 
 async def get_weaviste_history(conversation_id, query):
     filters = Filter.by_property("conversation_id").equal(conversation_id)
-    ai_chat_log_list = await ai_chat_log_weaviate.search_hybrid(query, filters)
+    ai_chat_log_list = await ai_chat_log_weaviate.search_hybrid(query=query, limit=10, filters=filters)
 
     message_list = []
 
