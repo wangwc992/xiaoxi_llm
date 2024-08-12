@@ -34,7 +34,7 @@ class MyChatCompletionRequestModel(BaseModel):
     query: str
     stream: bool
     model: str
-    conversation_id: Optional[str] = Field(None,description="会话id，用于标识一个会话")
+    conversation_id: Optional[str] = Field(None, description="会话id，用于标识一个会话")
 
 
 def get_reference_data(text: str):
@@ -82,7 +82,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         message_list = await get_weaviste_history(conversation_id, query)
 
     logger.info(f"message_list: {message_list}")
-
+    message_list.append({"role": "human", "content": query})
     reference_data_dict = await load_reference_data(request.query, 10)
     #
     reference_data = reference_data_dict.get("reference_data")
@@ -107,7 +107,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
-            stream_response(result, message_list, member_id, start_time, knowledge_link,conversation_id),
+            stream_response(result, member_id, message_list, start_time, knowledge_link, conversation_id),
             media_type="text/event-stream"
         )
     else:
@@ -178,14 +178,14 @@ async def extract_message(result):
     return {"output": output, "usage": usage}
 
 
-async def save_weaviste(conversation_id):
+async def save_weaviste(conversation_id,member_id,input,output):
     ai_chat_log_model = AiChatLogModel(
         conversation_id=conversation_id,
-        message_id="123",
+        message_id=member_id,
         user_id="123",
-        input="你好",
-        output="你好",
-        created_time="2022-01-01T00:00:00Z",
+        input=input,
+        output=output,
+        created_time=datetime.now(),
         reference_data_uuids=["123"]
     )
     vector = Embedding.embed_query(ai_chat_log_model.output)
@@ -196,7 +196,9 @@ async def save_weaviste(conversation_id):
 
 async def process_after_response(message_dict, member_id, message_list, start_time, conversation_id):
     end_time = datetime.now()
-    await save_weaviste(conversation_id)
+    output = message_dict.get('output')
+    input = message_list[-1]['content'] = output
+    await save_weaviste(conversation_id,member_id,input,output)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, message_dict)
     # await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
