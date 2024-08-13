@@ -4,7 +4,7 @@ import os
 from typing import Optional
 
 import torch
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from fastapi import Request, APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse, StreamingResponse
 from langchain_core.messages import SystemMessage
@@ -257,7 +257,7 @@ async def save_weaviste(conversation_id, member_id, input, output):
         user_id="123",
         input=input,
         output=output,
-        created_time=datetime.now(),
+        created_time=datetime.now(timezone(timedelta(hours=8))),
         reference_data_uuids=["123"]
     )
     vector = Embedding.embed_query(ai_chat_log_model.output)
