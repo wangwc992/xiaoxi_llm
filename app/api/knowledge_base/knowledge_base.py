@@ -34,7 +34,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
     '''
     # 判断是否超过最大并发数
     if get_chat_visits_number(is_completions=True):
-        result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "当前提问人数过多，请您在10s后再提问~\n当前提问人数过多，请您在10s后再提问~ 来试试知识库？常见问题、文件资料、精选案例这儿都有👋" }, } ]}'''
+        result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "当前提问人数过多，请您在10s后再提问~\n当前提问人数过多，请您在10s后再提问~ 来试试知识库？常见问题、文件资料、精选案例这儿都有👋" }} ]}'''
         return StreamingResponse(content=result, media_type="text/event-stream")
 
     return await knowledge_base_generate(request, raw_request, background_tasks)
