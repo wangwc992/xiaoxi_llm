@@ -37,22 +37,8 @@ class MyChatCompletionRequestModel(BaseModel):
     conversation_id: Optional[str] = Field(None, description="会话id，用于标识一个会话")
 
 
-def get_reference_data(text: str):
-    return knowledge_base_weaviate.search_hybrid_or(text, 10)
-
-
-async def get_weaviste_history(conversation_id, query):
-    filters = Filter.by_property("conversation_id").equal(conversation_id)
-    ai_chat_log_list = await ai_chat_log_weaviate.search_hybrid(query=query, limit=10, filters=filters)
-
-    message_list = []
-
-    for ai_chat_log in ai_chat_log_list:
-        human = {"role": "human", "content": ai_chat_log.input}
-        ai = {"role": "ai", "content": ai_chat_log.output}
-        message_list.append(human)
-        message_list.append(ai)
-    return message_list
+async def get_reference_data(query: str, alpha: float, limit: int = 10):
+    return await knowledge_base_weaviate.search_hybrid_or(query=query, alpha=alpha, limit=limit)
 
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
@@ -80,14 +66,12 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         message_list.append(human)
     else:
         message_list = await get_weaviste_history(conversation_id, query)
-
     logger.info(f"message_list: {message_list}")
 
     reference_data_dict = await load_reference_data(query, 10)
-    #
     reference_data = reference_data_dict.get("reference_data")
     knowledge_link = reference_data_dict.get("knowledge_link")
-    #
+
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
     template = PromptTemplate.from_file(file_path)
@@ -135,10 +119,9 @@ async def stream_response(result, member_id, message_list, start_time, knowledge
             chunk_data = json.loads(chunk)
             delta = chunk_data.get('choices')[0]['delta']
             delta['role'] = "1"
-            delta['content'] = json.dumps(knowledge_link)
+            delta['content'] = knowledge_link
             chunk_data['conversation_id'] = conversation_id
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
-            logger.info(f"***************************first_chunk: {chunk}")
         yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False
@@ -184,27 +167,11 @@ async def extract_message(result):
     return {"output": output, "usage": usage}
 
 
-async def save_weaviste(conversation_id,member_id,input,output):
-    ai_chat_log_model = AiChatLogModel(
-        conversation_id=conversation_id,
-        message_id=member_id,
-        user_id="123",
-        input=input,
-        output=output,
-        created_time=datetime.now(),
-        reference_data_uuids=["123"]
-    )
-    vector = Embedding.embed_query(ai_chat_log_model.output)
-    uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
-    print(uuid)
-    pass
-
-
 async def process_after_response(message_dict, member_id, message_list, start_time, conversation_id):
     end_time = datetime.now()
     output = message_dict.get('output')
     input = message_list[-1]['content']
-    await save_weaviste(conversation_id,member_id,input,output)
+    await save_weaviste(conversation_id, member_id, input, output)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, message_dict)
     # await save_langfuse(member_id, message_list, message_dict.get('output'), message_dict.get('usage'), start_time,
@@ -228,6 +195,36 @@ async def load_reference_data(query, limit):
     return {"reference_data": reference_data,
             "knowledge_link": knowledge_link,
             }
+
+
+async def get_weaviste_history(conversation_id, query):
+    filters = Filter.by_property("conversation_id").equal(conversation_id)
+    ai_chat_log_list = await ai_chat_log_weaviate.search_hybrid(query=query, limit=10, filters=filters)
+
+    message_list = []
+
+    for ai_chat_log in ai_chat_log_list:
+        human = {"role": "human", "content": ai_chat_log.input}
+        ai = {"role": "ai", "content": ai_chat_log.output}
+        message_list.append(human)
+        message_list.append(ai)
+    return message_list
+
+
+async def save_weaviste(conversation_id, member_id, input, output):
+    ai_chat_log_model = AiChatLogModel(
+        conversation_id=conversation_id,
+        message_id=member_id,
+        user_id="123",
+        input=input,
+        output=output,
+        created_time=datetime.now(),
+        reference_data_uuids=["123"]
+    )
+    vector = Embedding.embed_query(ai_chat_log_model.output)
+    uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
+    print(uuid)
+    pass
 
 
 async def save_redis(chat_message_history, chat_message_history_key, message_dict):

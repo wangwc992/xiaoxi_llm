@@ -55,9 +55,10 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             query=query_keyword,
             fusion_type=HybridFusion.RELATIVE_SCORE,
             filters=filters,
-            query_properties=["instruction"],
+            query_properties=["output", "keyword^2"],
             vector=Embedding.embed_query(query),
             return_metadata=MetadataQuery(score=True, explain_score=True),
+            alpha=0.5,
             limit=limit,
         )
         response_list = []
@@ -67,22 +68,24 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             response_list.append(knowledge_base)
         return response_list
 
-    def search_hybrid_or(self, query, limit):
+    async def search_hybrid_or(self, query, limit,alpha=0.5):
         '''在Weaviate数据库中搜索数据'''
-        logger.info(f"Searching Weaviate database with query: {query}")
+        query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
-            query=query,
+            query=query_keyword,
             fusion_type=HybridFusion.RELATIVE_SCORE,
-            # target_vector="instruction",
+            query_properties=["output", "keyword^2"],
             vector=Embedding.embed_query(query),
             return_metadata=MetadataQuery(score=True, explain_score=True),
+            alpha=alpha,
             limit=limit,
         )
         response_list = []
         for o in response.objects:
             properties = o.properties
-            content = properties['database'] + properties['db_id'] + properties['instruction'] + properties['output']
-            response_list.append({"content": content, "score": o.metadata.score})
+            response_list.append({"explain_score": o.metadata.explain_score,
+                                  "content": properties['instruction'] + "\n" + properties['keyword'],
+                                  "score": o.metadata.score})
         return response_list
 
     def delete_data_by_id(self, id: str, database: str):
@@ -102,6 +105,13 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 knowledge_base_weaviate = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
 
 if __name__ == '__main__':
-    knowledgeBase = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
-    WeaviateClient.delete_collection_name(knowledgeBase.collections_name)
-    knowledgeBase.create_collection(knowledgeBase.properties)
+    # knowledgeBase = KnowledgeBaseWeaviate(KnowledgeBaseWeaviate.collections_name)
+    # WeaviateClient.delete_collection_name(knowledgeBase.collections_name)
+    # knowledgeBase.create_collection(knowledgeBase.properties)
+    # while 循环获取输入
+    while True:
+        input_str = input("请输入：")
+        if input_str == "exit":
+            break
+        else:
+            knowledge_base_weaviate.search_hybrid(input_str, 10)
