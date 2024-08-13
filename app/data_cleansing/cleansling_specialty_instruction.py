@@ -21,6 +21,7 @@ index_lock = threading.Lock()
 # Store the outputs to avoid simultaneous writes to the Excel file
 output_data = []
 
+
 # Function to send a request
 def send_request():
     global start_index
@@ -79,6 +80,7 @@ def send_request():
     finally:
         conn.close()
 
+
 # Function to send periodic requests
 def periodic_request():
     while True:
@@ -104,6 +106,7 @@ def periodic_request():
 
         # Randomly wait 5 to 10 seconds
         time.sleep(random.randint(5, 10))
+
 
 # Start the periodic requests
 periodic_request()

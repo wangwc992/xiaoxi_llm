@@ -33,6 +33,7 @@ load_dictionaries(stopword_words, _get_abs_path('stopwords/scu_stopwords.txt'))
 load_dictionaries(stopword_words, _get_abs_path('stopwords/baidu_stopwords.txt'))
 load_dictionaries(stopword_words, _get_abs_path('stopwords/english'))
 load_dictionaries(stopword_words, _get_abs_path('stopwords/chinese'))
+
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/广告.txt'))
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/政治类.txt'))
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/涉枪涉爆违法信息关键词.txt'))

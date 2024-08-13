@@ -99,6 +99,7 @@ def pdfToString(file_path):
             text = process_pdf(file_path)
     return text.strip()
 
+
 def fileToString(file_path, file_type=None):
     if file_type == "pdf":
         text = pdfToString(file_path)
@@ -113,6 +114,7 @@ def fileToString(file_path, file_type=None):
     else:
         text = ""
     return text.strip()
+
 
 def urlToText(url):
     file_path = download_file(url, "downloads")

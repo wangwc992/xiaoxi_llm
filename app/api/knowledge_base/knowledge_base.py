@@ -14,19 +14,29 @@ logger = get_logger(__name__)
 
 @router.post("/chat/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request, background_tasks: BackgroundTasks):
-    '''生成聊天补全'''
+    '''方法描述
+    生成对话完成
+
+    参数:
+    request: MyChatCompletionRequestModel   请求体
+    raw_request: Request    请求
+    background_tasks: BackgroundTasks   后台任务
+    返回:
+    StreamingResponse    流响应
+
+    例子:
+    {
+      "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
+      "query": "你好",
+      "stream": true
+    }
+    role: 1 为用户，2 chat并发数过多，3 敏感词
+    '''
+    # 判断是否超过最大并发数
     if get_chat_visits_number(is_completions=True):
-        result = '''data: {"choices": [
-            {
-                "index": 0,
-                "delta": {
-                    "role": "2",
-                    "content": "当前提问人数过多，请您在10s后再提问~\n当前提问人数过多，请您在10s后再提问~ 来试试知识库？常见问题、文件资料、精选案例这儿都有👋"
-                },
-            }
-        ]}'''
-        return StreamingResponse(content=result,
-                                 media_type="text/event-stream")
+        result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "当前提问人数过多，请您在10s后再提问~\n当前提问人数过多，请您在10s后再提问~ 来试试知识库？常见问题、文件资料、精选案例这儿都有👋" }, } ]}'''
+        return StreamingResponse(content=result, media_type="text/event-stream")
+
     return await knowledge_base_generate(request, raw_request, background_tasks)
 
 
@@ -39,5 +49,7 @@ async def cleansing(manner_execution: MannerExecution):
 
 @router.get("/weaviateSearch")
 async def reference_data(query: str, alpha: float = 0.5, limit: int = 10):
-    '''Weaviate搜索'''
+    '''Weaviate搜索
+    alpha 为 1 是纯向量搜索
+    alpha 为 0 是纯关键字搜索'''
     return await get_reference_data(query=query, alpha=alpha, limit=limit)

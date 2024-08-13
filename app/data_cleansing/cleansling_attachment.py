@@ -152,6 +152,7 @@ def notice_message():
         # Update start_id for the next iteration
         start_id = notice_massage_dict_list[-1]['notice_id']
 
+
 def notice_message_fjtq():
     def process_record(knowledge_info):
         try:
@@ -190,6 +191,7 @@ def notice_message_fjtq():
             start_id = knowledge_info_dict_list[-1]['notice_id']
 
     knowledge_info_fjtq()
+
 
 if __name__ == '__main__':
     # knowledge_info()

@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 RUNNING_LOG = "running_log.txt"
 
+
 class MillisecondFormatter(logging.Formatter):
     r"""
     自定义 Formatter，用于毫秒级日志记录。
@@ -20,6 +21,7 @@ class MillisecondFormatter(logging.Formatter):
             t = dt.strftime("%Y-%m-%d %H:%M:%S")
             s = f"{t},{int(record.msecs):03d}"
         return s
+
 
 class LoggerHandler(logging.Handler):
     r"""
