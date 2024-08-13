@@ -121,7 +121,7 @@ async def stream_response(result, member_id, message_list, start_time, knowledge
             delta['role'] = "1"
             delta['content'] = knowledge_link
             chunk_data['conversation_id'] = conversation_id
-            chunk = f"data: {json.dumps(chunk_data)}\n\n"
+            chunk = f"data: {chunk_data}\n\n"
         yield chunk
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False
