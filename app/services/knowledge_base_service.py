@@ -219,15 +219,11 @@ async def load_reference_data(query, limit):
     reference_data = "\n\n".join(
         [f"{response_list[n].instruction}: {response_list[n].output}" for n in range(len(response_list))])
     # 获取知识库链接, 仅获取t_knowledge_info的链接,并且将字符串转换为字典
-    knowledge_link = []
-    for response in response_list:
-        try:
-            link = eval(response.link)
-            knowledge_link.append(link)
-        except SyntaxError as e:
-            print(f"SyntaxError in response.link: {response.link} - {e}")
-            # 或者可以添加日志，继续处理下一个 response
-
+    try:
+        knowledge_link = [eval(response.link) for response in response_list if
+                          response.database == "t_knowledge_info" and response.link]
+    except:
+        logger.error(f"knowledge_link error: {response_list}")
     return {"reference_data": reference_data,
             "knowledge_link": knowledge_link,
             }
