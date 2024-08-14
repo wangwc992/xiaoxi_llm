@@ -48,7 +48,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         #     DeleteManyReturn(failed=0, matches=4480, objects=None, successful=4480)
         logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
 
-    async def search_hybrid(self, query, limit, filters=None):
+    def search_hybrid(self, query, limit, filters=None):
         '''在Weaviate数据库中搜索数据'''
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
@@ -66,9 +66,10 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             properties = o.properties
             knowledge_base = ObjectFormatter.dict_to_object(properties, KnowledgeBaseModel)
             response_list.append(knowledge_base)
+
         return response_list
 
-    async def search_hybrid_or(self, query, limit,alpha=0.5):
+    def search_hybrid_or(self, query, limit, alpha=0.5):
         '''在Weaviate数据库中搜索数据'''
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
@@ -81,11 +82,24 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             limit=limit,
         )
         response_list = []
+
+        max_explain_score = float('-inf')  # 设置为负无穷大，以便比较
+
+        # 遍历 response.objects 以找到最大 explain_score 的对象
+        for o in response.objects:
+            if o.metadata.score > max_explain_score:
+                max_explain_score = o.metadata.score
+        # 判断max_explain_score是大于0.8的还是大于0.5的
+        distance = 0.8 if max_explain_score >= 0.8 else 0.5 if max_explain_score >= 0.5 else 0
+
         for o in response.objects:
             properties = o.properties
+            if distance > o.metadata.score and o.properties.get('database') == 't_knowledge_info':
+                continue
             response_list.append({"explain_score": o.metadata.explain_score,
                                   "content": properties['instruction'] + "\n" + properties['keyword'],
                                   "score": o.metadata.score})
+            print(f"score: {o.metadata.score},database: {properties['database']}")
         return response_list
 
     def delete_data_by_id(self, id: str, database: str):
@@ -114,4 +128,4 @@ if __name__ == '__main__':
         if input_str == "exit":
             break
         else:
-            knowledge_base_weaviate.search_hybrid(input_str, 10)
+            print(knowledge_base_weaviate.search_hybrid_or(input_str, 10))

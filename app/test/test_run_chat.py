@@ -66,7 +66,7 @@ def send_request():
 
     conn = http.client.HTTPSConnection("u430182-ac52-9e557856.cqa1.seetacloud.com")
     payload = json.dumps({
-        "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
+        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
         "query": random_question,
         "stream": False
     })
