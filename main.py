@@ -1,9 +1,11 @@
 import os
 
+from app.common.core.config import settings
 from app.data.dictionaries import sensitive_words
 
-# 保证启动的时候 不会报显卡数量不一致的错误
-os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4'
+gpu_count = settings.get('gpu_count', 0)
+# 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
+os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, range(gpu_count)))
 
 import asyncio
 import importlib
