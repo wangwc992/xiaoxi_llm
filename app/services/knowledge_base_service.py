@@ -224,7 +224,6 @@ async def load_reference_data(query, limit):
         if response.database == "t_knowledge_info" and response.link:
             try:
                 knowledge_link.append(eval(response.link.replace("\n", "")))
-                logger.info(f"knowledge_link: {response.link},type: {type(response.link)}")
             except:
                 logger.error(f"knowledge_link error: {response.link},type: {type(response.link)}")
     return {
