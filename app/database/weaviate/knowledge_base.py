@@ -48,7 +48,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         #     DeleteManyReturn(failed=0, matches=4480, objects=None, successful=4480)
         logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
 
-    def search_hybrid(self, query, limit, filters=None):
+    async def search_hybrid(self, query, limit, filters=None):
         '''在Weaviate数据库中搜索数据'''
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
@@ -69,7 +69,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
         return response_list
 
-    def search_hybrid_or(self, query, limit, alpha=0.5):
+    async def search_hybrid_or(self, query, limit, alpha=0.5):
         '''在Weaviate数据库中搜索数据'''
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
