@@ -1,3 +1,4 @@
+import asyncio
 from typing import Optional
 
 from weaviate.classes.query import Filter
@@ -128,4 +129,4 @@ if __name__ == '__main__':
         if input_str == "exit":
             break
         else:
-            print(knowledge_base_weaviate.search_hybrid_or(input_str, 10))
+            asyncio.run(knowledge_base_weaviate.search_hybrid(input_str, 10))

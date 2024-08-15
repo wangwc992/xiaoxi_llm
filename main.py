@@ -2,6 +2,7 @@ import os
 
 from app.common.core.config import settings
 from app.data.dictionaries import sensitive_words
+from app.middleware.middleware import log_request_body, sensitive_word_filter, authentication
 
 gpu_count = settings.get('gpu_count', 0)
 # 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
@@ -80,51 +81,11 @@ def build_app(args, **uvicorn_kwargs):
         allow_headers=args.allowed_headers,
     )
 
-    # @app.exception_handler(RequestValidationError)
-    # async def validation_exception_handler(_, exc):
-    # err = openai_serving_chat.create_error_response(message=str(exc))
-    # return JSONResponse(err.model_dump(),
-    #                     status_code=HTTPStatus.BAD_REQUEST)
+    app.middleware("http")(log_request_body)
+    app.middleware("http")(sensitive_word_filter)
+    app.middleware("http")(authentication)
 
-    @app.middleware("http")
-    async def log_request_body(request: Request, call_next):
-        if request.method == "POST":
-            # 获取请求体并打印
-            body = await request.json()
-            print(f"Request Body: {body}")
-        response = await call_next(request)
-        return response
-
-    @app.middleware("http")
-    async def sensitive_word_filter(request: Request, call_next):
-        # 获取请求的body内容
-        body = await request.body()
-        body_text = body.decode("utf-8")
-
-        # 检查是否包含敏感词
-        for word in sensitive_words:
-            if word in body_text:
-                result = f'''data: {{"choices": [ {{ "index": 0, "delta": {{ "role": "3", "content": "您的问题涉及敏感内容 {word}，小希无法回答呦，请换个话题吧。" }},  }} ]}}'''
-                return StreamingResponse(content=result,
-                                         media_type="text/event-stream")
-        # 如果不包含敏感词，继续处理请求
-        response = await call_next(request)
-        return response
-
-    if token := envs.VLLM_API_KEY or args.api_key:
-
-        @app.middleware("http")
-        async def authentication(request: Request, call_next):
-            root_path = "" if args.root_path is None else args.root_path
-            if request.method == "OPTIONS":
-                return await call_next(request)
-            if not request.url.path.startswith(f"{root_path}/v1"):
-                return await call_next(request)
-            if request.headers.get("Authorization") != "Bearer " + token:
-                return JSONResponse(content={"error": "Unauthorized"},
-                                    status_code=401)
-            return await call_next(request)
-
+    # 这段代码的主要目的是通过配置文件或命令行参数动态加载中间件，可以是中间件类或异步函数。它让应用更灵活，可以在运行时决定使用哪些中间件，而不是在代码中硬编码。这种方式非常适合需要根据不同环境或配置条件来加载不同中间件的场景
     for middleware in args.middleware:
         module_path, object_name = middleware.rsplit(".", 1)
         imported = getattr(importlib.import_module(module_path), object_name)
