@@ -22,7 +22,7 @@ def get_chat_visits_number(is_completions: bool = False) -> bool:
         chat_visits_number += 1
     else:
         chat_visits_number -= 1
-    logger.info(f"chat_visits_number: {chat_visits_number}")
+    logger.info(f"chat_visits_number {is_completions}: {chat_visits_number}")
     return False
 
 
