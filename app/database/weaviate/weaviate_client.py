@@ -81,16 +81,19 @@ class WeaviateClient:
         '''删除集合'''
         logger.info(f"Deleting collection: {collection_name}")
         cls.client.collections.delete(collection_name)
+        return {"message": f"{collection_name} collection deleted successfully"}
 
     def create_collection(self, properties):
         '''创建集合'''
-        logger.info(f"Creating collection: {self.collections_name}")
         if not self.exists(self.collections_name):
             self.client.collections.create(
                 self.collections_name,
                 vector_index_config=Configure.VectorIndex.hnsw(),
                 properties=properties
             )
+            return {"message": f"{self.collections_name} collection created successfully"}
+        else:
+            return {"message": f"{self.collections_name} collection already exists"}
 
     def insert_data(self, properties, vec):
         '''插入数据'''
@@ -144,10 +147,10 @@ class WeaviateClient:
 
         return response
 
-    def delete_data(self, uuid):
+    def delete_data_by_uuid(self, uuid):
         '''删除数据'''
-        logger.info(f"Deleting data in collection: {self.collections_name}")
         self.collection.delete(uuid)
+        return {"message": f"{uuid} data deleted successfully"}
 
 
 if __name__ == '__main__':
