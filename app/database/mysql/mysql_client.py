@@ -91,7 +91,7 @@ class MySQLConnect:
         """将字典列表转换为实体类列表"""
         return [self.dict2bean(data, bean) for data in dict_list]
 
-    def execute_one(self, sql: str, bean: Type, params: tuple = ()) -> Dict[str, Any]:
+    def execute_one(self, sql: str, params: tuple = ()) -> Dict[str, Any]:
         """执行 SQL 语句并返回单条结果"""
         self.execute(sql, params)
         return self.fetchone()

@@ -1,3 +1,6 @@
-max_explain_score = 0.9
-distance = 0.8 if max_explain_score > 0.8 else 0.5 if max_explain_score > 0.5 else 0
-print(distance)
+from langchain_core.prompts import PromptTemplate
+
+template = "你好，我是{user_name}，我是{user_age}岁。"
+template = PromptTemplate.from_template(template)
+x = template.format(user_name="张三", user_age=18)
+print( x)
