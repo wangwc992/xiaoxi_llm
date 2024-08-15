@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv, find_dotenv
 from fastapi import Request
-from fastapi.responses import Response
 from starlette.responses import StreamingResponse, JSONResponse
 from app.common.utils.logging import get_logger
 from app.data.dictionaries import sensitive_words

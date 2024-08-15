@@ -4,6 +4,7 @@ from starlette.responses import StreamingResponse
 from app.common.core.context import get_chat_visits_number
 from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
+from app.middleware.exception import ChatSuspendException
 
 from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel,
                                                  get_reference_data)
@@ -37,7 +38,12 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "当前提问人数过多，请您在10s后再提问~\n当前提问人数过多，请您在10s后再提问~ 来试试知识库？常见问题、文件资料、精选案例这儿都有👋" }} ]}'''
         return StreamingResponse(content=result, media_type="text/event-stream")
 
-    return await knowledge_base_generate(request, raw_request, background_tasks)
+    try:
+        return await knowledge_base_generate(request, raw_request, background_tasks)
+    except Exception as e:
+        # 捕获异常并处理
+        logger.error(f"Error in /chat/completions: {e}")
+        raise ChatSuspendException("当前对话已暂停，请稍后再试。")
 
 
 @router.post("/cleansing", description="Cleansing the knowledge base.")

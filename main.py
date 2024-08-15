@@ -2,6 +2,7 @@ import os
 
 from app.common.core.config import settings
 from app.data.dictionaries import sensitive_words
+from app.middleware.exception import ChatSuspendException, chat_suspend_exception_handler
 from app.middleware.middleware import log_request_body, sensitive_word_filter, authentication
 
 gpu_count = settings.get('gpu_count', 0)
@@ -80,6 +81,9 @@ def build_app(args, **uvicorn_kwargs):
         allow_methods=args.allowed_methods,
         allow_headers=args.allowed_headers,
     )
+
+    # 注册自定义的 chat_suspend 异常处理器
+    app.add_exception_handler(ChatSuspendException, chat_suspend_exception_handler)
 
     app.middleware("http")(log_request_body)
     app.middleware("http")(sensitive_word_filter)
