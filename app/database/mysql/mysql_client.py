@@ -96,7 +96,7 @@ class MySQLConnect:
         self.execute(sql, params)
         return self.fetchone()
 
-    def execute_all2object(self, sql: str, bean: Type, params: tuple = (), limit=10) -> List[Any]:
+    def execute_all2object(self, sql: str, bean: Type, params: tuple = (), limit=None) -> List[Any]:
         """执行 SQL 语句并返回所有结果"""
         # 如果 limit 为 None，则不限制查询数量
         if limit is not None:
@@ -104,7 +104,7 @@ class MySQLConnect:
         self.execute(sql, params)
         result = self.fetchall()
         if not result:
-            return None
+            return list()
         return self.dict_list2bean_list(result, bean)
 
     def execute_all2dict(self, sql: str, limit=None, params: tuple = ()) -> List[Dict[str, Any]]:
@@ -115,7 +115,7 @@ class MySQLConnect:
         self.execute(sql, params)
         result = self.fetchall()
         if not result:
-            return None
+            return list()
         return result
 
     def select_by_id(self, table_name: str, id: Any, bean: Type) -> Any:
@@ -149,7 +149,7 @@ class MySQLConnect:
         result = self.fetchall()
 
         if not result:
-            return None
+            return list()
 
         return self.dict_list2bean_list(result, bean)
 
