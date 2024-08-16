@@ -104,9 +104,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
             # "input": "",
         })
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-
-    return knowledge_info_dict_list[-1].get("id"), knowledge_base_model, uuid_list, file_url_list
+    return knowledge_info_dict_list[-1].get("id"), knowledge_base_model, file_url_list
 
 
 def insert_institution_information_data(start_id: int = 0, limit: int = 10):
@@ -152,8 +150,7 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
             "output": output,
         })
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return notice_massage_dict_list[-1].get("notice_id"), knowledge_base_model, uuid_list, None
+    return notice_massage_dict_list[-1].get("notice_id"), knowledge_base_model, None
 
 
 def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
@@ -215,8 +212,7 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
         "output": dict_list02[i].get("key_value"),
     } for i, dict in enumerate(dict_list01)]
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return school_info_basic[-1].get("id"), knowledge_base_model, uuid_list, None
+    return school_info_basic[-1].get("id"), knowledge_base_model, None
 
 
 def insert_college_library02_data(start_id: int = 0, limit: int = 10):
@@ -247,8 +243,7 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
         "output": dict_list02[i].get("key_value"),
     } for i, dict in enumerate(dict_list01)]
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return school_info_ranking_list[-1].get("id"), knowledge_base_model, uuid_list, None
+    return school_info_ranking_list[-1].get("id"), knowledge_base_model, None
 
 
 def insert_college_library03_data(start_id: int = 0, limit: int = 10):
@@ -283,8 +278,7 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
         "output": dict_list02[i].get("key_value"),
     } for i, dict in enumerate(dict_list01)]
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return school_info_more_list[-1].get("id"), knowledge_base_model, uuid_list, None
+    return school_info_more_list[-1].get("id"), knowledge_base_model, None
 
 
 def insert_college_library04_data(start_id: int = 0, limit: int = 10):
@@ -315,8 +309,7 @@ def insert_college_library04_data(start_id: int = 0, limit: int = 10):
         "output": dict_list02[i].get("key_value"),
     } for i, dict in enumerate(dict_list01)]
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return zn_school_selection_reason_list[-1].get("id"), knowledge_base_model, uuid_list, None
+    return zn_school_selection_reason_list[-1].get("id"), knowledge_base_model, None
 
 
 def insert_college_library05_data(start_id: int = 0, limit: int = 10):
@@ -364,8 +357,7 @@ def insert_college_library05_data(start_id: int = 0, limit: int = 10):
         "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
     } for i, dict in enumerate(dict_list01)]
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return search_zn_school_recruit_graduate_1_list[-1].get("id"), knowledge_base_model, uuid_list, None
+    return search_zn_school_recruit_graduate_1_list[-1].get("id"), knowledge_base_model, None
 
 
 def insert_college_library06_data(start_id: int = 0, limit: int = 10):
@@ -414,8 +406,7 @@ def insert_college_library06_data(start_id: int = 0, limit: int = 10):
         "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
     } for i, dict in enumerate(dict_list01)]
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return search_zn_school_recruit_graduate_2_list[-1].get("id"), knowledge_base_model, uuid_list, None
+    return search_zn_school_recruit_graduate_2_list[-1].get("id"), knowledge_base_model, None
 
 
 def insert_college_library07_data(start_id: int = 0, limit: int = 10):
@@ -468,8 +459,7 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
         "output": f"""{title01}: {dict_list01[i].get("key_value")}\n{title02}: {dict_list02[i].get("key_value")}\n{title03}: {dict_list03[i].get("key_value")}\n{title04}: {dict_list04[i].get("key_value")}""",
     } for i, dict in enumerate(dict_list01)]
 
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
-    return search_zn_school_recruit_graduate_2_list[-1].get("id"), knowledge_base_model, uuid_list, None
+    return search_zn_school_recruit_graduate_2_list[-1].get("id"), knowledge_base_model, None
 
 
 def insert_major_library_data(start_id: int = 0, limit: int = 10):
@@ -544,9 +534,8 @@ def insert_major_library_data(start_id: int = 0, limit: int = 10):
         "instruction": dict_list00[i].get('key_value') + "信息资料如下",
         "output": f"""{title01}: {dict_list01[i].get('key_value')}\n{title02}: {dict_list02[i].get('key_value')}\n{title03}: {dict_list03[i].get('key_value')}\n{title04}: {dict_list04[i].get('key_value')}\n{title05}: {dict_list05[i].get('key_value')}\n{title06}: {dict_list06[i].get('key_value')}""",
     } for i, dict in enumerate(dict_list00)]
-    uuid_list = insert_weaviate_data_all(knowledge_base_model)
 
-    return zn_school_department_project_list[-1].get("id"), knowledge_base_model, uuid_list, None
+    return zn_school_department_project_list[-1].get("id"), knowledge_base_model, None
 
 
 def insert_major_library01_data(start_id: int = 0, limit: int = 10):
@@ -892,7 +881,8 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
             break
         frequency -= 1
         if method in method_mapping:
-            start_id, knowledge_base_model, uuid_list, file_url_list = method_mapping[method]()
+            start_id, knowledge_base_model, file_url_list = method_mapping[method]()
+            uuid_list = insert_weaviate_data_all(knowledge_base_model)
             insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
         else:
             print("请输入正确的参数")

@@ -4,11 +4,11 @@ from app.api.knowledge_base.knowledge_base_weaviate import create_collection, de
     search_weaviate_data
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution
 
-# asyncio.run(delete_collection())
-# asyncio.run(create_collection())
+asyncio.run(delete_collection())
+asyncio.run(create_collection())
 
 manner_execution = MannerExecution(
-    # method_name="t_knowledge_info",
+    method_name="t_knowledge_info",
     # method_name="notice_message",
     # method_name="platform_introduction",
     # method_name="zn_school_info",
@@ -23,5 +23,5 @@ manner_execution = MannerExecution(
     start_id=0,
     frequency=1
 )
-# asyncio.run(cleansing(manner_execution))
+asyncio.run(cleansing(manner_execution))
 asyncio.run(search_weaviate_data(database=manner_execution.method_name))

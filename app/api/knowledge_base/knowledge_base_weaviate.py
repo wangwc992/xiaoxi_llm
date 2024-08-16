@@ -14,6 +14,7 @@ logger = get_logger(__name__)
 async def cleansing(manner_execution: MannerExecution):
     '''清洗知识库'''
     logger.info("Received cleansing request with args: %s", manner_execution)
+
     return await cleansing_manner_execution(manner_execution)
 
 
