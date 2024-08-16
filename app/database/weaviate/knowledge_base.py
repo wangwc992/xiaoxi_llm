@@ -10,6 +10,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from app.common.utils.jieba_utils import jieba_tool
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
+from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select_ai_mysql_weaviate, \
     insert_ai_mysql_weaviate
 from app.database.weaviate.weaviate_client import WeaviateClient
@@ -112,10 +113,16 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
     async def search_hybrid_or(self, query, limit, alpha=0.5):
         '''在Weaviate数据库中搜索数据'''
+        filters = None
+        for key, values in ai_knowledge_base_keyword_dict.items():
+            if any(v in query for v in values):
+                filters = Filter.by_property("db_name").equal(key)
+                break
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
         response = self.collection.query.hybrid(
             query=query_keyword,
             fusion_type=HybridFusion.RELATIVE_SCORE,
+            filters=filters,
             query_properties=["output", "keyword^2"],
             vector=Embedding.embed_query(query),
             return_metadata=MetadataQuery(score=True, explain_score=True),
