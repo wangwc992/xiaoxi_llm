@@ -6,7 +6,7 @@ from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate, KnowledgeBaseModel
 
-router = APIRouter(prefix="/weaviate")
+router = APIRouter(prefix="/knowledge_base/weaviate")
 logger = get_logger(__name__)
 
 

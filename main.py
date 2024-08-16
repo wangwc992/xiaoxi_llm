@@ -34,6 +34,7 @@ from vllm.version import __version__ as VLLM_VERSION
 from app.api.openai.api_server import build_server
 from app.api.openai import api_server
 from app.api.knowledge_base import knowledge_base
+from app.api.knowledge_base import knowledge_base_weaviate
 from app.api.text2vec_custom import text2vec_custom
 
 logger = init_logger('vllm.entrypoints.openai.api_server')
@@ -70,6 +71,7 @@ def build_app(args, **uvicorn_kwargs):
     app.include_router(api_server.router)
     app.include_router(knowledge_base.router)
     app.include_router(text2vec_custom.router)
+    app.include_router(knowledge_base_weaviate.router)
     app.root_path = args.root_path
 
     mount_metrics(app)
