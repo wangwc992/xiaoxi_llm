@@ -4,8 +4,8 @@ from app.api.knowledge_base.knowledge_base_weaviate import create_collection, de
     search_weaviate_data
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution
 
-# asyncio.run(delete_collection())
-# asyncio.run(create_collection())
+asyncio.run(delete_collection())
+asyncio.run(create_collection())
 
 manner_execution = MannerExecution(
     # method_name="t_knowledge_info",
