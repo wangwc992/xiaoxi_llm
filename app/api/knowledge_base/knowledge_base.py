@@ -6,8 +6,7 @@ from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
 from app.middleware.exception import ChatSuspendException
 
-from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel,
-                                                 get_reference_data)
+from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel)
 
 router = APIRouter(prefix="/knowledge_base")
 logger = get_logger(__name__)
