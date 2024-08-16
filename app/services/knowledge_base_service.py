@@ -207,7 +207,7 @@ async def load_reference_data(query, limit):
     filters = None
     for key, values in ai_knowledge_base_keyword_dict.items():
         if any(v in query for v in values):
-            filters = Filter.by_property("database").equal(key)
+            filters = Filter.by_property("db_name").equal(key)
             break
 
     # 从weaviate获取参考数据
