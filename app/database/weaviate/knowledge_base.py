@@ -103,7 +103,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
         for o in response.objects:
             properties = o.properties
-            if distance > o.metadata.score and o.properties.get('database') == "t_knowledge_info":
+            if distance > o.metadata.score and o.properties.get('db_name') == "t_knowledge_info":
                 continue
             knowledge_base = ObjectFormatter.dict_to_object(properties, KnowledgeBaseModel)
             response_list.append(knowledge_base)
