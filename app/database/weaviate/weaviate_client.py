@@ -80,13 +80,13 @@ class WeaviateClient:
     def delete_collection_name(cls, collection_name):
         '''删除集合'''
         logger.info(f"Deleting collection: {collection_name}")
-        cls.client.collections.delete(collection_name)
+        result = cls.client.collections.delete(collection_name)
         return {"message": f"{collection_name} collection deleted successfully"}
 
     def create_collection(self, properties):
         '''创建集合'''
         if not self.exists(self.collections_name):
-            self.client.collections.create(
+            result = self.client.collections.create(
                 self.collections_name,
                 vector_index_config=Configure.VectorIndex.hnsw(),
                 properties=properties
@@ -113,20 +113,20 @@ class WeaviateClient:
                 uuid_list.append(uuid)
         return uuid_list
 
-    def update_data_by_uuid(self, uuid, update_data):
+    def update_data_by_uuid(self, uuid, update_data, vec=None):
         logger.info(f"Updating data in collection: {self.collections_name}")
-        self.collection.data.update(
-            uuid=uuid,
-            properties=update_data
-        )
-
-    def update_data(self, uuid, properties, vec):
-        logger.info(f"Updating data in collection: {self.collections_name}")
-        self.collection.data.update(
-            uuid=uuid,
-            properties=properties,
-            vector=vec
-        )
+        if vec:
+            self.collection.data.update(
+                uuid=uuid,
+                properties=update_data,
+                vector=vec
+            )
+        else:
+            self.collection.data.update(
+                uuid=uuid,
+                properties=update_data
+            )
+        return {"message": f"{uuid} data updated successfully"}
 
     def search_id(self, uuid):
         logger.info(f"Searching data by id: {uuid}")

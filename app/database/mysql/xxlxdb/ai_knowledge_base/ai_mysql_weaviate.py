@@ -66,6 +66,7 @@ def insert_ai_mysql_weaviate_bath(ai_mysql_weaviate_list: list[Union[AiMysqlWeav
     yhj.mysql_client.executemany(sql, params)
     yhj.mysql_client.connection.commit()
 
+
 def select_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict], limit: int):
     if isinstance(ai_mysql_weaviate, AiMysqlWeaviate):
         ai_mysql_weaviate = ai_mysql_weaviate.dict()

@@ -38,10 +38,6 @@ class MyChatCompletionRequestModel(BaseModel):
     member_id: Optional[str] = Field("1001", description="用户ID")
 
 
-async def get_reference_data(query: str, alpha: float, limit: int = 10):
-    return await knowledge_base_weaviate.search_hybrid_or(query=query, alpha=alpha, limit=limit)
-
-
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
     # 请求开始时间
@@ -228,7 +224,7 @@ async def load_reference_data(query, limit):
                 logger.error(f"knowledge_link error: {response.link},type: {type(response.link)}")
     return {
         "reference_data": reference_data,
-            "knowledge_link": knowledge_link,
+        "knowledge_link": knowledge_link,
     }
 
 

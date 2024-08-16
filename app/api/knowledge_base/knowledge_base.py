@@ -46,16 +46,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
 
 
-@router.post("/cleansing", description="Cleansing the knowledge base.")
-async def cleansing(manner_execution: MannerExecution):
-    '''清洗知识库'''
-    logger.info("Received cleansing request with args: %s", manner_execution)
-    return await cleansing_manner_execution(manner_execution)
 
 
-@router.get("/weaviateSearch")
-async def reference_data(query: str, alpha: float = 0.5, limit: int = 10):
-    '''Weaviate搜索
-    alpha 为 1 是纯向量搜索
-    alpha 为 0 是纯关键字搜索'''
-    return await get_reference_data(query=query, alpha=alpha, limit=limit)
+
+

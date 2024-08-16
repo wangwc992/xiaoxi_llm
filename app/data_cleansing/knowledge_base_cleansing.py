@@ -33,6 +33,18 @@ from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 logger = get_logger(__name__)
 
+t_knowledge_info = "t_knowledge_info"
+notice_message = "notice_message"
+platform_introduction = "platform_introduction"
+zn_school_info = "zn_school_info"
+zn_school_info_rank = "zn_school_info_rank"
+zn_school_info_more = "zn_school_info_more"
+zn_school_selection_reason = "zn_school_selection_reason"
+zn_school_admission_undergraduate = "zn_school_admission_undergraduate"
+zn_school_admission_graduate_student = "zn_school_admission_graduate_student"
+zn_school_admission_art = "zn_school_admission_art"
+zn_school_department_project = "zn_school_department_project"
+
 
 def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     '''知识库
@@ -46,7 +58,8 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
 
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
-    database = "t_knowledge_info"
+    global t_knowledge_info
+    database = t_knowledge_info
     knowledge_info_dict_list = search_knowledge_info_data2(id=start_id, limit=limit)
     if not knowledge_info_dict_list:
         logger.info(f"{database}知识库数据已全部洗入")
@@ -76,11 +89,11 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
 
         url = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id},"attachment_url":"{knowledge_info.get("fileurl")}"}}'
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
-        output = f'{knowledge_info["founder"]}于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
+        output = f'平台顾问于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
         link = url
 
         knowledge_base_model.append({
-            "database": database,
+            "db_name": database,
             "db_id": db_id,
             "instruction": instruction,
             "output": output,
@@ -105,7 +118,8 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
     以下为资讯附件：{附件标题}{附件内容}
     以下为资料正文中附件{附件内容}。
     '''
-    database = "notice_message"
+    global notice_message
+    database = notice_message
     notice_massage_dict_list = search_notice_message_data(id=start_id, limit=limit)
     if not notice_massage_dict_list:
         logger.info(f"小希平台院校资讯数据已全部洗入")
@@ -131,13 +145,10 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
         以下是资料正文中附件{notice_massage.get('notice_title', '')}。"""
 
         knowledge_base_model.append({
-            "database": database,
+            "db_name": database,
             "db_id": db_id,
             "instruction": instruction,
-            "input": "",
             "output": output,
-            "keyword": '',
-            "file_info": file_info,
         })
 
     uuid_list = insert_weaviate_data_all(knowledge_base_model)
@@ -152,7 +163,8 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     a、问题： 小希平台/小希系统的{模块}{功能}介绍说明如下/问题解答如下：
 
     b、答案： {答案}'''
-    datasets = 'platform_introduction'
+    global platform_introduction
+    database = platform_introduction
     # 加载小希平台介绍数据的xlsx文件
     base_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(base_dir, 'data/platform_introduction.xlsx')
@@ -161,7 +173,7 @@ def insert_platform_introduction_data(start_id: int = 0, limit: int = 10):
     # Extract the necessary information
     data = df.to_dict(orient='records')
     knowledge_base_model = [{
-        "database": datasets,
+        "db_name": database,
         "db_id": str(i),
         "instruction": info.get('instruction'),
         "output": info.get('output'),
@@ -180,7 +192,8 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     b、内容信息：
     （*仅洗入字段内容不为空的字段，字段为（*我这里仅列出标题））：【*院校中文名：】【*院校英文名：】【*所属国家：】【所属地区：】【*官网地址：】【申请费支付维度：】【申请周期-算法统计：】【申请周期-人工配置：】
         '''
-    database = "zn_school_info"
+    global zn_school_info
+    database = zn_school_info
     school_info_basic = search_school_info_basic_data(id=start_id, limit=limit)
     if not school_info_basic:
         logger.info(f"院校库基本信息数据已全部洗入")
@@ -195,7 +208,7 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_basic)
 
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的基本信息",
         "output": dict_list02[i].get("key_value"),
@@ -212,7 +225,8 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
     b、内容信息：
     【世界USNEWS排名：】【世界泰晤士排名：】【世界QS排名：】【地区USNEWS排名：】【地区泰晤士排名：】【地区QS排名：】
     '''
-    database = "zn_school_info_rank"
+    global zn_school_info_rank
+    database = zn_school_info_rank
     school_info_ranking_list = search_school_info_ranking_data(id=start_id, limit=limit)
     if not school_info_ranking_list:
         logger.info(f"院校库排名信息数据已全部洗入")
@@ -226,7 +240,7 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_ranking_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_ranking_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校排名",
         "output": dict_list02[i].get("key_value"),
@@ -243,7 +257,8 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
     b、内容信息：
     【就业率：】【毕业薪资：】【学生总数量：】【本科生数量：】【研究生数量：】【国际学生比例：】【师生比例：】【男女比例：】【院校简介：】【院校历史：】【地理位置：】【校园环境：】【学校宿舍：】【图书馆：】【学校设施：】【招生办信息：】【防疫信息：】
     '''
-    database = "zn_school_info_more"
+    global zn_school_info_more
+    database = zn_school_info_more
     school_info_more_list = search_school_info_more_data(id=start_id, limit=limit)
     if not school_info_more_list:
         logger.info(f"院校库更多信息数据已全部洗入")
@@ -261,7 +276,7 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, school_info_more_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, school_info_more_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校更多信息",
         "output": dict_list02[i].get("key_value"),
@@ -293,7 +308,7 @@ def insert_college_library04_data(start_id: int = 0, limit: int = 10):
     dict_list01 = ObjectFormatter.attribute_concatenation(key_name_list01, zn_school_selection_reason_list)
     dict_list02 = ObjectFormatter.attribute_concatenation(key_name_list02, zn_school_selection_reason_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的院校择校理由",
         "output": dict_list02[i].get("key_value"),
@@ -313,7 +328,8 @@ def insert_college_library05_data(start_id: int = 0, limit: int = 10):
     3、考试要求如下：
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
-    database = "zn_school_recruit_graduate_01"
+    global zn_school_admission_undergraduate
+    database = zn_school_admission_undergraduate
     search_zn_school_recruit_graduate_1_list = search_zn_school_recruit_graduate_1(id=start_id, limit=limit)
     if not search_zn_school_recruit_graduate_1_list:
         logger.info(f"院校库本科生院校招生信息数据已全部洗入")
@@ -341,7 +357,7 @@ def insert_college_library05_data(start_id: int = 0, limit: int = 10):
     dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_1_list)
     dict_list04 = ObjectFormatter.attribute_concatenation(key_name_list04, search_zn_school_recruit_graduate_1_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的本科生院校招生信息",
         "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
@@ -361,7 +377,8 @@ def insert_college_library06_data(start_id: int = 0, limit: int = 10):
     3、考试要求如下：
     【GPA成绩：】【ACT成绩：】【SAT成绩：】【SAT2成绩：】【GRE成绩：】【GMAT成绩：】【雅思成绩：】【托福成绩：】【native成绩：】【其他成绩：】【奖学金：】【申请材料：】【申请流程】
     '''
-    database = "zn_school_recruit_graduate_02"
+    global zn_school_admission_graduate_student
+    database = zn_school_admission_graduate_student
     search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_graduate_2(id=start_id, limit=limit)
     if not search_zn_school_recruit_graduate_2_list:
         logger.info(f"院校库研究生生院校招生信息数据已全部洗入")
@@ -390,7 +407,7 @@ def insert_college_library06_data(start_id: int = 0, limit: int = 10):
     dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_2_list)
     dict_list04 = ObjectFormatter.attribute_concatenation(key_name_list04, search_zn_school_recruit_graduate_2_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的研究生生院校招生信息",
         "output": f"""{title02}：{dict_list02[i].get("key_value")}\n{title03}：{dict_list03[i].get("key_value")}\n{title04}：{dict_list04[i].get("key_value")}""",
@@ -410,7 +427,8 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     3、考试要求如下：
     【研究生专业：】【本科专业：】【研究生雅思成绩：】【本科雅思成绩：】【研究生托福成绩：】【本科托福成绩：】【研究生申请截止日：】【本科申请截止日期：】【研究生申请要求：】【本科申请要求：】【研究生作品集要求：】【本科作品集要求：】
     '''
-    database = "zn_school_recruit_art"
+    global zn_school_admission_art
+    database = zn_school_admission_art
     search_zn_school_recruit_graduate_2_list = search_zn_school_recruit_art(id=start_id, limit=limit)
     if not search_zn_school_recruit_graduate_2_list:
         logger.info(f"院校库艺术生院校招生信息数据已全部洗入")
@@ -443,7 +461,7 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     dict_list03 = ObjectFormatter.attribute_concatenation(key_name_list03, search_zn_school_recruit_graduate_2_list)
     dict_list04 = ObjectFormatter.attribute_concatenation(key_name_list04, search_zn_school_recruit_graduate_2_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict.get("value") + "的艺术生院校招生信息",
         "output": f"""{title01}: {dict_list01[i].get("key_value")}\n{title02}: {dict_list02[i].get("key_value")}\n{title03}: {dict_list03[i].get("key_value")}\n{title04}: {dict_list04[i].get("key_value")}""",
@@ -454,7 +472,8 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
 
 
 def insert_major_library_data(start_id: int = 0, limit: int = 10):
-    database = "zn_school_department_project"
+    global zn_school_department_project
+    database = zn_school_department_project
     zn_school_department_project_list = search_zn_school_department_project(id=start_id, limit=limit)
     if not zn_school_department_project_list:
         logger.info(f"专业库数据已全部洗入")
@@ -519,7 +538,7 @@ def insert_major_library_data(start_id: int = 0, limit: int = 10):
     dict_list06 = ObjectFormatter.attribute_concatenation(key_name_list06, zn_school_department_project_list)
 
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": dict_list00[i].get('key_value') + "信息资料如下",
         "output": f"""{title01}: {dict_list01[i].get('key_value')}\n{title02}: {dict_list02[i].get('key_value')}\n{title03}: {dict_list03[i].get('key_value')}\n{title04}: {dict_list04[i].get('key_value')}\n{title05}: {dict_list05[i].get('key_value')}\n{title06}: {dict_list06[i].get('key_value')}""",
@@ -558,7 +577,7 @@ def insert_major_library01_data(start_id: int = 0, limit: int = 10):
                      {"所在城市": "city_path"}, {"专业介绍": "introduction"}, {"专业分类": "career_opportunities"}]
     dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": f"{dict.get('key_value')} 的专业基本信息",
         "input": "",
@@ -597,7 +616,7 @@ def insert_major_library02_data(start_id: int = 0, limit: int = 10):
                      {"总花费": "total_cost"}]
     dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": f"{dict.get('key_value')} 的关键时间和费用",
         "input": "",
@@ -633,7 +652,7 @@ def insert_major_library03_data(start_id: int = 0, limit: int = 10):
                      {"托福成绩": "toefl_score"}, {"托福总分": "toefl_total_score"}]
     dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": f"{dict.get('key_value')} 的申请要求",
         "input": "",
@@ -682,7 +701,7 @@ def insert_major_library04_data(start_id: int = 0, limit: int = 10):
                      {"专业背景要求": "professional_background_requirement"}, {"是否接受跨专业": "accept_cross_major"}]
     dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": f"{dict.get('key_value')} 的本科专业申请要求",
         "input": "",
@@ -719,7 +738,7 @@ def insert_major_library05_data(start_id: int = 0, limit: int = 10):
                      {"专业背景要求": "professional_background_requirement"}, {"是否接受跨专业": "accept_cross_major"}]
     dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": f"{dict.get('key_value')} 的研究生专业申请要求",
         "input": "",
@@ -757,7 +776,7 @@ def insert_major_library06_data(start_id: int = 0, limit: int = 10):
                      {"减免学分条件": "credit_reduction_condition"}]
     dict_list = ObjectFormatter.attribute_concatenation(key_name_list, zn_school_department_project_dict_list)
     knowledge_base_model = [{
-        "database": database,
+        "db_name": database,
         "db_id": dict.get('db_id'),
         "instruction": f"{dict.get('key_value')} 的其它申请要求",
         "output": dict.get('key_value'),
@@ -835,13 +854,8 @@ def create_collection_name():
 
 class MannerExecution(BaseModel):
     method_name: Optional[str]
-    datasets: Optional[str]
     limit: Optional[int] = 10
     start_id: Optional[int] = 0
-    is_while: Optional[bool] = False
-    uuid: Optional[str] = None
-    query: Optional[str] = None
-    properties: Optional[Dict] = None
     frequency: Optional[int] = 1
 
 
@@ -849,43 +863,30 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     global limit, start_id
     limit = manner_execution.limit
     start_id = manner_execution.start_id
-    is_while = manner_execution.is_while
-    uuid = manner_execution.uuid
-    query = manner_execution.query
-    properties = manner_execution.properties
     frequency = manner_execution.frequency
     method = manner_execution.method_name
-    datasets = manner_execution.datasets
 
     method_mapping = {
-        "insert_t_knowledge_info_data": lambda: insert_t_knowledge_info_data(start_id=start_id, limit=limit),
-        "insert_institution_information_data": lambda: insert_institution_information_data(start_id=start_id,
-                                                                                           limit=limit),
-        "insert_platform_introduction_data": lambda: insert_platform_introduction_data(start_id=start_id, limit=limit),
-        "insert_college_library01_data": lambda: insert_college_library01_data(start_id=start_id, limit=limit),
-        "insert_college_library02_data": lambda: insert_college_library02_data(start_id=start_id, limit=limit),
-        "insert_college_library03_data": lambda: insert_college_library03_data(start_id=start_id, limit=limit),
-        "insert_college_library04_data": lambda: insert_college_library04_data(start_id=start_id, limit=limit),
-        "insert_college_library05_data": lambda: insert_college_library05_data(start_id=start_id, limit=limit),
-        "insert_college_library06_data": lambda: insert_college_library06_data(start_id=start_id, limit=limit),
-        "insert_college_library07_data": lambda: insert_college_library07_data(start_id=start_id, limit=limit),
-        "insert_major_library_data": lambda: insert_major_library_data(start_id=start_id, limit=limit),
+        "t_knowledge_info": lambda: insert_t_knowledge_info_data(start_id=start_id, limit=limit),
+        "notice_message": lambda: insert_institution_information_data(start_id=start_id, limit=limit),
+        "platform_introduction": lambda: insert_platform_introduction_data(start_id=start_id, limit=limit),
+        "zn_school_info": lambda: insert_college_library01_data(start_id=start_id, limit=limit),
+        "zn_school_info_rank": lambda: insert_college_library02_data(start_id=start_id, limit=limit),
+        "zn_school_info_more": lambda: insert_college_library03_data(start_id=start_id, limit=limit),
+        "zn_school_selection_reason": lambda: insert_college_library04_data(start_id=start_id, limit=limit),
+        "zn_school_admission_undergraduate": lambda: insert_college_library05_data(start_id=start_id, limit=limit),
+        "zn_school_admission_graduate_student": lambda: insert_college_library06_data(start_id=start_id, limit=limit),
+        "zn_school_admission_art": lambda: insert_college_library07_data(start_id=start_id, limit=limit),
+        "zn_school_department_project": lambda: insert_major_library_data(start_id=start_id, limit=limit),
         "insert_major_library01_data": lambda: insert_major_library01_data(start_id=start_id, limit=limit),
         "insert_major_library02_data": lambda: insert_major_library02_data(start_id=start_id, limit=limit),
         "insert_major_library03_data": lambda: insert_major_library03_data(start_id=start_id, limit=limit),
         "insert_major_library04_data": lambda: insert_major_library04_data(start_id=start_id, limit=limit),
         "insert_major_library05_data": lambda: insert_major_library05_data(start_id=start_id, limit=limit),
         "insert_major_library06_data": lambda: insert_major_library06_data(start_id=start_id, limit=limit),
-        "clear_all_data": lambda: clear_all_data(datasets),
-        "delete_weaviate_data_by_id": lambda: delete_weaviate_data_by_id(uuid, datasets),
-        "search_weaviate_data_by_query": lambda: print(search_weaviate_data_by_query(query, limit)),
-        "update_weaviate_data_by_id": lambda: update_weaviate_data_by_id(uuid, properties),
-        "delete_collection_name": delete_collection_name,
-        "create_collection_name": create_collection_name,
-        "delete_by_database": lambda: delete_by_database(datasets)
     }
 
-    while is_while:
+    while True:
         if frequency == 0:
             break
         frequency -= 1
@@ -904,7 +905,7 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
         if file_url_list:
             file_url = file_url_list[i]
         ai_mysql_weaviate = {
-            "db_name": knowledge_base_model.get('database'),
+            "db_name": knowledge_base_model.get('db_name'),
             "db_id": knowledge_base_model.get('db_id'),
             "instruction": knowledge_base_model.get('instruction'),
             "input": knowledge_base_model.get('input'),
@@ -921,16 +922,8 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
 if __name__ == '__main__':
     manner_execution = {
         "method_name": "insert_major_library_data",
-        "datasets": "knowledge_info",
         "limit": 5,
         "start_id": 0,
-        "is_while": True,
-        "uuid": "123e4567-e89b-12d3-a456-426614174000",
-        "query": "SELECT * FROM knowledge_info",
-        "properties": {
-            "key1": "value1",
-            "key2": "value2"
-        },
         "frequency": 1
     }
     manner_execution = MannerExecution(**manner_execution)
