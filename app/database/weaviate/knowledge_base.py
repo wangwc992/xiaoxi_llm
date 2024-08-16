@@ -68,7 +68,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             filters = Filter.by_property("db_name").equal(database)
         response = self.collection.query.fetch_objects(
             filters=filters,
-            limit=5,
+            limit=20,
         )
         response_list = []
         for o in response.objects:
@@ -135,12 +135,12 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
         for o in response.objects:
             properties = o.properties
-            if distance > o.metadata.score and o.properties.get('database') == 't_knowledge_info':
+            if distance > o.metadata.score and o.properties.get('db_name') == 't_knowledge_info':
                 continue
             response_list.append({"explain_score": o.metadata.explain_score,
                                   "content": properties['instruction'] + "\n" + properties['keyword'],
                                   "score": o.metadata.score})
-            print(f"score: {o.metadata.score},database: {properties['database']}")
+            print(f"score: {o.metadata.score},db_name: {properties['db_name']}")
         return response_list
 
     def update_data(self, knowledge_base_model: Union[KnowledgeBaseModel, dict]):
@@ -154,7 +154,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         properties['keyword'] = query_keyword
 
         search_model = {
-            "database": properties.get('database'),
+            "db_name": properties.get('db_name'),
             "db_id": properties.get('db_id')
         }
         ai_mysql_weaviate_list = select_ai_mysql_weaviate(search_model, 1)
@@ -168,18 +168,18 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             insert_ai_mysql_weaviate(properties)
         return {"message": f"{uuid} data updated successfully"}
 
-    def delete_data_by_id(self, id: str, database: str):
+    def delete_data_by_id(self, id: str, db_name: str):
         '''根据id删除Weaviate数据库中的数据'''
         self.collection.data.delete_many(
-            where=Filter.by_property("db_id").equal(id) & Filter.by_property("database").equal(database)
+            where=Filter.by_property("db_id").equal(id) & Filter.by_property("db_name").equal(db_name)
         )
-        return {"message": f"{id} data deleted successfully in Weaviate database: {database}"}
+        return {"message": f"{id} data deleted successfully in Weaviate db_name: {db_name}"}
 
-    def delete_by_database(self, database: str):
-        logger.info(f"Deleting data in Weaviate database: {database}")
+    def delete_by_database(self, db_name: str):
+        logger.info(f"Deleting data in Weaviate db_name: {db_name}")
         '''根据database删除Weaviate数据库中的数据'''
         self.collection.data.delete_many(
-            where=Filter.by_property("database").equal(database)
+            where=Filter.by_property("db_name").equal(db_name)
         )
 
 
