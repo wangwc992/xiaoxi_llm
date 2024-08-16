@@ -10,7 +10,6 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from app.common.utils.jieba_utils import jieba_tool
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
-from app.data_cleansing.knowledge_base_cleansing import t_knowledge_info
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select_ai_mysql_weaviate, \
     insert_ai_mysql_weaviate
 from app.database.weaviate.weaviate_client import WeaviateClient
@@ -104,7 +103,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
 
         for o in response.objects:
             properties = o.properties
-            if distance > o.metadata.score and o.properties.get('database') == t_knowledge_info:
+            if distance > o.metadata.score and o.properties.get('database') == "t_knowledge_info":
                 continue
             knowledge_base = ObjectFormatter.dict_to_object(properties, KnowledgeBaseModel)
             response_list.append(knowledge_base)
