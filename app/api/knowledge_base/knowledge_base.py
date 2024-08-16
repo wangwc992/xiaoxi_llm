@@ -1,3 +1,4 @@
+import traceback
 from fastapi import Request, APIRouter, BackgroundTasks
 from starlette.responses import StreamingResponse
 
@@ -41,11 +42,6 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         return await knowledge_base_generate(request, raw_request, background_tasks)
     except Exception as e:
         # 捕获异常并处理
-        logger.error(f"Error in /chat/completions: {e}")
+        error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
+        logger.error(f"Error in /chat/completions: {error_message}")
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
-
-
-
-
-
-
