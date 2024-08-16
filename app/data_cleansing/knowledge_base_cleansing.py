@@ -793,55 +793,6 @@ def insert_weaviate_data_all(knowledge_base_model: list):
     return uuid_list
 
 
-def clear_all_data(database: str):
-    '''
-    将 weaviate的t_knowledge_info表的全部数据清空
-    :return:
-    '''
-    knowledge_base_weaviate.clear_all_data(database)
-
-
-def delete_weaviate_data_by_id(id: str, database: str):
-    '''
-    根据id删除weaviate的数据
-    :param id:
-    :return:
-    '''
-    knowledge_base_weaviate.delete_data_by_id(id, database)
-
-
-def search_weaviate_data_by_query(query: str, limit: int):
-    '''
-    根据query查询weaviate的数据
-    :param query:
-    :param limit:
-    :return:
-    '''
-    return knowledge_base_weaviate.search_hybrid(query, limit)
-
-
-def update_weaviate_data_by_id(id: str, properties: dict):
-    '''
-    根据id更新weaviate的数据
-    :param id:
-    :param properties:
-    :return:
-    '''
-    knowledge_base_weaviate.update_data_by_uuid(id, properties)
-
-
-def delete_collection_name():
-    knowledge_base_weaviate.delete_collection_name(knowledge_base_weaviate.collections_name)
-
-
-def delete_by_database(database: str):
-    knowledge_base_weaviate.delete_by_database(database)
-
-
-def create_collection_name():
-    knowledge_base_weaviate.create_collection(knowledge_base_weaviate.properties)
-
-
 class MannerExecution(BaseModel):
     method_name: Optional[str]
     limit: Optional[int] = 10
@@ -908,6 +859,8 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
         }
         ai_mysql_weaviate_list.append(ai_mysql_weaviate)
     insert_ai_mysql_weaviate_bath(ai_mysql_weaviate_list)
+
+
 
 
 if __name__ == '__main__':
