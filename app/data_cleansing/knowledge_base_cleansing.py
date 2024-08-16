@@ -71,11 +71,12 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         content = knowledge_info.get("content", "")
         if content is None:
             content = ""
-        file_content = ""
         file_url_list.append(knowledge_info.get("fileurl"))
         if knowledge_info.get("fileurl"):
-            # file_content = urlToText(knowledge_info["fileurl"])
-            file_content = knowledge_info.get("attachment_content", "")
+            attachment_content = knowledge_info.get("attachment_content")
+            if attachment_content:
+                attachment_content = urlToText(knowledge_info["fileurl"])
+            file_content = attachment_content
             filename = knowledge_info.get("filename", "")
             if file_content:
                 content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
