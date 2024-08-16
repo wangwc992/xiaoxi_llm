@@ -217,7 +217,7 @@ async def load_reference_data(query, limit):
     # 获取知识库链接, 仅获取t_knowledge_info的链接,并且将字符串转换为字典
     knowledge_link = []
     for response in response_list:
-        if response.database == "t_knowledge_info" and response.link:
+        if response.db_name == "t_knowledge_info" and response.link:
             try:
                 knowledge_link.append(eval(response.link.replace("\n", "")))
             except:
