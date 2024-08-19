@@ -89,4 +89,4 @@ def start_binlog_listener():
 #
 # # 继续执行主线程的其他代码
 # print("主程序继续启动，不会被阻塞")
-start_binlog_listener()
+# start_binlog_listener()
