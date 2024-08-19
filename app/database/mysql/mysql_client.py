@@ -13,6 +13,7 @@ class MySQLConnect:
 
     def __init__(self, database: str):
         self.mysql_dict = settings["mysql"][database]
+        print(self.mysql_dict)
         """建立数据库连接"""
         self.conn = MySQLdb.connect(
             host=self.mysql_dict["host"],
