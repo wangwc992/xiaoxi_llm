@@ -64,6 +64,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     reference_data_dict = await load_reference_data(query, 10)
     reference_data = reference_data_dict.get("reference_data")
     knowledge_link = reference_data_dict.get("knowledge_link")
+    reference_data_count = reference_data_dict.get("reference_data_count")
 
     # 加载prompt模板
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -90,7 +91,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
-            stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id),
+            stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
+                            reference_data_count),
             media_type="text/event-stream"
         )
     else:
@@ -106,7 +108,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         return result
 
 
-async def stream_response(result, member_id, message_list, start_time, knowledge_link, conversation_id):
+async def stream_response(result, member_id, message_list, start_time, knowledge_link, conversation_id,
+                          reference_data_count):
     '''
     流式输出
     :param result:  返回结果
@@ -131,6 +134,7 @@ async def stream_response(result, member_id, message_list, start_time, knowledge
             delta = chunk_data.get('choices')[0]['delta']
             delta['role'] = "1"
             delta['content'] = knowledge_link
+            delta['reference_data_count'] = reference_data_count
             chunk_data['conversation_id'] = conversation_id
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
         yield chunk
@@ -222,9 +226,11 @@ async def load_reference_data(query, limit):
                 knowledge_link.append(eval(response.link.replace("\n", "")))
             except:
                 logger.error(f"knowledge_link error: {response.link},type: {type(response.link)}")
+
     return {
         "reference_data": reference_data,
         "knowledge_link": knowledge_link,
+        "reference_data_count": len(response_list),
     }
 
 
