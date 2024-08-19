@@ -31,7 +31,7 @@ class KnowledgeBaseModel(BaseModel):
 
 
 class KnowledgeBaseWeaviate(WeaviateClient):
-    collections_name = "Qwen_data_base1"
+    collections_name = "Qwen_data_base"
     properties = [
         Property(name='db_id', data_type=DataType.TEXT, description='数据库的id'),
         Property(name='db_name', data_type=DataType.TEXT, description='数据库'),
