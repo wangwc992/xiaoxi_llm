@@ -46,12 +46,12 @@ class KnowledgeBaseWeaviate(WeaviateClient):
     def clear_all_data(self, database: str):
         while True:
             filters = (
-                Filter.by_property("database").like(f"{database}")
+                Filter.by_property("db_name").like(f"{database}")
             )
             result = self.collection.data.delete_many(
                 where=filters,
-                # dry_run=True,
-                # verbose=True
+                dry_run=True,
+                verbose=True
             )
             logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
             if result.matches < 10000:
@@ -197,9 +197,10 @@ if __name__ == '__main__':
     # WeaviateClient.delete_collection_name(knowledgeBase.collections_name)
     # knowledgeBase.create_collection(knowledgeBase.properties)
     # while 循环获取输入
-    while True:
-        input_str = input("请输入：")
-        if input_str == "exit":
-            break
-        else:
-            asyncio.run(knowledge_base_weaviate.search_hybrid(input_str, 10))
+    # while True:
+    #     input_str = input("请输入：")
+    #     if input_str == "exit":
+    #         break
+    #     else:
+    #         asyncio.run(knowledge_base_weaviate.search_hybrid(input_str, 10))
+    knowledge_base_weaviate.clear_all_data("notice_message")

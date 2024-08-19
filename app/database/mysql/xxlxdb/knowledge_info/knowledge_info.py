@@ -67,7 +67,7 @@ class KnowledgeInfo(BaseModel):
 
 
 def search_knowledge_info_data(id=0, limit=10):
-    sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl FROM t_knowledge_info where startup_status = 1 and id >= {id}"
+    sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl FROM t_knowledge_info where startup_status = 1 and apply_status = 4 and id >= {id}"
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 def search_knowledge_info_data2(id=0, limit=10):

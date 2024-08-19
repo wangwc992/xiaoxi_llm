@@ -63,19 +63,24 @@ study_abroad_questions = [
 def send_request():
     # 随机选择一个问题
     random_question = random.choice(study_abroad_questions)
+    # A
+    url = "u430182-ac52-13068849.cqa1.seetacloud.com"
+    # B
+    # url = "u430182-ac52-9e557856.cqa1.seetacloud.com"
 
-    conn = http.client.HTTPSConnection("u430182-ac52-9e557856.cqa1.seetacloud.com")
+    model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
+    conn = http.client.HTTPSConnection(url)
     payload = json.dumps({
-        "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
+        "model": model,
         "query": random_question,
-        "stream": False
+        "stream": True
     })
     headers = {
         'Authorization': '1001',
         'User-Agent': 'Apifox/1.0.0 (https://apifox.com)',
         'Content-Type': 'application/json',
         'Accept': '*/*',
-        'Host': 'u430182-ac52-9e557856.cqa1.seetacloud.com',
+        'Host': url,
         'Connection': 'keep-alive'
     }
     try:
@@ -93,7 +98,7 @@ def send_request():
 def periodic_request():
     while True:
         # 随机生成1到10个线程
-        num_requests = random.randint(20, 30)
+        num_requests = random.randint(30, 30)
         print(f"Sending {num_requests} requests...")
         threads = []
         for _ in range(num_requests):
@@ -106,7 +111,7 @@ def periodic_request():
             thread.join()
 
         # 随机等待 5 到 10 秒
-        time.sleep(random.randint(20, 30))
+        time.sleep(random.randint(10, 20))
 
 
 # 启动定时请求

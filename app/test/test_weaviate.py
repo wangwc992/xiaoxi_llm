@@ -1,13 +1,9 @@
 import weaviate
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.collections.classes.grpc import HybridFusion
-from weaviate.proto.v1.base_pb2 import Filters
 
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
-from app.common.utils.object_utils import ObjectFormatter
-from app.data_cleansing.knowledge_base_cleansing import create_collection_name, delete_collection_name
-from app.database.weaviate.knowledge_base import KnowledgeBaseModel
 
 logger = get_logger(__name__)
 client = weaviate.connect_to_local(grpc_port=50060, port=8079, skip_init_checks=True)
@@ -28,15 +24,15 @@ def delete_many():
             break
 
 
-query_bm25_database = 't_knowledge_info'
+query_bm25_database = 'platform_introduction'
 
 
 def query_bm25(query_bm25: str):
     response = collection.query.bm25(
         query=query_bm25,
-        query_properties=["database"],
+        query_properties=["db_name"],
         return_metadata=MetadataQuery(score=True),
-        limit=10
+        limit=40
     )
 
     for o in response.objects:
@@ -44,14 +40,14 @@ def query_bm25(query_bm25: str):
         print(o.metadata.score)
 
 
-database = 't_knowledge_info'
+database = 'notice_message'
 
 
 def clear_all_data(database: str):
     '''清空Weaviate数据库中的所有数据'''
     while True:
         filters = (
-            Filter.by_property("database").equal("t_knowledge_info")
+            Filter.by_property("db_name").equal(database)
         )
         result = collection.data.delete_many(
             where=filters,
@@ -118,14 +114,14 @@ def fetch_objects():
 
 if __name__ == "__main__":
     # delete_many()
-    delete_collection_name()
-    create_collection_name()
+    # delete_collection_name()
+    # create_collection_name()
     #
     # query_bm25(query_bm25_database)
     # query_bm25("notice_message")
 
     # clear_all_data(database)
-    # clear_all_data("notice_message")
+    clear_all_data("platform_introduction")
     # query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)

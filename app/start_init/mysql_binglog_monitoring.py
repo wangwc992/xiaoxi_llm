@@ -8,6 +8,8 @@ from app.common.core.config import settings
 from app.common.core.langchain_client import Embedding
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution, \
     insert_t_knowledge_info_data, insert_mysql_weaviate
+from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select_ai_mysql_weaviate, \
+    insert_ai_mysql_weaviate, update_ai_mysql_weaviate
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 manner_execution = MannerExecution(
@@ -20,35 +22,39 @@ manner_execution = MannerExecution(
 
 async def choice_method(table_name: str, data: dict, type: int):
     if table_name == 't_knowledge_info':
-        if type == 2:
-            print(1)
-            await i_t_knowledge_info(data)
-        elif type == 2:
-            print(2)
-            await u_t_knowledge_info(data)
+        await sync_t_knowledge_info(data)
 
 
-async def i_t_knowledge_info(data: dict):
+async def sync_t_knowledge_info(data: dict):
+    db_name = "t_knowledge_info"
     apply_status = data.get('apply_status')
     if apply_status == 4:
-        manner_execution.method_name = 't_knowledge_info'
-        manner_execution.start_id = data.get('id')
-        start_id = data.get('id')
-        start_id, knowledge_base_model_list, file_url_list = insert_t_knowledge_info_data(start_id=start_id, limit=1)
+        manner_execution.method_name = db_name
+        db_id = data.get('id')
+        start_id, knowledge_base_model_list, file_url_list = insert_t_knowledge_info_data(start_id=db_id, limit=1)
         knowledge_base_model = knowledge_base_model_list[0]
         vec = Embedding.embed_query(knowledge_base_model.get('instruction'))
-        uuid = knowledge_base_weaviate.insert_data(knowledge_base_model, vec)
-        uuid = str(uuid)
-        insert_mysql_weaviate(knowledge_base_model, [uuid], file_url_list)
 
-async def u_t_knowledge_info(data: dict):
-    apply_status = data.get('apply_status')
-    if apply_status == 4:
-        manner_execution.method_name = 't_knowledge_info'
-        start_id = data.get('id')
-        start_id, knowledge_base_model, file_url_list = insert_t_knowledge_info_data(start_id=start_id, limit=1)
-        uuid = knowledge_base_weaviate.update_data(knowledge_base_model)
-        insert_mysql_weaviate(knowledge_base_model, [uuid], file_url_list)
+        # 判断之前是否已经同步过
+        ai_mysql_weaviate_list = select_ai_mysql_weaviate({'db_id': db_id, 'db_name': db_name}, 1)
+        if ai_mysql_weaviate_list:
+            # 获取之前同步的数据的 weaviate_id，更新weaviate数据
+            uuid = ai_mysql_weaviate_list[0].get("weaviate_id")
+            knowledge_base_weaviate.update_data_by_uuid(uuid, knowledge_base_model, vec)
+
+            # 更新 ai_mysql_weaviate 数据
+            id = ai_mysql_weaviate_list[0].get("id")
+            knowledge_base_model['id'] = id
+            if file_url_list:
+                knowledge_base_model['file_url'] = file_url_list[0]
+            knowledge_base_model.pop('link')
+            update_ai_mysql_weaviate(knowledge_base_model)
+        else:
+            uuid = knowledge_base_weaviate.insert_data(knowledge_base_model, vec)
+            knowledge_base_model['weaviate_id'] = str(uuid)
+            if file_url_list:
+                knowledge_base_model['file_url'] = file_url_list[0]
+            insert_ai_mysql_weaviate(knowledge_base_model)
 
 
 async def start_binlog_listener():
@@ -117,4 +123,4 @@ async def start_binlog_listener():
 # # 继续执行主线程的其他代码
 # print("主程序继续启动，不会被阻塞")
 # start_binlog_listener()
-# asyncio.run(start_binlog_listener())
+asyncio.run(start_binlog_listener())

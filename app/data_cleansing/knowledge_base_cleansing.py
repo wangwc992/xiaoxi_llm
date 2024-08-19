@@ -74,7 +74,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         file_url_list.append(knowledge_info.get("fileurl"))
         if knowledge_info.get("fileurl"):
             attachment_content = knowledge_info.get("attachment_content")
-            if attachment_content:
+            if not attachment_content:
                 attachment_content = urlToText(knowledge_info["fileurl"])
             file_content = attachment_content
             filename = knowledge_info.get("filename", "")
@@ -863,7 +863,7 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
 
 if __name__ == '__main__':
     manner_execution = {
-        "method_name": "insert_major_library_data",
+        "method_name": "platform_introduction",
         "limit": 5,
         "start_id": 0,
         "frequency": 1

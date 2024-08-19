@@ -53,6 +53,24 @@ def insert_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
     yhj.execute(sql, params)
 
 
+def update_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
+    if isinstance(ai_mysql_weaviate, dict):
+        ai_mysql_weaviate = AiMysqlWeaviate(**ai_mysql_weaviate)
+    # 使用预编译的格���ai_mysql_weaviate 更新数据,数据值不为空的字段作为查询条件
+    sql = '''UPDATE ai_mysql_weaviate SET '''
+    values = []
+    for key, value in ai_mysql_weaviate.dict().items():
+        if value is not None and value != "":
+            sql += f'{key}=%s, '
+            values.append(value)
+    if not values:
+        return
+    sql = sql[:-2]
+    sql += ''' WHERE id=%s'''
+    values.append(ai_mysql_weaviate.id)
+    yhj.execute(sql, tuple(values))
+
+
 def insert_ai_mysql_weaviate_bath(ai_mysql_weaviate_list: list[Union[AiMysqlWeaviate, dict]]):
     #     批处理插入
     if isinstance(ai_mysql_weaviate_list, list):
