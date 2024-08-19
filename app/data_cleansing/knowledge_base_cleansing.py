@@ -861,8 +861,6 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
     insert_ai_mysql_weaviate_bath(ai_mysql_weaviate_list)
 
 
-
-
 if __name__ == '__main__':
     manner_execution = {
         "method_name": "insert_major_library_data",

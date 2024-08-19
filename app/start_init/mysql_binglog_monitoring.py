@@ -5,6 +5,7 @@ from pymysqlreplication.row_event import WriteRowsEvent, UpdateRowsEvent
 import pymysql
 
 from app.common.core.config import settings
+from app.common.core.langchain_client import Embedding
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution, \
     insert_t_knowledge_info_data, insert_mysql_weaviate
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
@@ -19,12 +20,12 @@ manner_execution = MannerExecution(
 
 async def choice_method(table_name: str, data: dict, type: int):
     if table_name == 't_knowledge_info':
-        if type == 1:
-            # await i_t_knowledge_info(data)
+        if type == 2:
             print(1)
+            await i_t_knowledge_info(data)
         elif type == 2:
-            # await u_t_knowledge_info(data)
             print(2)
+            await u_t_knowledge_info(data)
 
 
 async def i_t_knowledge_info(data: dict):
@@ -32,8 +33,13 @@ async def i_t_knowledge_info(data: dict):
     if apply_status == 4:
         manner_execution.method_name = 't_knowledge_info'
         manner_execution.start_id = data.get('id')
-        await cleansing_manner_execution(manner_execution)
-
+        start_id = data.get('id')
+        start_id, knowledge_base_model_list, file_url_list = insert_t_knowledge_info_data(start_id=start_id, limit=1)
+        knowledge_base_model = knowledge_base_model_list[0]
+        vec = Embedding.embed_query(knowledge_base_model.get('instruction'))
+        uuid = knowledge_base_weaviate.insert_data(knowledge_base_model, vec)
+        uuid = str(uuid)
+        insert_mysql_weaviate(knowledge_base_model, [uuid], file_url_list)
 
 async def u_t_knowledge_info(data: dict):
     apply_status = data.get('apply_status')
@@ -66,7 +72,7 @@ async def start_binlog_listener():
         connection_settings=mysql_settings,
         server_id=1,  # 随便设置一个唯一的 server_id
         blocking=True,
-        only_schemas=["xxlxdb"],  # 监听多个数据库
+        only_schemas=["test_xxlxdb"],  # 监听多个数据库
         only_tables=["t_knowledge_info"],  # 监听多个表
         resume_stream=True,
     )
@@ -90,14 +96,14 @@ async def start_binlog_listener():
                 for row in binlogevent.rows:
                     # 将 UNKNOWN_COLX 转换为实际的列名
                     record = {column_names[i]: value for i, value in enumerate(row["values"].values())}
-                    await choice_method(binlogevent.table, record, 1)
                     print(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
+                    await choice_method(binlogevent.table, record, 1)
             elif isinstance(binlogevent, UpdateRowsEvent):
                 for row in binlogevent.rows:
                     before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
                     after_values = {column_names[i]: value for i, value in enumerate(row["after_values"].values())}
-                    await choice_method(binlogevent.table, after_values, 2)
                     print(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
+                    await choice_method(binlogevent.table, after_values, 2)
 
     # 关闭 stream
     stream.close()
