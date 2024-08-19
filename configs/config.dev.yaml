@@ -22,8 +22,8 @@ mysql:
   xxlxdb:
     host: "120.92.116.101"
     port: 9200
-    user: "read"
-    password: "Xxedu_only_Read123!@#"
+    user: "aisysrw"
+    password: "Aiadmin@9780HFUQfMJxEp"
     database: "xxlxdb"
   smart_counselor:
     host: "120.92.116.101"

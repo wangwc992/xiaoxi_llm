@@ -31,7 +31,7 @@ class KnowledgeBaseModel(BaseModel):
 
 
 class KnowledgeBaseWeaviate(WeaviateClient):
-    collections_name = "Qwen_data_base"
+    collections_name = "Qwen_data_base1"
     properties = [
         Property(name='db_id', data_type=DataType.TEXT, description='数据库的id'),
         Property(name='db_name', data_type=DataType.TEXT, description='数据库'),
@@ -173,7 +173,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             uuid = self.insert_data(properties, vec)
             properties['weaviate_id'] = uuid
             insert_ai_mysql_weaviate(properties)
-        return {"message": f"{uuid} data updated successfully"}
+        return uuid
 
     def delete_data_by_id(self, id: str, db_name: str):
         '''根据id删除Weaviate数据库中的数据'''

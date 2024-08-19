@@ -167,6 +167,6 @@ yhj = MySQLConnect("yhj")
 
 if __name__ == '__main__':
     sql = "SELECT * FROM `school_info`"
-    result = smart_counselor.execute_all2dict(sql)
+    result = xxlxdb.execute_all2dict(sql, limit=10)
     print(result)
     smart_counselor.close()

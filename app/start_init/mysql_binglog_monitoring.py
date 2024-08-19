@@ -1,9 +1,13 @@
+import asyncio
 import threading
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import WriteRowsEvent, UpdateRowsEvent
 import pymysql
 
-from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
+from app.common.core.config import settings
+from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution, \
+    insert_t_knowledge_info_data, insert_mysql_weaviate
+from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 manner_execution = MannerExecution(
     method_name="",
@@ -12,7 +16,16 @@ manner_execution = MannerExecution(
     frequency=1
 )
 
-async def t_knowledge_info(data: dict):
+
+async def choice_method(table_name: str, data: dict, type: int):
+    if table_name == 't_knowledge_info':
+        if type == 1:
+            await i_t_knowledge_info(data)
+        elif type == 2:
+            await u_t_knowledge_info(data)
+
+
+async def i_t_knowledge_info(data: dict):
     apply_status = data.get('apply_status')
     if apply_status == 4:
         manner_execution.method_name = 't_knowledge_info'
@@ -20,14 +33,20 @@ async def t_knowledge_info(data: dict):
         await cleansing_manner_execution(manner_execution)
 
 
-def start_binlog_listener():
+async def u_t_knowledge_info(data: dict):
+    apply_status = data.get('apply_status')
+    if apply_status == 4:
+        manner_execution.method_name = 't_knowledge_info'
+        start_id = data.get('id')
+        start_id, knowledge_base_model, file_url_list = insert_t_knowledge_info_data(start_id=start_id, limit=1)
+        uuid = knowledge_base_weaviate.update_data(knowledge_base_model)
+        insert_mysql_weaviate(knowledge_base_model, [uuid], file_url_list)
+
+
+async def start_binlog_listener():
     # MySQL 连接配置
-    mysql_settings = {
-        'host': "121.37.172.238",
-        'port': 3306,
-        'user': "root",
-        'password': "Yhj18835534246"
-    }
+    mysql_settings = settings["mysql"]["xxlxdb"]
+    mysql_settings.pop('database')
 
     # 获取指定表的字段名
     def get_column_names(database, table_name):
@@ -45,14 +64,13 @@ def start_binlog_listener():
         connection_settings=mysql_settings,
         server_id=1,  # 随便设置一个唯一的 server_id
         blocking=True,
-        only_schemas=["test_db", "yshs_db"],  # 监听多个数据库
-        only_tables=["ai_mysql_weaviate", "Product"],  # 监听多个表
+        only_schemas=["xxlxdb"],  # 监听多个数据库
+        only_tables=["t_knowledge_info"],  # 监听多个表
         resume_stream=True,
     )
 
     # 存储不同数据库的表字段名
     table_columns = {}
-
 
     for binlogevent in stream:
         # 检查事件类型
@@ -70,17 +88,18 @@ def start_binlog_listener():
                 for row in binlogevent.rows:
                     # 将 UNKNOWN_COLX 转换为实际的列名
                     record = {column_names[i]: value for i, value in enumerate(row["values"].values())}
-                    print(type(record))
+                    await choice_method(binlogevent.table, record, 1)
                     print(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
             elif isinstance(binlogevent, UpdateRowsEvent):
                 for row in binlogevent.rows:
                     before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
                     after_values = {column_names[i]: value for i, value in enumerate(row["after_values"].values())}
-                    print(type(after_values))
+                    await choice_method(binlogevent.table, after_values, 2)
                     print(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
 
     # 关闭 stream
     stream.close()
+
 
 # 在一个独立线程中启动 Binlog 监听
 # binlog_thread = threading.Thread(target=start_binlog_listener)
@@ -90,3 +109,4 @@ def start_binlog_listener():
 # # 继续执行主线程的其他代码
 # print("主程序继续启动，不会被阻塞")
 # start_binlog_listener()
+asyncio.run(start_binlog_listener())
