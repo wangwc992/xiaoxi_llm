@@ -20,9 +20,11 @@ manner_execution = MannerExecution(
 async def choice_method(table_name: str, data: dict, type: int):
     if table_name == 't_knowledge_info':
         if type == 1:
-            await i_t_knowledge_info(data)
+            # await i_t_knowledge_info(data)
+            print(1)
         elif type == 2:
-            await u_t_knowledge_info(data)
+            # await u_t_knowledge_info(data)
+            print(2)
 
 
 async def i_t_knowledge_info(data: dict):
@@ -109,4 +111,4 @@ async def start_binlog_listener():
 # # 继续执行主线程的其他代码
 # print("主程序继续启动，不会被阻塞")
 # start_binlog_listener()
-asyncio.run(start_binlog_listener())
+# asyncio.run(start_binlog_listener())

@@ -93,7 +93,7 @@ def send_request():
 def periodic_request():
     while True:
         # 随机生成1到10个线程
-        num_requests = random.randint(30, 30)
+        num_requests = random.randint(20, 30)
         print(f"Sending {num_requests} requests...")
         threads = []
         for _ in range(num_requests):
