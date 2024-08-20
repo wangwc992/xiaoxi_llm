@@ -64,6 +64,7 @@ async def sync_t_knowledge_info(data: dict):
 async def start_binlog_listener():
     # MySQL 连接配置
     mysql_settings = settings["mysql"]["xxlxdb"]
+    database = mysql_settings.get('database')
     mysql_settings.pop('database')
 
     # 获取指定表的字段名
@@ -82,7 +83,7 @@ async def start_binlog_listener():
         connection_settings=mysql_settings,
         server_id=1,  # 随便设置一个唯一的 server_id
         blocking=True,
-        only_schemas=["test_xxlxdb"],  # 监听多个数据库
+        only_schemas=[database],  # 监听多个数据库
         only_tables=["t_knowledge_info"],  # 监听多个表
         resume_stream=True,
     )
@@ -118,4 +119,4 @@ async def start_binlog_listener():
     # 关闭 stream
     stream.close()
 
-asyncio.run(start_binlog_listener())
+# asyncio.run(start_binlog_listener())
