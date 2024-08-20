@@ -6,6 +6,7 @@ import time
 import random
 import pandas as pd
 
+"""用于洗表格里面的数据做专业介绍，再写回表格"""
 # Define the file path
 base_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(base_dir, 'data/24年定校数据对比专业库字段-0726-V2.xlsx')

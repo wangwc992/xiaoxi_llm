@@ -43,22 +43,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         Property(name='link', data_type=DataType.TEXT, description='参考数据的link')
     ]
 
-    def clear_all_data(self, database: str):
-        while True:
-            filters = (
-                Filter.by_property("db_name").like(f"{database}")
-            )
-            result = self.collection.data.delete_many(
-                where=filters,
-                # dry_run=True,
-                # verbose=True
-            )
-            logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
-            if result.matches < 10000:
-                break
-        return {"message": f"Clear all data in Weaviate database: {database}"}  # 返回清空数据的信息
-
-    def search_id_or_database(self, db_id: Optional[str], database: Optional[str]):
+    def search_id_or_database(self, db_id: Optional[str], database: Optional[str], limit: int = 10):
         '''根据id搜索Weaviate数据库中的数据'''
         if db_id:
             filters = (
@@ -69,7 +54,7 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             filters = Filter.by_property("db_name").equal(database)
         response = self.collection.query.fetch_objects(
             filters=filters,
-            limit=20,
+            limit=limit,
         )
         response_list = []
         for o in response.objects:
@@ -150,37 +135,12 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             print(f"score: {o.metadata.score},db_name: {properties['db_name']}")
         return response_list
 
-    def update_data(self, knowledge_base_model: Union[KnowledgeBaseModel, dict]):
-        '''更新Weaviate数据库中的数据'''
-        if isinstance(knowledge_base_model, KnowledgeBaseModel):
-            knowledge_base_model = knowledge_base_model.dict()
-        instruction = knowledge_base_model.get('instruction')
-        properties = knowledge_base_model
-        vec = Embedding.embed_query(instruction)
-        query_keyword = ' '.join(jieba_tool.cut_for_search(instruction))
-        properties['keyword'] = query_keyword
-
-        search_model = {
-            "db_name": properties.get('db_name'),
-            "db_id": properties.get('db_id')
-        }
-        ai_mysql_weaviate_list = select_ai_mysql_weaviate(search_model, 1)
-        # 查询数据是否存在，存在则更新，不存在则插入
-        if ai_mysql_weaviate_list:
-            uuid = ai_mysql_weaviate_list[0].weaviate_id
-            self.update_data_by_uuid(uuid, properties, vec)
-        else:
-            uuid = self.insert_data(properties, vec)
-            properties['weaviate_id'] = uuid
-            insert_ai_mysql_weaviate(properties)
-        return uuid
-
-    def delete_data_by_id(self, id: str, db_name: str):
+    def delete_data_by_id(self, db_id: str, db_name: str):
         '''根据id删除Weaviate数据库中的数据'''
         self.collection.data.delete_many(
-            where=Filter.by_property("db_id").equal(id) & Filter.by_property("db_name").equal(db_name)
+            where=Filter.by_property("db_id").equal(db_id) & Filter.by_property("db_name").equal(db_name)
         )
-        return {"message": f"{id} data deleted successfully in Weaviate db_name: {db_name}"}
+        return {"message": f"{db_id} data deleted successfully in Weaviate db_name: {db_name}"}
 
     def delete_by_database(self, db_name: str):
         logger.info(f"Deleting data in Weaviate db_name: {db_name}")
@@ -203,4 +163,4 @@ if __name__ == '__main__':
     #         break
     #     else:
     #         asyncio.run(knowledge_base_weaviate.search_hybrid(input_str, 10))
-    knowledge_base_weaviate.clear_all_data("notice_message")
+    knowledge_base_weaviate.clear_all_data("db_name", "notice_message")

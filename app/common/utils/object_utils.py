@@ -95,5 +95,3 @@ class ObjectFormatter:
             dict = {'db_id': db_id, 'key': key, 'value': value, 'key_value': key_value.rstrip('、 ')}
             dict_list.append(dict)
         return dict_list
-
-    # 写一个整理key和value的方法，传入key_name_list,

@@ -19,10 +19,10 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
 
     参数:
     request: MyChatCompletionRequestModel   请求体
-    raw_request: Request    请求
-    background_tasks: BackgroundTasks   后台任务
+    raw_request: Request    请求，用于获取请求头，请求体等信息，这用于监听请求是否中断
+    background_tasks: BackgroundTasks   后台任务，用于异步处理
     返回:
-    StreamingResponse    流响应
+    StreamingResponse    流响应，返回统一格式的数据
 
     例子:
     {

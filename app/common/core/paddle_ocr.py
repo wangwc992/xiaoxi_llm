@@ -8,6 +8,7 @@ from app.common.core.config import settings
 # use_space_char=True,在中英文中是否使用空格分割
 # use_angle_cls=True,使用文本方向分类的后处理方法
 #  page_num=3,表示最多处理多少页，超过后不处理
+# 使用最后一个GPU，加载模型，防止内存溢出
 device_number = settings.get('gpu_count', 1) - 1
 ocr = PaddleOCR(use_angle_cls=True, gpu_id=device_number, page_num=3)
 

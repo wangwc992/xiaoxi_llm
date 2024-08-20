@@ -3,6 +3,7 @@ import os
 import weaviate
 from dotenv import load_dotenv
 from weaviate.collections.classes.config import Configure
+from weaviate.classes.query import Filter
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 from weaviate.embedded import EmbeddedOptions
 from app.common.core.config import settings
@@ -151,6 +152,21 @@ class WeaviateClient:
         '''删除数据'''
         self.collection.delete(uuid)
         return {"message": f"{uuid} data deleted successfully"}
+
+    def clear_all_data(self, property: str, like_str: str):
+        while True:
+            filters = (
+                Filter.by_property(property).like(f"{like_str}*")
+            )
+            result = self.collection.data.delete_many(
+                where=filters,
+                # dry_run=True,
+                # verbose=True
+            )
+            logger.info(f"Clear all data in Weaviate database: {like_str}, result: {result}")
+            if result.matches < 10000:
+                break
+        return {"message": f"Clear all data in Weaviate database: {like_str}"}  # 返回清空数据的信息
 
 
 if __name__ == '__main__':

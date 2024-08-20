@@ -6,17 +6,17 @@ from app.common.utils.logging import get_logger
 logger = get_logger(__name__)
 
 
-# 下载url文件到指定的目录
 def download_file(pdf_url, save_directory):
+    """下载远程文件到本地"""
     if pdf_url.startswith("http://") or pdf_url.startswith("https://"):
         response = requests.get(pdf_url)
         response.raise_for_status()
 
-        # Create the directory if it does not exist
+        # 如果目录不存在，则创建目录
         if not os.path.exists(save_directory):
             os.makedirs(save_directory)
 
-        # Create a file path to save the file
+        # 获取文件名
         file_name = pdf_url.split('/')[-1]  # Extract the file name from the URL
         file_path = os.path.join(save_directory, file_name)
 
@@ -33,6 +33,7 @@ def download_file(pdf_url, save_directory):
 
 # 删除文件
 def delete_file(file_path):
+    """删除文件"""
     if os.path.exists(file_path):
         os.remove(file_path)
     else:

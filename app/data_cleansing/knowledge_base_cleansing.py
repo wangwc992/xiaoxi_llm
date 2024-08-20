@@ -9,8 +9,7 @@ from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.logging import get_logger
 from app.common.utils.ocr_utlis import urlToText
-from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import insert_ai_mysql_weaviate, \
-    insert_ai_mysql_weaviate_bath
+from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import insert_ai_mysql_weaviate_bath
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_knowledge_info_data,
                                                                      search_notice_message_data,
                                                                      search_school_info_basic_data,

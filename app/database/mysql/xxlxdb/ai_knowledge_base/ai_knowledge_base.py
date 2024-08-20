@@ -32,5 +32,3 @@ def get_prompt_by_type(type: str):
     sql = f"SELECT * FROM ai_prompt WHERE `type` = '{type}' AND state = 1 ORDER BY id DESC LIMIT 1"
     prompt = yhj.execute_one(sql)
     return prompt
-
-

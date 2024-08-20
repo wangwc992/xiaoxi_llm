@@ -17,6 +17,7 @@ def load_config():
     return config
 
 
+# 加载配置
 settings = load_config()
 
 
@@ -32,7 +33,9 @@ def get_gpu_count():
         return 0
 
 
+# 获取 GPU 数量l
 settings['gpu_count'] = get_gpu_count()
 
+# 项目根目录
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 settings['project_root'] = project_root
