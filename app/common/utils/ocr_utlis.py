@@ -3,6 +3,7 @@ import fitz
 from docx import Document
 from pptx import Presentation
 
+from app.common.core.config import settings
 from app.common.core.paddle_ocr import process_pdf
 from app.common.utils.file_utils import download_file, delete_file
 
@@ -117,7 +118,8 @@ def fileToString(file_path, file_type=None):
 
 
 def urlToText(url):
-    file_path = download_file(url, "downloads")
+    save_directory = settings.get('project_root') + "/downloads"
+    file_path = download_file(url, save_directory)
     fileType = get_file_extension(file_path)
     text = fileToString(file_path, fileType)
     # 删除临时文件
