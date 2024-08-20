@@ -1,6 +1,9 @@
 from typing import Optional
 
+import weaviate
 from fastapi import APIRouter, HTTPException
+from tqdm import tqdm
+from weaviate.classes.query import Filter
 
 from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
@@ -66,7 +69,7 @@ def search_weaviate_data(uuid: Optional[str] = None, id: Optional[str] = None, d
     return result
 
 
-@router.get("/query", description="Query data in weaviate")
+@router.get("/searchHybrid", description="Query data in weaviate")
 def search_weaviate_data_by_query(query: str, limit: int):
     '''
     根据query查询weaviate的数据

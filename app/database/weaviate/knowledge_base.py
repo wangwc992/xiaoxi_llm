@@ -50,8 +50,8 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             )
             result = self.collection.data.delete_many(
                 where=filters,
-                dry_run=True,
-                verbose=True
+                # dry_run=True,
+                # verbose=True
             )
             logger.info(f"Clear all data in Weaviate database: {database}, result: {result}")
             if result.matches < 10000:
