@@ -36,7 +36,7 @@ from app.api.openai import api_server
 from app.api.knowledge_base import knowledge_base
 from app.api.knowledge_base import knowledge_base_weaviate
 from app.api.text2vec_custom import text2vec_custom
-
+import app.start_init
 logger = init_logger('vllm.entrypoints.openai.api_server')
 
 _running_tasks: Set[asyncio.Task] = set()

@@ -6,6 +6,7 @@ import pymysql
 
 from app.common.core.config import settings
 from app.common.core.langchain_client import Embedding
+from app.common.utils.jieba_utils import jieba_tool
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution, \
     insert_t_knowledge_info_data, insert_mysql_weaviate
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select_ai_mysql_weaviate, \
@@ -33,8 +34,10 @@ async def sync_t_knowledge_info(data: dict):
         db_id = data.get('id')
         start_id, knowledge_base_model_list, file_url_list = insert_t_knowledge_info_data(start_id=db_id, limit=1)
         knowledge_base_model = knowledge_base_model_list[0]
-        vec = Embedding.embed_query(knowledge_base_model.get('instruction'))
-
+        instruction = knowledge_base_model.get('instruction')
+        vec = Embedding.embed_query(instruction)
+        keyword = jieba_tool.cut_for_search(instruction)
+        knowledge_base_model['keyword'] = ' '.join(keyword)
         # 判断之前是否已经同步过
         ai_mysql_weaviate_list = select_ai_mysql_weaviate({'db_id': db_id, 'db_name': db_name}, 1)
         if ai_mysql_weaviate_list:
@@ -48,6 +51,7 @@ async def sync_t_knowledge_info(data: dict):
             if file_url_list:
                 knowledge_base_model['file_url'] = file_url_list[0]
             knowledge_base_model.pop('link')
+            knowledge_base_model.pop('keyword')
             update_ai_mysql_weaviate(knowledge_base_model)
         else:
             uuid = knowledge_base_weaviate.insert_data(knowledge_base_model, vec)
@@ -102,25 +106,16 @@ async def start_binlog_listener():
                 for row in binlogevent.rows:
                     # 将 UNKNOWN_COLX 转换为实际的列名
                     record = {column_names[i]: value for i, value in enumerate(row["values"].values())}
-                    # print(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
+                    print(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
                     await choice_method(binlogevent.table, record, 1)
             elif isinstance(binlogevent, UpdateRowsEvent):
                 for row in binlogevent.rows:
-                    # before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
+                    before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
                     after_values = {column_names[i]: value for i, value in enumerate(row["after_values"].values())}
-                    # print(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
+                    print(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
                     await choice_method(binlogevent.table, after_values, 2)
 
     # 关闭 stream
     stream.close()
 
-
-# 在一个独立线程中启动 Binlog 监听
-binlog_thread = threading.Thread(target=start_binlog_listener)
-binlog_thread.daemon = True  # 设为守护线程，主程序退出时该线程自动结束
-binlog_thread.start()
-
-# 继续执行主线程的其他代码
-print("主程序继续启动，不会被阻塞")
-start_binlog_listener()
 # asyncio.run(start_binlog_listener())
