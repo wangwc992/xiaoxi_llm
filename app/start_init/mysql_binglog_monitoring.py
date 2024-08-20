@@ -102,13 +102,13 @@ async def start_binlog_listener():
                 for row in binlogevent.rows:
                     # 将 UNKNOWN_COLX 转换为实际的列名
                     record = {column_names[i]: value for i, value in enumerate(row["values"].values())}
-                    print(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
+                    # print(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
                     await choice_method(binlogevent.table, record, 1)
             elif isinstance(binlogevent, UpdateRowsEvent):
                 for row in binlogevent.rows:
-                    before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
+                    # before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
                     after_values = {column_names[i]: value for i, value in enumerate(row["after_values"].values())}
-                    print(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
+                    # print(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
                     await choice_method(binlogevent.table, after_values, 2)
 
     # 关闭 stream
@@ -116,11 +116,11 @@ async def start_binlog_listener():
 
 
 # 在一个独立线程中启动 Binlog 监听
-# binlog_thread = threading.Thread(target=start_binlog_listener)
-# binlog_thread.daemon = True  # 设为守护线程，主程序退出时该线程自动结束
-# binlog_thread.start()
-#
-# # 继续执行主线程的其他代码
-# print("主程序继续启动，不会被阻塞")
-# start_binlog_listener()
-asyncio.run(start_binlog_listener())
+binlog_thread = threading.Thread(target=start_binlog_listener)
+binlog_thread.daemon = True  # 设为守护线程，主程序退出时该线程自动结束
+binlog_thread.start()
+
+# 继续执行主线程的其他代码
+print("主程序继续启动，不会被阻塞")
+start_binlog_listener()
+# asyncio.run(start_binlog_listener())

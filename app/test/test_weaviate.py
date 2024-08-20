@@ -8,13 +8,14 @@ from app.common.utils.logging import get_logger
 logger = get_logger(__name__)
 client = weaviate.connect_to_local(grpc_port=50060, port=8079, skip_init_checks=True)
 collections_name = 'Qwen_data_base'
-collection = client.collections.get(collections_name)
+ai_chat_log = 'Ai_chat_log'
+collection = client.collections.get(ai_chat_log)
 
 
 def delete_many():
     while True:
         result = collection.data.delete_many(
-            where=Filter.by_property("database").like("*"),
+            where=Filter.by_property("input").like("*"),
             # dry_run=True,
             # verbose=True
         )
@@ -113,7 +114,7 @@ def fetch_objects():
 
 
 if __name__ == "__main__":
-    # delete_many()
+    delete_many()
     # delete_collection_name()
     # create_collection_name()
     #
@@ -121,7 +122,7 @@ if __name__ == "__main__":
     # query_bm25("notice_message")
 
     # clear_all_data(database)
-    clear_all_data("platform_introduction")
+    # clear_all_data("platform_introduction")
     # query_bm25(query_bm25_database)
 
     # vec = Embedding.embed_query(hybrid_data_query)
