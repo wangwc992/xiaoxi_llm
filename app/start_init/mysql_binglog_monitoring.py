@@ -1,5 +1,3 @@
-import asyncio
-import threading
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import WriteRowsEvent, UpdateRowsEvent
 import pymysql
@@ -7,7 +5,7 @@ import pymysql
 from app.common.core.config import settings
 from app.common.core.langchain_client import Embedding
 from app.common.utils.jieba_utils import jieba_tool
-from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution, \
+from app.data_cleansing.knowledge_base_cleansing import MannerExecution, \
     insert_t_knowledge_info_data, insert_mysql_weaviate
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select_ai_mysql_weaviate, \
     insert_ai_mysql_weaviate, update_ai_mysql_weaviate
@@ -62,6 +60,7 @@ async def sync_t_knowledge_info(data: dict):
 
 
 async def start_binlog_listener():
+    print("Binlog 监听已启动")
     # MySQL 连接配置
     mysql_settings = settings["mysql"]["xxlxdb"]
     database_name = mysql_settings.get('database')
@@ -118,5 +117,3 @@ async def start_binlog_listener():
 
     # 关闭 stream
     stream.close()
-
-# asyncio.run(start_binlog_listener())

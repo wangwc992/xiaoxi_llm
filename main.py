@@ -4,6 +4,7 @@ from app.common.core.config import settings
 from app.data.dictionaries import sensitive_words
 from app.middleware.exception import ChatSuspendException, chat_suspend_exception_handler
 from app.middleware.middleware import log_request_body, sensitive_word_filter, authentication
+from app.start_init.mysql_binglog_monitoring import start_binlog_listener
 
 gpu_count = settings.get('gpu_count', 0)
 # 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
@@ -36,7 +37,7 @@ from app.api.openai import api_server
 from app.api.knowledge_base import knowledge_base
 from app.api.knowledge_base import knowledge_base_weaviate
 from app.api.text2vec_custom import text2vec_custom
-import app.start_init
+
 logger = init_logger('vllm.entrypoints.openai.api_server')
 
 _running_tasks: Set[asyncio.Task] = set()
@@ -141,10 +142,12 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     loop = asyncio.get_running_loop()
 
     server_task = loop.create_task(server.serve())
+    binlog_task = loop.create_task(start_binlog_listener())
 
     def signal_handler() -> None:
         # prevents the uvicorn signal handler to exit early
         server_task.cancel()
+        binlog_task.cancel()
 
     loop.add_signal_handler(signal.SIGINT, signal_handler)
     loop.add_signal_handler(signal.SIGTERM, signal_handler)
@@ -153,6 +156,13 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
         await server_task
     except asyncio.CancelledError:
         print("Gracefully stopping http server")
+        await server.shutdown()
+    try:
+        # 等待 binlog 监听任务完成
+        await binlog_task
+    except asyncio.CancelledError:
+        print("Gracefully stopping binlog listener")
+        # 如果有任何需要执行的清理操作，可以在这里进行
         await server.shutdown()
 
 
