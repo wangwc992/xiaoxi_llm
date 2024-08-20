@@ -66,15 +66,15 @@ def get_logger(name: str) -> logging.Logger:
     # formatter = MillisecondFormatter(
     #     fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     # )
-    handler = logging.StreamHandler(sys.stdout)
+    # handler = logging.StreamHandler(sys.stdout)
     # handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
 
     # 避免重复添加处理程序
-    if not logger.hasHandlers():
-        logger.setLevel(logging.INFO)
-        logger.addHandler(handler)
+    # if not logger.hasHandlers():
+    #     logger.setLevel(logging.INFO)
+    #     logger.addHandler(handler)
 
     return logger
 

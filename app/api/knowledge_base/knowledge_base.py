@@ -4,7 +4,6 @@ from starlette.responses import StreamingResponse
 
 from app.common.core.context import get_chat_visits_number
 from app.common.utils.logging import get_logger
-from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansing_manner_execution
 from app.middleware.exception import ChatSuspendException
 
 from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel)
@@ -31,7 +30,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
       "query": "你好",
       "stream": true
     }
-    role: 1 为用户，2 chat并发数过多，3 敏感词
+    role: 1 为用户，2 chat并发数过多，3 敏感词、4 为程序异常
     '''
     # 判断是否超过最大并发数
     if get_chat_visits_number(is_completions=True):
