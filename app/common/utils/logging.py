@@ -61,7 +61,7 @@ class LoggerHandler(logging.Handler):
 
 def get_logger(name: str) -> logging.Logger:
     r"""
-    Gets a standard logger with a stream hander to stdout.
+    Gets a standard logger with a stream handler to stdout.
     """
     formatter = MillisecondFormatter(
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
@@ -70,8 +70,11 @@ def get_logger(name: str) -> logging.Logger:
     handler.setFormatter(formatter)
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
-    logger.addHandler(handler)
+
+    # 避免重复添加处理程序
+    if not logger.hasHandlers():
+        logger.setLevel(logging.INFO)
+        logger.addHandler(handler)
 
     return logger
 
@@ -83,3 +86,5 @@ def reset_logging() -> None:
     root = logging.getLogger()
     list(map(root.removeHandler, root.handlers))
     list(map(root.removeFilter, root.filters))
+    root.setLevel(logging.NOTSET)
+

@@ -24,11 +24,10 @@ def download_file(pdf_url, save_directory):
         with open(file_path, 'wb') as f:
             f.write(response.content)
 
-        logger.info(f"File downloaded and saved to: {file_path}")
         return file_path
     else:
         file_path = pdf_url
-        print(f"File path provided: {file_path}")
+        logger.info(f"File path provided: {file_path}")
         return file_path
 
 
@@ -36,7 +35,6 @@ def download_file(pdf_url, save_directory):
 def delete_file(file_path):
     if os.path.exists(file_path):
         os.remove(file_path)
-        logger.info(f"File deleted: {file_path}")
     else:
         logger.info(f"File not found: {file_path}")
 
