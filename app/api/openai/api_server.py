@@ -158,7 +158,7 @@ async def create_embedding(request: EmbeddingRequest, raw_request: Request):
 
 @router.get("/chat/abort", description="Abort the request with the given ID.")
 async def abort(request_id: str):
-    openai_serving_chat.engine.abort(request_id)
+    await openai_serving_chat.engine.abort(request_id)
     return JSONResponse(content={"message": "Request aborted."})
 
 
