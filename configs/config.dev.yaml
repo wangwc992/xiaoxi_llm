@@ -20,11 +20,11 @@ vllm:
 
 mysql:
   xxlxdb:
-    host: "120.92.116.101"
-    port: 9200
-    user: "aisysrw"
-    password: "Aiadmin@9780HFUQfMJxEp"
-    database: "xxlxdb"
+    host: "192.168.0.137"
+    port: 3306
+    user: "root"
+    password: "mirandA123!@#"
+    database: "test_xxlxdb"
   smart_counselor:
     host: "120.92.116.101"
     port: 9200

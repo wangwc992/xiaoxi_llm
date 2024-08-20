@@ -1,4 +1,4 @@
-from paddleocr import PaddleOCR
+# from paddleocr import PaddleOCR
 
 from app.common.core.config import settings
 
@@ -9,7 +9,7 @@ from app.common.core.config import settings
 # use_angle_cls=True,使用文本方向分类的后处理方法
 #  page_num=3,表示最多处理多少页，超过后不处理
 device_number = settings.get('gpu_count', 1) - 1
-ocr = PaddleOCR(use_angle_cls=True, gpu_id=device_number, page_num=3)
+ocr = 'PaddleOCR(use_angle_cls=True, gpu_id=device_number, page_num=3)'
 
 
 def img_to_text(img_path):

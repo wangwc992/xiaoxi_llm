@@ -1,3 +1,5 @@
+import asyncio
+
 from pymysqlreplication import BinLogStreamReader
 from pymysqlreplication.row_event import WriteRowsEvent, UpdateRowsEvent
 import pymysql
@@ -25,6 +27,7 @@ async def choice_method(table_name: str, data: dict, type: int):
 
 
 async def sync_t_knowledge_info(data: dict):
+    # TODO 知识库updat连续更新时，会有多次同步到weaviate的问题
     db_name = "t_knowledge_info"
     apply_status = data.get('apply_status')
     if apply_status == 4:
@@ -117,3 +120,6 @@ async def start_binlog_listener():
 
     # 关闭 stream
     stream.close()
+
+
+asyncio.run(start_binlog_listener())
