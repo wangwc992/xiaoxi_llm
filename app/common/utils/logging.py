@@ -5,6 +5,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 RUNNING_LOG = "running_log.txt"
+LOG_FILE = "log.log"  # 日志文件名
 
 
 class MillisecondFormatter(logging.Formatter):
@@ -13,7 +14,6 @@ class MillisecondFormatter(logging.Formatter):
     """
 
     def formatTime(self, record, datefmt=None):
-        ct = self.converter(record.created)
         dt = datetime.fromtimestamp(record.created)
         if datefmt:
             s = dt.strftime(datefmt)
@@ -61,20 +61,28 @@ class LoggerHandler(logging.Handler):
 
 def get_logger(name: str) -> logging.Logger:
     r"""
-    Gets a standard logger with a stream handler to stdout.
+    Gets a standard logger with a stream handler to stdout and a file handler.
     """
-    formatter = MillisecondFormatter(
-        fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-    )
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-
     logger = logging.getLogger(name)
 
-    # 避免重复添加处理程序
     if not logger.hasHandlers():
         logger.setLevel(logging.INFO)
-        logger.addHandler(handler)
+
+        # 添加控制台输出处理程序
+        # console_handler = logging.StreamHandler(sys.stdout)
+        # console_formatter = MillisecondFormatter(
+        #     fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+        # )
+        # console_handler.setFormatter(console_formatter)
+        # logger.addHandler(console_handler)
+
+        # 添加文件输出处理程序
+        file_handler = logging.FileHandler(LOG_FILE)
+        file_formatter = MillisecondFormatter(
+            fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+        )
+        file_handler.setFormatter(file_formatter)
+        logger.addHandler(file_handler)
 
     return logger
 
@@ -86,5 +94,3 @@ def reset_logging() -> None:
     root = logging.getLogger()
     list(map(root.removeHandler, root.handlers))
     list(map(root.removeFilter, root.filters))
-    root.setLevel(logging.NOTSET)
-
