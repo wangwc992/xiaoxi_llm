@@ -52,7 +52,8 @@ async def sync_knowledge_base(table_name: str, data: dict):
         knowledge_base_model['id'] = id
         if file_url_list:
             knowledge_base_model['file_url'] = file_url_list[0]
-        knowledge_base_model.pop('link')
+        if table_name == 't_knowledge_info':
+            knowledge_base_model.pop('link')
         knowledge_base_model.pop('keyword')
         update_ai_mysql_weaviate(knowledge_base_model)
     else:

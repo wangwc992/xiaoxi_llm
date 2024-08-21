@@ -129,20 +129,24 @@ def build_app(args, **uvicorn_kwargs):
     return uvicorn.Server(config)
 
 
+from concurrent.futures import ThreadPoolExecutor
+
+executor = ThreadPoolExecutor(1)
+
+
 async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
-    await build_server(
-        args,
-        llm_engine,
-    )
+    await build_server(args, llm_engine)
     server = build_app(args, **uvicorn_kwargs)
 
     loop = asyncio.get_running_loop()
 
     server_task = loop.create_task(server.serve())
-    binlog_task = loop.create_task(start_binlog_listener())
+
+    # 将 Binlog 监听任务移到后台线程执行
+    binlog_task = loop.run_in_executor(executor, start_binlog_listener)
 
     def signal_handler() -> None:
         # prevents the uvicorn signal handler to exit early
@@ -153,7 +157,6 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     loop.add_signal_handler(signal.SIGTERM, signal_handler)
 
     try:
-        # 并行执行 server_task 和 binlog_task
         await asyncio.gather(server_task, binlog_task)
     except asyncio.CancelledError:
         print("Gracefully stopping tasks")
