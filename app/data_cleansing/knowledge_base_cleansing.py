@@ -823,6 +823,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     }
 
     if is_all:
+        knowledge_base_weaviate.clear_all_data(property="db_name", like_str="*")
         # 排除使用的方法
         method_mapping.pop("t_knowledge_info")
         method_mapping.pop("notice_message")

@@ -156,7 +156,7 @@ class WeaviateClient:
     def clear_all_data(self, property: str, like_str: str):
         while True:
             filters = (
-                Filter.by_property(property).like(f"{like_str}*")
+                Filter.by_property(property).like(f"{like_str}")
             )
             result = self.collection.data.delete_many(
                 where=filters,
