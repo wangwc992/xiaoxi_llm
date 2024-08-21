@@ -153,16 +153,10 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     loop.add_signal_handler(signal.SIGTERM, signal_handler)
 
     try:
-        await server_task
+        # 并行执行 server_task 和 binlog_task
+        await asyncio.gather(server_task, binlog_task)
     except asyncio.CancelledError:
-        print("Gracefully stopping http server")
-        await server.shutdown()
-    try:
-        # 等待 binlog 监听任务完成
-        await binlog_task
-    except asyncio.CancelledError:
-        print("Gracefully stopping binlog listener")
-        # 如果有任何需要执行的清理操作，可以在这里进行
+        print("Gracefully stopping tasks")
         await server.shutdown()
 
 
