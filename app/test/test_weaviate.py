@@ -4,6 +4,7 @@ from weaviate.collections.classes.grpc import HybridFusion
 
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
+from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
 
 logger = get_logger(__name__)
 client = weaviate.connect_to_local(grpc_port=50060, port=8079, skip_init_checks=True)
@@ -114,9 +115,10 @@ def fetch_objects():
 
 
 if __name__ == "__main__":
-    delete_many()
+    # delete_many()
     # delete_collection_name()
-    # create_collection_name()
+    ai_chat_log_weaviate.delete_collection_name(ai_chat_log_weaviate.collections_name)
+    ai_chat_log_weaviate.create_collection(ai_chat_log_weaviate.properties)
     #
     # query_bm25(query_bm25_database)
     # query_bm25("notice_message")
