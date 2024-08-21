@@ -262,7 +262,7 @@ async def save_weaviste(conversation_id, member_id, input, output):
         conversation_id=conversation_id,
         message_id=member_id,
         user_id="123",
-        input=input,
+        instruction=input,
         output=output,
         created_time=datetime.now(timezone(timedelta(hours=8))),
         reference_data_uuids=["123"]

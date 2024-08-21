@@ -14,7 +14,7 @@ class AiChatLogModel(BaseModel):
     conversation_id: str = Field(None, description="会话id，用于标识一个会话")
     message_id: str = Field(None, description="消息id，用于标识一个消息")
     user_id: str = Field(None, description="用户id，用于标识一个用户")
-    input: str = Field(None, description="用户输入的问题")
+    instruction: str = Field(None, description="用户输入的问题")
     output: str = Field(None, description="小希的回答")
     created_time: datetime = Field(None, description="消息创建时间")
     reference_data_uuids: list = Field(None, description="参考数据uuids")
@@ -26,7 +26,7 @@ class AiChatLogWeaviate(WeaviateClient):
         Property(name='conversation_id', data_type=DataType.TEXT, description=' 会话id，用于标识一个会话'),
         Property(name='message_id', data_type=DataType.TEXT, description='消息id，用于标识一个消息'),
         Property(name='user_id', data_type=DataType.TEXT, description='用户id，用于标识一个用户'),
-        Property(name='input', data_type=DataType.TEXT, description='用户输入的问题'),
+        Property(name='instruction', data_type=DataType.TEXT, description='用户输入的问题'),
         Property(name='output', data_type=DataType.TEXT, description='小希的回答'),
         Property(name='created_time', data_type=DataType.DATE, description='消息创建时间'),
         Property(name='reference_data_uuids', data_type=DataType.TEXT_ARRAY, description='参考数据uuids')

@@ -9,13 +9,13 @@ logger = get_logger(__name__)
 client = weaviate.connect_to_local(grpc_port=50060, port=8079, skip_init_checks=True)
 collections_name = 'Qwen_data_base'
 ai_chat_log = 'Ai_chat_log'
-collection = client.collections.get(collections_name)
+collection = client.collections.get(ai_chat_log)
 
 
 def delete_many():
     while True:
         result = collection.data.delete_many(
-            where=Filter.by_property("instruction").like("*"),
+            where=Filter.by_property("output").like("*"),
             # dry_run=True,
             # verbose=True
         )

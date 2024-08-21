@@ -6,7 +6,7 @@ from app.common.core.langchain_client import Embedding
 from app.common.utils.html_util import HtmlUtils
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_school_info_basic_data, \
-    search_school_info_ranking_data, search_zn_school_recruit_art, search_knowledge_info_data, \
+    search_school_info_ranking_data, search_zn_school_recruit_art, \
     search_notice_message_data, search_knowledge_info_data2
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 

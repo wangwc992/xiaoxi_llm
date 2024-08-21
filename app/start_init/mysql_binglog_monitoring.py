@@ -13,17 +13,6 @@ from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select
     insert_ai_mysql_weaviate, update_ai_mysql_weaviate
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
-manner_execution = MannerExecution(
-    method_name="",
-    limit=1,
-    start_id=0,
-    frequency=1
-)
-
-
-async def sync_notice_message(data, type):
-    pass
-
 
 async def choice_method(table_name: str, data: dict, type: int):
     if table_name == 't_knowledge_info':
@@ -31,10 +20,10 @@ async def choice_method(table_name: str, data: dict, type: int):
         if apply_status != 4:
             return
 
-    await sync_t_knowledge_info(table_name, data)
+    await sync_knowledge_base(table_name, data)
 
 
-async def sync_t_knowledge_info(table_name: str, data: dict):
+async def sync_knowledge_base(table_name: str, data: dict):
     # TODO 知识库updat连续更新时，会有多次同步到weaviate的问题
     db_id = data.get('id')
     limit = 1

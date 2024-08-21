@@ -67,8 +67,15 @@ class KnowledgeInfo(BaseModel):
 
 
 def search_knowledge_info_data(id=0, limit=10):
-    sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl FROM t_knowledge_info where startup_status = 1 and apply_status = 4 and id >= {id}"
+    # 就是方便
+    if limit == 1:
+        pj = f"= {id}"
+    else:
+        pj = f"> {id}"
+
+    sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl FROM t_knowledge_info where startup_status = 1 and apply_status = 4 and id {pj}"
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+
 
 def search_knowledge_info_data2(id=0, limit=10):
     sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl,attachment_content FROM weaviate_knowledge_info where id > {id}"
@@ -77,6 +84,10 @@ def search_knowledge_info_data2(id=0, limit=10):
 
 def search_notice_message_data(id: int = 0, limit: int = 10):
     '''小希平台院校资讯'''
+    if limit == 1:
+        pj = f"= {id}"
+    else:
+        pj = f"> {id}"
     sql = f'''SELECT 
         nm.id AS notice_id,
         si.english_name AS school_english_name,
@@ -109,7 +120,7 @@ def search_notice_message_data(id: int = 0, limit: int = 10):
     LEFT JOIN 
         attachment_collection ac ON ac.associate_id = nm.id AND ac.delete_status = 0 
     WHERE 
-        nm.delete_status = 0 AND nm.type IN (1,2,3) AND nm.id > {id}
+        nm.delete_status = 0 AND nm.type IN (1,2,3) AND nm.id  {pj}
     '''
     return smart_counselor.execute_all2dict(sql=sql, limit=limit)
 
