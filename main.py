@@ -150,6 +150,7 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
         binlog_task.cancel()
 
     loop.add_signal_handler(signal.SIGINT, signal_handler)
+    loop.add_signal_handler(signal.SIGTERM, signal_handler)
 
     try:
         await server_task
