@@ -122,4 +122,4 @@ async def start_binlog_listener():
     # 关闭 stream
     stream.close()
 
-asyncio.run(start_binlog_listener())
+# asyncio.run(start_binlog_listener())
