@@ -797,14 +797,16 @@ class MannerExecution(BaseModel):
     limit: Optional[int] = 10
     start_id: Optional[int] = 0
     frequency: Optional[int] = 1
+    is_all: Optional[bool] = False
 
 
 async def cleansing_manner_execution(manner_execution: MannerExecution):
     global limit, start_id
     limit = manner_execution.limit
     start_id = manner_execution.start_id
-    frequency = manner_execution.frequency
+
     method = manner_execution.method_name
+    is_all = manner_execution.is_all
 
     method_mapping = {
         "t_knowledge_info": lambda: insert_t_knowledge_info_data(start_id=start_id, limit=limit),
@@ -818,25 +820,36 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
         "zn_school_admission_graduate_student": lambda: insert_college_library06_data(start_id=start_id, limit=limit),
         "zn_school_admission_art": lambda: insert_college_library07_data(start_id=start_id, limit=limit),
         "zn_school_department_project": lambda: insert_major_library_data(start_id=start_id, limit=limit),
-        "insert_major_library01_data": lambda: insert_major_library01_data(start_id=start_id, limit=limit),
-        "insert_major_library02_data": lambda: insert_major_library02_data(start_id=start_id, limit=limit),
-        "insert_major_library03_data": lambda: insert_major_library03_data(start_id=start_id, limit=limit),
-        "insert_major_library04_data": lambda: insert_major_library04_data(start_id=start_id, limit=limit),
-        "insert_major_library05_data": lambda: insert_major_library05_data(start_id=start_id, limit=limit),
-        "insert_major_library06_data": lambda: insert_major_library06_data(start_id=start_id, limit=limit),
     }
 
-    while True:
-        if frequency == 0:
-            break
-        frequency -= 1
-        if method in method_mapping:
-            start_id, knowledge_base_model, file_url_list = method_mapping[method]()
-            uuid_list = insert_weaviate_data_all(knowledge_base_model)
-            insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
-        else:
-            print("请输入正确的参数")
-            break
+    if is_all:
+        # 排除使用的方法
+        method_mapping.pop("t_knowledge_info")
+        method_mapping.pop("notice_message")
+
+        for method_name, method_func in method_mapping.items():
+            frequency = manner_execution.frequency
+            try:
+                while frequency != 0:
+                    start_id, knowledge_base_model, file_url_list = method_func()
+                    uuid_list = insert_weaviate_data_all(knowledge_base_model)
+                    insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+                    frequency -= 1
+            except Exception as e:
+                logger.error(e)
+    else:
+        frequency = manner_execution.frequency
+        while True:
+            if frequency == 0:
+                break
+            frequency -= 1
+            if method in method_mapping:
+                start_id, knowledge_base_model, file_url_list = method_mapping[method]()
+                uuid_list = insert_weaviate_data_all(knowledge_base_model)
+                insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+            else:
+                print("请输入正确的参数")
+                break
 
 
 def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
@@ -862,10 +875,12 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
 
 if __name__ == '__main__':
     manner_execution = {
-        "method_name": "platform_introduction",
+        "method_name": "t_knowledge_info",
         "limit": 5,
         "start_id": 0,
-        "frequency": 1
+        "frequency": 1,
+        "is_all": True,
+        # "is_all": False
     }
     manner_execution = MannerExecution(**manner_execution)
     asyncio.run(cleansing_manner_execution(manner_execution))
