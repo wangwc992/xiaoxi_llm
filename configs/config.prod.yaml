@@ -22,13 +22,13 @@ vllm:
 
 mysql:
   xxlxdb:
-    host: "192.168.0.137"
+    host: "59.108.41.117"
     port: 3306
     user: "root"
     password: "mirandA123!@#"
     database: "test_xxlxdb"
   smart_counselor:
-    host: "192.168.0.137"
+    host: "59.108.41.117"
     port: 3306
     user: "root"
     password: "mirandA123!@#"
