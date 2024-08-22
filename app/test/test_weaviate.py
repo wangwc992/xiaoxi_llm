@@ -16,7 +16,7 @@ collection = client.collections.get(collections_name)
 def delete_many():
     while True:
         result = collection.data.delete_many(
-            where=Filter.by_property("output").like("*"),
+            where=Filter.by_property("instruction").like("*"),
             # dry_run=True,
             # verbose=True
         )

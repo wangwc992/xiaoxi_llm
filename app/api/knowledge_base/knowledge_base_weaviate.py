@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -7,7 +8,7 @@ from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansi
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 router = APIRouter(prefix="/knowledge_base/weaviate")
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @router.post("/cleansing", description="Cleansing the knowledge base.")
