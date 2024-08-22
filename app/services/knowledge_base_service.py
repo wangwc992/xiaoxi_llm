@@ -243,7 +243,7 @@ async def get_weaviste_history(conversation_id, query):
     # 将历史记录转换为消息列表
     message_list = []
     for ai_chat_log in ai_chat_log_list:
-        human = {"role": "human", "content": ai_chat_log.input}
+        human = {"role": "human", "content": ai_chat_log.instruction}
         ai = {"role": "ai", "content": ai_chat_log.output}
         message_list.append(human)
         message_list.append(ai)
