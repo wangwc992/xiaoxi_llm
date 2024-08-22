@@ -133,38 +133,34 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
-    await build_server(
-        args,
-        llm_engine,
-    )
+    # 创建并启动 binlog 监听任务
+    binlog_task = asyncio.create_task(start_binlog_listener())
+
+    await build_server(args, llm_engine)
     server = build_app(args, **uvicorn_kwargs)
 
     loop = asyncio.get_running_loop()
 
     server_task = loop.create_task(server.serve())
 
-    # binlog_task = loop.create_task(start_binlog_listener())
-
     def signal_handler() -> None:
         # prevents the uvicorn signal handler to exit early
         server_task.cancel()
-        # binlog_task.cancel()
+        binlog_task.cancel()  # 取消 binlog 监听任务
 
     loop.add_signal_handler(signal.SIGINT, signal_handler)
     loop.add_signal_handler(signal.SIGTERM, signal_handler)
 
     try:
-        await server_task
+        await asyncio.gather(server_task, binlog_task)
     except asyncio.CancelledError:
-        print("Gracefully stopping http server")
+        print("Gracefully stopping http server and binlog listener")
         await server.shutdown()
-    # try:
-    #     # 等待 binlog 监听任务完成
-    #     await binlog_task
-    # except asyncio.CancelledError:
-    #     print("Gracefully stopping binlog listener")
-    #     # 如果有任何需要执行的清理操作，可以在这里进行
-    #     await server.shutdown()
+        # 等待 binlog 监听任务完成
+        try:
+            await binlog_task
+        except asyncio.CancelledError:
+            pass
 
 
 if __name__ == "__main__":
