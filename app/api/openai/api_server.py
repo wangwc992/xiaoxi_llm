@@ -225,6 +225,6 @@ async def build_server(
 
 async def scheduler():
     global engine
-    stats = await engine._get_stats(None, None)
-    print(stats.num_running_sys)
-    print(stats.__dict__)
+    stats =  await engine.do_log_stats()
+    # print(stats.num_running_sys)
+    # print(stats.__dict__)
