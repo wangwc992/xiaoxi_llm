@@ -2,6 +2,7 @@ import traceback
 from fastapi import Request, APIRouter, BackgroundTasks
 from starlette.responses import StreamingResponse
 
+from app.api.openai.api_server import scheduler
 from app.common.core.context import get_chat_visits_number
 from app.common.utils.logging import get_logger
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
@@ -33,6 +34,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
     }
     role: 1 为用户，2 chat并发数过多，3 敏感词、4 为程序异常
     '''
+    await scheduler()
     # 判断是否超过最大并发数
     if get_chat_visits_number(is_completions=True):
         result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "chat线程数量超了" }} ]}'''
