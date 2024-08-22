@@ -95,9 +95,10 @@ def build_app(args, **uvicorn_kwargs):
     # 注册自定义的 chat_suspend 异常处理器
     app.add_exception_handler(ChatSuspendException, chat_suspend_exception_handler)
 
-    app.middleware("http")(log_request_body)
-    app.middleware("http")(sensitive_word_filter)
-    app.middleware("http")(authentication)
+    # 注册自定义的中间件
+    middlewares = [log_request_body, sensitive_word_filter, authentication]
+    for middleware in middlewares:
+        app.middleware("http")(middleware)
 
     # 这段代码的主要目的是通过配置文件或命令行参数动态加载中间件，可以是中间件类或异步函数。它让应用更灵活，可以在运行时决定使用哪些中间件，而不是在代码中硬编码。这种方式非常适合需要根据不同环境或配置条件来加载不同中间件的场景
     for middleware in args.middleware:

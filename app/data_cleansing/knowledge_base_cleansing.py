@@ -63,7 +63,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     if not knowledge_info_dict_list:
         logger.info(f"{database}知识库数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"{database}知识库数据已全部洗入")
+        return None, None, None
     knowledge_base_model = []
     file_url_list = []
     for knowledge_info in knowledge_info_dict_list:
@@ -122,7 +122,7 @@ def insert_institution_information_data(start_id: int = 0, limit: int = 10):
     if not notice_massage_dict_list:
         logger.info(f"小希平台院校资讯数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"小希平台院校资讯数据已全部洗入")
+        return None, None, None
     knowledge_base_model = []
 
     for notice_massage in notice_massage_dict_list:
@@ -195,7 +195,7 @@ def insert_college_library01_data(start_id: int = 0, limit: int = 10):
     if not school_info_basic:
         logger.info(f"院校库基本信息数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f'院校库基本信息数据已全部洗入')
+        return None, None, None
     key_name_list01 = [{"db_id": "id"}, {'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
     key_name_list02 = [{'': 'chinese_name'}, {'': 'english_name'}, {'': 'country_name'},
@@ -227,7 +227,7 @@ def insert_college_library02_data(start_id: int = 0, limit: int = 10):
     if not school_info_ranking_list:
         logger.info(f"院校库排名信息数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"院校库排名信息数据已全部洗入")
+        return None, None, None
     key_name_list01 = [{"db_id": "id"}, {'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
     key_name_list02 = [{"世界泰晤士排名": "world_rank_the"}, {"世界QS排名": "world_rank_qs"},
@@ -258,7 +258,7 @@ def insert_college_library03_data(start_id: int = 0, limit: int = 10):
     if not school_info_more_list:
         logger.info(f"院校库更多信息数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"院校库更多信息数据已全部洗入")
+        return None, None, None
     key_name_list01 = [{"db_id": "id"}, {'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
     key_name_list02 = [{"就业率": "employment_rate"}, {"毕业薪资": "employment_salary"},
@@ -292,7 +292,7 @@ def insert_college_library04_data(start_id: int = 0, limit: int = 10):
     if not zn_school_selection_reason_list:
         logger.info(f"院校库择校理由数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"院校库择校理由数据已全部洗入")
+        return None, None, None
     key_name_list01 = [{"db_id": "id"}, {'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
     key_name_list02 = [{"择校理由": "selection_reason"}, {"学校特色": "feature"},
@@ -327,7 +327,7 @@ def insert_college_library05_data(start_id: int = 0, limit: int = 10):
     if not search_zn_school_recruit_graduate_1_list:
         logger.info(f"院校库本科生院校招生信息数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"院校库本科生院校招生信息数据已全部洗入")
+        return None, None, None
     title01 = "标题信息"
     key_name_list01 = [{"db_id": "id"}, {'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
@@ -375,7 +375,7 @@ def insert_college_library06_data(start_id: int = 0, limit: int = 10):
     if not search_zn_school_recruit_graduate_2_list:
         logger.info(f"院校库研究生生院校招生信息数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"院校库研究生生院校招生信息数据已全部洗入")
+        return None, None, None
 
     title01 = "标题信息"
     key_name_list01 = [{"db_id": "id"}, {'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
@@ -424,7 +424,7 @@ def insert_college_library07_data(start_id: int = 0, limit: int = 10):
     if not search_zn_school_recruit_graduate_2_list:
         logger.info(f"院校库艺术生院校招生信息数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"院校库艺术生院校招生信息数据已全部洗入")
+        return None, None, None
     title01 = "标题信息"
     key_name_list01 = [{"db_id": "id"}, {'院校中文名': 'chinese_name'}, {'院校英文名': 'english_name'},
                        {"院校简称": "school_abbreviations"}]
@@ -468,7 +468,7 @@ def insert_major_library_data(start_id: int = 0, limit: int = 10):
     if not zn_school_department_project_list:
         logger.info(f"专业库数据已全部洗入")
         # 抛出异常，终止程序
-        raise Exception(f"专业库数据已全部洗入")
+        return None, None, None
 
     title00 = "标题信息"
     key_name_list00 = [{"db_id": "id"}, {"院校中文名": "zsi_school_name"}, {"院校英文名": "zsi_english_name"},
@@ -801,10 +801,8 @@ class MannerExecution(BaseModel):
 
 
 async def cleansing_manner_execution(manner_execution: MannerExecution):
-    global limit, start_id
     limit = manner_execution.limit
     start_id = manner_execution.start_id
-
     method = manner_execution.method_name
     is_all = manner_execution.is_all
 
@@ -827,12 +825,17 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
         # 排除使用的方法
         method_mapping.pop("t_knowledge_info")
         method_mapping.pop("notice_message")
+        method_mapping.pop("platform_introduction")
 
         for method_name, method_func in method_mapping.items():
             frequency = manner_execution.frequency
+            start_id = manner_execution.start_id
             try:
                 while frequency != 0:
                     start_id, knowledge_base_model, file_url_list = method_func()
+                    if not knowledge_base_model:
+                        logger.info(f"{method_name} 数据清洗完成")
+                        break
                     uuid_list = insert_weaviate_data_all(knowledge_base_model)
                     insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
                     frequency -= 1
@@ -846,6 +849,9 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
             frequency -= 1
             if method in method_mapping:
                 start_id, knowledge_base_model, file_url_list = method_mapping[method]()
+                if not knowledge_base_model:
+                    logger.info(f"{method} 数据清洗完成")
+                    break
                 uuid_list = insert_weaviate_data_all(knowledge_base_model)
                 insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
             else:
@@ -877,7 +883,7 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
 if __name__ == '__main__':
     manner_execution = {
         "method_name": "t_knowledge_info",
-        "limit": 5,
+        "limit": 2,
         "start_id": 0,
         "frequency": 1,
         "is_all": True,
