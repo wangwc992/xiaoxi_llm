@@ -4,15 +4,16 @@ from starlette.responses import StreamingResponse
 
 from app.common.core.context import get_chat_visits_number
 from app.common.utils.logging import get_logger
+from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
 from app.middleware.exception import ChatSuspendException
 
 from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel)
 
-router = APIRouter(prefix="/knowledge_base")
+router = APIRouter(prefix="/knowledge_base/chat")
 logger = get_logger(__name__)
 
 
-@router.post("/chat/completions", description="Create a chat completion.")
+@router.post("/completions", description="Create a chat completion.")
 async def generate(request: MyChatCompletionRequestModel, raw_request: Request, background_tasks: BackgroundTasks):
     '''方法描述
     生成对话完成
@@ -44,3 +45,8 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
         logger.error(f"Error in /chat/completions: {error_message}")
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
+
+# 清空聊天记录
+@router.delete("/clear", description="Clear all chat data.")
+async def clear_chat_data():
+    ai_chat_log_weaviate.clear_all_data("instruction","*")
