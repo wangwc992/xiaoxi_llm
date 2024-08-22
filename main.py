@@ -1,4 +1,5 @@
 import os
+import threading
 
 from app.common.core.config import settings
 from app.data.dictionaries import sensitive_words
@@ -74,6 +75,12 @@ def build_app(args, **uvicorn_kwargs):
     app.include_router(text2vec_custom.router)
     app.include_router(knowledge_base_weaviate.router)
     app.root_path = args.root_path
+
+    @app.on_event("startup")
+    async def startup_event():
+        # 将 Binlog 监听器放到一个单独的线程中运行
+        listener_thread = threading.Thread(target=start_binlog_listener, daemon=True)
+        listener_thread.start()
 
     mount_metrics(app)
 
