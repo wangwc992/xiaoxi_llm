@@ -32,13 +32,13 @@ async def cleansing(manner_execution: MannerExecution):
 
 
 @router.get("/weaviateSearch")
-async def reference_data(query: str, alpha: float = 0.5, limit: int = 10):
+async def reference_data(query: str, limit: int = 10):
     '''RAG结果引用数据查询
     query: str   查询字符串
     alpha: float   阈值，alpha 为 1 是纯向量搜索，alpha 为 0 是纯文本搜索
     limit: int   限制数量
     '''
-    return await knowledge_base_weaviate.search_hybrid(query=query, alpha=alpha, limit=limit)
+    return await knowledge_base_weaviate.search_hybrid(query=query,limit=limit)
 
 
 @router.post("/collection", description="Create a weaviate collection")
