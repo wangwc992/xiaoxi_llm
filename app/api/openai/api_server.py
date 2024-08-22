@@ -223,41 +223,6 @@ async def build_server(
         chat_template=args.chat_template,
     )
 
-from vllm.sequence import ExecuteModelRequest
-
 async def scheduler():
-    global openai_serving_chat
-    engine = openai_serving_chat.engine
-    virtual_engine = 0
-    seq_group_metadata_list, scheduler_outputs = engine.scheduler[
-        virtual_engine].schedule()
-
-    if not scheduler_outputs.is_empty():
-        # Execute the model.
-        finished_requests_ids = engine.scheduler[
-            virtual_engine].get_and_reset_finished_requests_ids()
-        execute_model_req = ExecuteModelRequest(
-            seq_group_metadata_list=seq_group_metadata_list,
-            blocks_to_swap_in=scheduler_outputs.blocks_to_swap_in,
-            blocks_to_swap_out=scheduler_outputs.blocks_to_swap_out,
-            blocks_to_copy=scheduler_outputs.blocks_to_copy,
-            virtual_engine=virtual_engine,
-            num_lookahead_slots=scheduler_outputs.num_lookahead_slots,
-            running_queue_size=scheduler_outputs.running_queue_size,
-            finished_requests_ids=finished_requests_ids)
-        output = await engine.model_executor.execute_model_async(
-            execute_model_req)
-    else:
-        output = []
-
-    request_outputs = engine._process_model_outputs(
-        output, scheduler_outputs.scheduled_seq_groups,
-        scheduler_outputs.ignored_seq_groups, seq_group_metadata_list)
-
-    # Log stats.
-    engine.do_log_stats(scheduler_outputs, output)
-
-    if engine.log_stats:
-        for logger in engine.stat_loggers.values():
-            stats = engine._get_stats(scheduler_outputs, output)
-            print("asd",stats.num_running_sys)
+    global engine
+    await engine.do_log_stats()
