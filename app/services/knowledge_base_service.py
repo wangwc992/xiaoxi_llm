@@ -127,7 +127,6 @@ async def stream_response(result, member_id, message_list, start_time, knowledge
     # 判断是否为第一个chunk
     first_chunk = True
     async for chunk in result.body_iterator:
-        logger.info(f"chunk: {chunk}")
         if first_chunk:
             # 第一个chunk，添加知识库链接,并将会话id添加到chunk中,并转码为json格式返回
             chunk = chunk[len("data: "):]
