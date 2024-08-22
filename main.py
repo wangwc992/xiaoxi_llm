@@ -5,7 +5,6 @@ from app.common.core.config import settings
 from app.data.dictionaries import sensitive_words
 from app.middleware.exception import ChatSuspendException, chat_suspend_exception_handler
 from app.middleware.middleware import log_request_body, sensitive_word_filter, authentication
-from app.start_init.mysql_binglog_monitoring import start_binlog_listener
 
 gpu_count = settings.get('gpu_count', 0)
 # 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
@@ -76,11 +75,6 @@ def build_app(args, **uvicorn_kwargs):
     app.include_router(knowledge_base_weaviate.router)
     app.root_path = args.root_path
 
-    # @app.on_event("startup")
-    # async def startup_event():
-    #     # 将 Binlog 监听器放到一个单独的线程中运行
-    #     listener_thread = threading.Thread(target=start_binlog_listener, daemon=True)
-    #     listener_thread.start()
 
     mount_metrics(app)
 
