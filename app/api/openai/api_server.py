@@ -226,7 +226,8 @@ async def build_server(
 from vllm.sequence import ExecuteModelRequest
 
 async def scheduler():
-    global engine
+    global openai_serving_chat
+    engine = openai_serving_chat.engine
     virtual_engine = 0
     seq_group_metadata_list, scheduler_outputs = engine.scheduler[
         virtual_engine].schedule()
