@@ -115,20 +115,8 @@ class KnowledgeBaseWeaviate(WeaviateClient):
             limit=limit,
         )
         response_list = []
-
-        max_explain_score = float('-inf')  # 设置为负无穷大，以便比较
-
-        # 遍历 response.objects 以找到最大 explain_score 的对象
-        for o in response.objects:
-            if o.metadata.score > max_explain_score:
-                max_explain_score = o.metadata.score
-        # 判断max_explain_score是大于0.8的还是大于0.5的
-        distance = 0.8 if max_explain_score >= 0.8 else 0.5 if max_explain_score >= 0.5 else 0
-
         for o in response.objects:
             properties = o.properties
-            if distance > o.metadata.score and o.properties.get('db_name') == 't_knowledge_info':
-                continue
             response_list.append({"explain_score": o.metadata.explain_score,
                                   "content": properties['instruction'] + "\n" + properties['keyword'],
                                   "score": o.metadata.score})
@@ -163,4 +151,11 @@ if __name__ == '__main__':
     #         break
     #     else:
     #         asyncio.run(knowledge_base_weaviate.search_hybrid(input_str, 10))
-    knowledge_base_weaviate.clear_all_data("db_name", "notice_message")
+    # knowledge_base_weaviate.clear_all_data("db_name", "notice_message")
+    # query = "现在时间2024-08-22,悉尼大学最近有减免申请费的活动吗？"
+    # vector = Embedding.embed_query(query)
+    # response = knowledge_base_weaviate.hybrid_data(query, vector, 20)
+    # for o in response.objects:
+    #     properties = o.properties
+    #     print( o.metadata.score, properties['instruction'])
+    pass

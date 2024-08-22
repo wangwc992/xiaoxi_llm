@@ -38,7 +38,7 @@ async def reference_data(query: str, alpha: float = 0.5, limit: int = 10):
     alpha: float   阈值，alpha 为 1 是纯向量搜索，alpha 为 0 是纯文本搜索
     limit: int   限制数量
     '''
-    return await knowledge_base_weaviate.search_hybrid_or(query=query, alpha=alpha, limit=limit)
+    return await knowledge_base_weaviate.search_hybrid(query=query, limit=limit)
 
 
 @router.post("/collection", description="Create a weaviate collection")
@@ -94,9 +94,9 @@ def search_weaviate_data(uuid: Optional[str] = None, db_id: Optional[str] = None
 
 
 @router.get("/searchHybrid", description="Query data in weaviate")
-def search_weaviate_data_by_query(query: str, limit: int):
+async def search_weaviate_data_by_query(query: str, limit: int, alpha: float = 0.5):
     """ 查询weaviate的数据,根据query
     :param query:    查询的字符串
     :param limit:    限制的数量
     """
-    return knowledge_base_weaviate.search_hybrid(query, limit)
+    return await knowledge_base_weaviate.search_hybrid_or(query=query, alpha=alpha, limit=limit)
