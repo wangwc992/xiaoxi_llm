@@ -14,16 +14,16 @@ from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 
-async def choice_method(table_name: str, data: dict):
+def choice_method(table_name: str, data: dict):
     if table_name == 't_knowledge_info':
         apply_status = data.get('apply_status')
         if apply_status != 4:
             return
 
-    await sync_knowledge_base(table_name, data)
+    sync_knowledge_base(table_name, data)
 
 
-async def sync_knowledge_base(table_name: str, data: dict):
+def sync_knowledge_base(table_name: str, data: dict):
     # TODO 知识库updat连续更新时，会有多次同步到weaviate的问题
     db_id = data.get('id')
     limit = 1
@@ -64,7 +64,7 @@ async def sync_knowledge_base(table_name: str, data: dict):
         insert_ai_mysql_weaviate(knowledge_base_model)
 
 
-async def start_binlog_listener():
+def start_binlog_listener():
     print("Binlog 监听已启动")
     # MySQL 连接配置
     xxlxdb_config = settings["mysql"]["xxlxdb"]
@@ -112,13 +112,13 @@ async def start_binlog_listener():
                     # 将 UNKNOWN_COLX 转换为实际的列名
                     record = {column_names[i]: value for i, value in enumerate(row["values"].values())}
                     print(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
-                    await choice_method(binlogevent.table, record)
+                    choice_method(binlogevent.table, record)
             elif isinstance(binlogevent, UpdateRowsEvent):
                 for row in binlogevent.rows:
                     before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
                     after_values = {column_names[i]: value for i, value in enumerate(row["after_values"].values())}
                     print(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
-                    await choice_method(binlogevent.table, after_values)
+                    choice_method(binlogevent.table, after_values)
 
     # 关闭 stream
     stream.close()
