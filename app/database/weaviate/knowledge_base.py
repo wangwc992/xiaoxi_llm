@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 from typing import Optional, Union
 
 from weaviate.classes.query import Filter
@@ -67,6 +68,8 @@ class KnowledgeBaseWeaviate(WeaviateClient):
     async def search_hybrid(self, query, limit, filters=None):
         '''在Weaviate数据库中搜索数据'''
         query_keyword = ' '.join(jieba_tool.cut_for_search(query))
+        time_now = datetime.datetime.now().strftime('%Y-%m-%d')
+        query_keyword = f"现在时间{time_now} {query_keyword} "
         response = self.collection.query.hybrid(
             query=query_keyword,
             fusion_type=HybridFusion.RELATIVE_SCORE,
