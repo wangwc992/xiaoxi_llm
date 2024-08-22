@@ -7,7 +7,17 @@ from app.data_cleansing.knowledge_base_cleansing import MannerExecution, cleansi
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 router = APIRouter(prefix="/knowledge_base/weaviate")
-logger = get_logger(__name__)
+logger = get_logger("__name__")
+
+
+@router.get("/", description="Cleansing the knowledge base.")
+async def cleansing(manner_execution: str):
+    """
+    处理清洗请求
+    """
+    logger.info("Received cleansing request with args: %s", manner_execution)
+    # 模拟处理请求
+    return {"status": "cleansing started"}
 
 
 @router.post("/cleansing", description="Cleansing the knowledge base.")
