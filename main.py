@@ -5,6 +5,7 @@ from app.common.core.config import settings
 from app.data.dictionaries import sensitive_words
 from app.middleware.exception import ChatSuspendException, chat_suspend_exception_handler
 from app.middleware.middleware import log_request_body, sensitive_word_filter, authentication
+from app.start_init.mysql_binglog_monitoring import start_binlog_listener
 
 gpu_count = settings.get('gpu_count', 0)
 # 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
@@ -75,6 +76,11 @@ def build_app(args, **uvicorn_kwargs):
     app.include_router(knowledge_base_weaviate.router)
     app.root_path = args.root_path
 
+    @app.on_event("startup")
+    async def startup_event():
+        # 将 Binlog 监听器放到一个单独的线程中运行
+        listener_thread = threading.Thread(target=start_binlog_listener, daemon=True)
+        listener_thread.start()
 
     mount_metrics(app)
 
@@ -134,9 +140,6 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
-    # 创建并启动 binlog 监听任务
-    binlog_task = asyncio.create_task(start_binlog_listener())
-
     await build_server(args, llm_engine)
     server = build_app(args, **uvicorn_kwargs)
 
@@ -147,21 +150,16 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     def signal_handler() -> None:
         # prevents the uvicorn signal handler to exit early
         server_task.cancel()
-        binlog_task.cancel()  # 取消 binlog 监听任务
 
     loop.add_signal_handler(signal.SIGINT, signal_handler)
     loop.add_signal_handler(signal.SIGTERM, signal_handler)
 
     try:
-        await asyncio.gather(server_task, binlog_task)
+        await asyncio.gather(server_task)
     except asyncio.CancelledError:
         print("Gracefully stopping http server and binlog listener")
         await server.shutdown()
         # 等待 binlog 监听任务完成
-        try:
-            await binlog_task
-        except asyncio.CancelledError:
-            pass
 
 
 if __name__ == "__main__":
