@@ -7,11 +7,14 @@ import pymysql
 from app.common.core.config import settings
 from app.common.core.langchain_client import Embedding
 from app.common.utils.jieba_utils import jieba_tool
+from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, \
     insert_t_knowledge_info_data, insert_mysql_weaviate, insert_institution_information_data
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select_ai_mysql_weaviate, \
     insert_ai_mysql_weaviate, update_ai_mysql_weaviate
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
+
+logger = get_logger(__name__)
 
 
 def choice_method(table_name: str, data: dict):
@@ -20,7 +23,10 @@ def choice_method(table_name: str, data: dict):
         if apply_status != 4:
             return
 
-    sync_knowledge_base(table_name, data)
+    try:
+        sync_knowledge_base(table_name, data)
+    except:
+        logger.exception(f"同步知识库数据到weaviate失败，数据：{data}")
 
 
 def sync_knowledge_base(table_name: str, data: dict):
@@ -122,6 +128,7 @@ def start_binlog_listener():
 
     # 关闭 stream
     stream.close()
+
 
 if __name__ == "__main__":
     start_binlog_listener()
