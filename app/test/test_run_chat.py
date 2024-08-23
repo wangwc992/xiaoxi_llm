@@ -64,11 +64,12 @@ def send_request():
     # 随机选择一个问题
     random_question = random.choice(study_abroad_questions)
     # A
-    url = "u430182-ac52-13068849.cqa1.seetacloud.com"
+    # url = "u430182-ac52-13068849.cqa1.seetacloud.com"
     # B
-    # url = "u430182-ac52-9e557856.cqa1.seetacloud.com"
+    url = "u430182-ac52-9e557856.cqa1.seetacloud.com"
 
-    model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
+    # model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
+    model = "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
     conn = http.client.HTTPSConnection(url)
     payload = json.dumps({
         "model": model,
@@ -98,7 +99,7 @@ def send_request():
 def periodic_request():
     while True:
         # 随机生成1到10个线程
-        num_requests = random.randint(30, 30)
+        num_requests = random.randint(5, 10)
         print(f"Sending {num_requests} requests...")
         threads = []
         for _ in range(num_requests):

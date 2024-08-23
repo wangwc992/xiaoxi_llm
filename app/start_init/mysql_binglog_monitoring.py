@@ -123,4 +123,6 @@ def start_binlog_listener():
     # 关闭 stream
     stream.close()
 
-# asyncio.run(start_binlog_listener())
+if __name__ == "__main__":
+    start_binlog_listener()
+    # asyncio.get_event_loop().run_forever()
