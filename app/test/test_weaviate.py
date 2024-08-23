@@ -2,12 +2,15 @@ import weaviate
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.collections.classes.grpc import HybridFusion
 
+from app.common.core.config import settings
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
 
+weaviate_client = settings.get("weaviate")
+
 logger = get_logger(__name__)
-client = weaviate.connect_to_local(grpc_port=50060, port=8079, skip_init_checks=True)
+client = weaviate.connect_to_local(grpc_port=weaviate_client.get('grpc_port'), port=weaviate_client.get('port'),host=weaviate_client.get('host'), skip_init_checks=True)
 collections_name = 'Qwen_data_base'
 ai_chat_log = 'Ai_chat_log'
 collection = client.collections.get(collections_name)
