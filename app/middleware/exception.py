@@ -3,8 +3,6 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.responses import StreamingResponse
 
-from app.common.core.context import get_chat_visits_number
-
 
 # 自定义全局异常处理器
 async def global_exception_handler(request: Request, exc: Exception):
@@ -25,7 +23,6 @@ class ChatSuspendException(Exception):
 
 
 def chat_suspend_exception_handler(request: Request, exc: ChatSuspendException):
-    get_chat_visits_number(False)
     # result = f'data: {{"choices": [{{"index": 0, "delta": {{"role": "4", "content": "{exc.message}"}}}}]}}'
     result = '''data: { "code": "500", "content": "服务器异常"}'''
     return StreamingResponse(content=result, media_type="text/event-stream")

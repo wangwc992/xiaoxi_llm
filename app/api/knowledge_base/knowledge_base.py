@@ -36,7 +36,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
     '''
     await scheduler()
     # 判断是否超过最大并发数
-    if get_chat_visits_number(is_completions=True):
+    if get_chat_visits_number():
         result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "chat线程数量超了" }} ]}'''
         return StreamingResponse(content=result, media_type="text/event-stream")
 

@@ -17,15 +17,11 @@ chat_visits_number_max = 30
 # 在源码/root/miniconda3/envs/agiclass/lib/python3.10/site-packages/vllm/engine/async_llm_engine.py
 # 143：process_request_output 、184：abort_request
 # 用到了这个函数
-def get_chat_visits_number(is_completions: bool = False) -> bool:
+def get_chat_visits_number() -> bool:
     global chat_visits_number
     global chat_visits_number_max
-    if is_completions:
-        if chat_visits_number >= chat_visits_number_max:
-            logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
-            return True
-        chat_visits_number += 1
-    else:
-        chat_visits_number -= 1
-    logger.info(f"chat_visits_number {is_completions}: {chat_visits_number}")
+    if chat_visits_number >= chat_visits_number_max:
+        logger.error(f"请求次数超过上限{chat_visits_number_max}次，请稍后再试。")
+        return True
+    logger.info(f"chat_visits_number : {chat_visits_number}")
     return False
