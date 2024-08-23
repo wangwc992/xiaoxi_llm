@@ -17,7 +17,7 @@ from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 
-from app.database.mysql.mysql_client import yhj
+from app.database.mysql.mysql_client import xxlxdb
 
 
 class AiMysqlWeaviate(BaseModel):
@@ -50,7 +50,7 @@ def insert_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
         ai_mysql_weaviate.file_url,
         ai_mysql_weaviate.file_content
     )
-    yhj.execute(sql, params)
+    xxlxdb.execute(sql, params)
 
 
 def update_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
@@ -68,7 +68,7 @@ def update_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
     sql = sql[:-2]
     sql += ''' WHERE id=%s'''
     values.append(ai_mysql_weaviate.id)
-    yhj.execute(sql, tuple(values))
+    xxlxdb.execute(sql, tuple(values))
 
 
 def insert_ai_mysql_weaviate_bath(ai_mysql_weaviate_list: list[Union[AiMysqlWeaviate, dict]]):
@@ -81,8 +81,8 @@ def insert_ai_mysql_weaviate_bath(ai_mysql_weaviate_list: list[Union[AiMysqlWeav
                ai_mysql_weaviate.instruction, ai_mysql_weaviate.input, ai_mysql_weaviate.output,
                ai_mysql_weaviate.file_url, ai_mysql_weaviate.file_content) for ai_mysql_weaviate in
               ai_mysql_weaviate_list]
-    yhj.mysql_client.executemany(sql, params)
-    yhj.mysql_client.connection.commit()
+    xxlxdb.mysql_client.executemany(sql, params)
+    xxlxdb.mysql_client.connection.commit()
 
 
 def select_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict], limit: int):
@@ -100,7 +100,7 @@ def select_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict], li
     else:
         sql = sql[:-4]
     sql += f' limit {limit}'
-    ai_mysql_weaviate_list = yhj.execute_all2dict(sql, params=tuple(values))
+    ai_mysql_weaviate_list = xxlxdb.execute_all2dict(sql, params=tuple(values))
     return ai_mysql_weaviate_list
 
 
@@ -119,7 +119,7 @@ def update_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
     sql = sql[:-2]
     sql += ''' WHERE id=%s'''
     values.append(ai_mysql_weaviate.get('id'))
-    yhj.execute(sql, tuple(values))
+    xxlxdb.execute(sql, tuple(values))
 
 
 if __name__ == '__main__':

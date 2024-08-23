@@ -1,4 +1,4 @@
-from app.database.mysql.mysql_client import yhj
+from app.database.mysql.mysql_client import xxlxdb
 
 '''CREATE TABLE `ai_knowledge_base_keyword` (
 	`id` INT(10) NOT NULL COMMENT '主键id',
@@ -14,7 +14,7 @@ def get_keyword_by_database(database: str = None):
         sql = f"SELECT * FROM ai_knowledge_base_keyword WHERE `database` = '{database}' AND state = 1"
     else:
         sql = f"SELECT * FROM ai_knowledge_base_keyword WHERE state = 1"
-    keyword_dict_list = yhj.execute_all2dict(sql)
+    keyword_dict_list = xxlxdb.execute_all2dict(sql)
     return keyword_dict_list
 
 
@@ -30,5 +30,5 @@ def get_keyword_by_database(database: str = None):
 def get_prompt_by_type(type: str):
     # 返回id最大的
     sql = f"SELECT * FROM ai_prompt WHERE `type` = '{type}' AND state = 1 ORDER BY id DESC LIMIT 1"
-    prompt = yhj.execute_one(sql)
+    prompt = xxlxdb.execute_one(sql)
     return prompt

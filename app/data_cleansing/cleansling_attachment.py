@@ -3,7 +3,7 @@ import concurrent.futures
 from app.common.utils.ocr_utlis import urlToText
 from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import search_knowledge_info_data, \
     search_notice_message_data
-from app.database.mysql.mysql_client import yhj, MySQLConnect
+from app.database.mysql.mysql_client import xxlxdb, MySQLConnect
 
 start_id = 0
 limit = 1000
@@ -37,8 +37,8 @@ def knowledge_info():
                 insert_query = f"""INSERT INTO weaviate_knowledge_info 
                                 (id, type, country, school, class, name, founder, filename, replyerTime, content, fileurl)
                                 VALUES ({placeholders})"""
-                yhj.mysql_client.executemany(insert_query, batch)
-                yhj.mysql_client.connection.commit()
+                xxlxdb.mysql_client.executemany(insert_query, batch)
+                xxlxdb.mysql_client.connection.commit()
                 print(f"Inserted batch of {len(batch)} records.")
                 batch.clear()
 
@@ -48,8 +48,8 @@ def knowledge_info():
             insert_query = f"""INSERT INTO weaviate_knowledge_info 
                             (id, type, country, school, class, name, founder, filename, replyerTime, content, fileurl)
                             VALUES ({placeholders})"""
-            yhj.mysql_client.executemany(insert_query, batch)
-            yhj.mysql_client.connection.commit()
+            xxlxdb.mysql_client.executemany(insert_query, batch)
+            xxlxdb.mysql_client.connection.commit()
             print(f"Inserted remaining batch of {len(batch)} records.")
 
         # If fewer than 1000 records were fetched, break the loop
@@ -63,11 +63,11 @@ def knowledge_info():
 def knowledge_info_fjtq():
     def process_record(knowledge_info):
         try:
-            yhj1 = MySQLConnect("yhj")
+            xxlxdb1 = MySQLConnect("xxlxdb")
             file_info = urlToText(knowledge_info["attachment_url"])
             update_query = "UPDATE weaviate_knowledge_info SET attachment_content = %s WHERE id = %s"
-            yhj1.execute(update_query, (file_info, knowledge_info.get('id')))
-            yhj1.close()
+            xxlxdb1.execute(update_query, (file_info, knowledge_info.get('id')))
+            xxlxdb1.close()
         except Exception as e:
             print(f"Failed to process record with id {knowledge_info.get('id')}: {e}")
 
@@ -78,7 +78,7 @@ def knowledge_info_fjtq():
         while True:
             # Fetch records where fileurl is not null and not empty
             select_query = "SELECT * FROM weaviate_knowledge_info WHERE fileurl IS NOT NULL AND fileurl != '' AND attachment_content IS NULL and id > %s"
-            knowledge_info_dict_list = yhj.execute_all2dict(select_query, limit=limit, params=(start_id,))
+            knowledge_info_dict_list = xxlxdb.execute_all2dict(select_query, limit=limit, params=(start_id,))
 
             if not knowledge_info_dict_list:
                 break
@@ -130,8 +130,8 @@ def notice_message():
                 insert_query = f"""INSERT INTO weaviate_notice_message 
                                     (notice_id, school_english_name, school_name, notice_create_time, notice_category, notice_title, notice_summary, attachment_name, attachment_url)
                                     VALUES ({placeholders})"""
-                yhj.mysql_client.executemany(insert_query, batch)
-                yhj.mysql_client.connection.commit()
+                xxlxdb.mysql_client.executemany(insert_query, batch)
+                xxlxdb.mysql_client.connection.commit()
                 print(f"Inserted batch of {len(batch)} records.")
                 batch.clear()
 
@@ -141,8 +141,8 @@ def notice_message():
             insert_query = f"""INSERT INTO weaviate_notice_message 
                                 (notice_id, school_english_name, school_name, notice_create_time, notice_category, notice_title, notice_summary, attachment_name, attachment_url)
                                 VALUES ({placeholders})"""
-            yhj.mysql_client.executemany(insert_query, batch)
-            yhj.mysql_client.connection.commit()
+            xxlxdb.mysql_client.executemany(insert_query, batch)
+            xxlxdb.mysql_client.connection.commit()
             print(f"Inserted remaining batch of {len(batch)} records.")
 
         # If fewer than 1000 records were fetched, break the loop
@@ -156,12 +156,12 @@ def notice_message():
 def notice_message_fjtq():
     def process_record(knowledge_info):
         try:
-            yhj1 = MySQLConnect("yhj")
+            xxlxdb1 = MySQLConnect("xxlxdb")
             file_info = urlToText(knowledge_info["attachment_url"])
             # Update the record in the database
             update_query = "UPDATE weaviate_notice_message SET attachment_content = %s WHERE notice_id = %s"
-            yhj1.execute(update_query, (file_info, knowledge_info.get('notice_id')))
-            yhj1.close()
+            xxlxdb1.execute(update_query, (file_info, knowledge_info.get('notice_id')))
+            xxlxdb1.close()
         except Exception as e:
             print(f"Failed to process record with id {knowledge_info.get('notice_id')}: {e}")
 
@@ -173,7 +173,7 @@ def notice_message_fjtq():
             # Fetch records where fileurl is not null and not empty           weaviate_notice_message:attachment_url      weaviate_knowledge_info
             select_query = "SELECT * FROM weaviate_notice_message WHERE attachment_url IS NOT NULL AND attachment_url != '' AND (attachment_content IS NULL OR   attachment_content != '') and notice_id > %s order by notice_id"
 
-            knowledge_info_dict_list = yhj.execute_all2dict(select_query, limit=limit, params=(start_id,))
+            knowledge_info_dict_list = xxlxdb.execute_all2dict(select_query, limit=limit, params=(start_id,))
             # 排除notice_id重复的数据
             knowledge_info_dict_list = [dict(t) for t in set([tuple(d.items()) for d in knowledge_info_dict_list])]
 
