@@ -41,6 +41,8 @@ def sync_knowledge_base(table_name: str, data: dict):
     }
 
     start_id, knowledge_base_model_list, file_url_list = method_mapping.get(table_name)()
+    if not knowledge_base_model_list:
+        return
     knowledge_base_model = knowledge_base_model_list[0]
     instruction = knowledge_base_model.get('instruction')
     vec = Embedding.embed_query(instruction)
