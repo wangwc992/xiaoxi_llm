@@ -836,7 +836,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
                         logger.info(f"{method_name} 数据清洗完成")
                         break
                     uuid_list = insert_weaviate_data_all(knowledge_base_model)
-                    insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+                    # insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
                     frequency -= 1
             except Exception as e:
                 logger.error(e)
@@ -852,7 +852,8 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
                     logger.info(f"{method} 数据清洗完成")
                     break
                 uuid_list = insert_weaviate_data_all(knowledge_base_model)
-                insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+                if method == "t_knowledge_info" and method == "notice_message":
+                    insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
             else:
                 print("请输入正确的参数")
                 break
