@@ -87,9 +87,12 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         type = "1" if knowledge_info.get("type") == 1 else "2"
         name = knowledge_info.get("name" if type == "1" else "filename")
 
+        replyerTime= knowledge_info.get("replyerTime", "")
+        if replyerTime:
+            replyerTime = replyerTime.strftime("%Y-%m-%d %H:%H:%M")
         url = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id},"attachment_url":"{knowledge_info.get("fileurl")}"}}'
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
-        output = f'平台顾问于{knowledge_info["replyerTime"].strftime("%Y-%m-%d %H:%H:%M")}回复内容如下：{content}'
+        output = f'平台顾问于{replyerTime}回复内容如下：{content}'
         link = url
 
         knowledge_base_model.append({
