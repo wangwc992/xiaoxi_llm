@@ -853,7 +853,8 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
                     break
                 uuid_list = insert_weaviate_data_all(knowledge_base_model)
                 if method == "t_knowledge_info" and method == "notice_message":
-                    insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+                    logger.info(f"{method} 插入记录")
+                    # insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
             else:
                 print("请输入正确的参数")
                 break

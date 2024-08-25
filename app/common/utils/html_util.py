@@ -5,6 +5,9 @@ class HtmlUtils:
     @staticmethod
     def replace_link_with_url(html_text):
         """清空html标签，将a标签替换为链接"""
+        # 检查输入是否为字符串，如果不是则返回空字符串
+        if not isinstance(html_text, str):
+            return ''
         def replacer(match):
             a_tag = match.group()
             url_match = re.search(r'href="(.*?)"', a_tag)
