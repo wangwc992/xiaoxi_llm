@@ -34,7 +34,7 @@ from datetime import datetime
 from typing import Optional
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-from app.database.mysql.mysql_client import xxlxdb, smart_counselor
+from app.database.mysql.mysql_client import xxlxdb, smart_counselor, yhj
 
 
 class KnowledgeInfo(BaseModel):
@@ -79,7 +79,7 @@ def search_knowledge_info_data(id=0, limit=10):
 
 def search_knowledge_info_data2(id=0, limit=10):
     sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl,attachment_content FROM weaviate_knowledge_info where id > {id}"
-    return xxlxdb.execute_all2dict(sql=sql, limit=limit)
+    return yhj.execute_all2dict(sql=sql, limit=limit)
 
 
 def search_notice_message_data(id: int = 0, limit: int = 10):

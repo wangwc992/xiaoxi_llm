@@ -59,7 +59,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
     global t_knowledge_info
     database = t_knowledge_info
-    knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
+    knowledge_info_dict_list = search_knowledge_info_data2(id=start_id, limit=limit)
     if not knowledge_info_dict_list:
         logger.info(f"{database}知识库数据已全部洗入")
         # 抛出异常，终止程序

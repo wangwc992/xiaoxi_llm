@@ -164,6 +164,7 @@ class MySQLConnect:
 
 xxlxdb = MySQLConnect("xxlxdb")
 smart_counselor = MySQLConnect("smart_counselor")
+yhj = MySQLConnect("yhj")
 
 if __name__ == '__main__':
     sql = "SELECT * FROM `school_info`"
