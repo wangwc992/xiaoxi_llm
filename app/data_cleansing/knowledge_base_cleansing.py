@@ -74,7 +74,8 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         if knowledge_info.get("fileurl"):
             attachment_content = knowledge_info.get("attachment_content")
             if not attachment_content:
-                attachment_content = urlToText(knowledge_info["fileurl"])
+                # attachment_content = urlToText(knowledge_info["fileurl"])
+                pass
             file_content = attachment_content
             filename = knowledge_info.get("filename", "")
             if file_content:
