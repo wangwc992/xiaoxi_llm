@@ -79,11 +79,8 @@ def build_app(args, **uvicorn_kwargs):
 
     @app.on_event("startup")
     async def startup_event():
-    #     开启线程运行 run_scheduler 和start_binlog_listener
-        listener_thread = threading.Thread(target=start_binlog_listener, daemon=True)
-        listener_thread.start()
-        scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-        scheduler_thread.start()
+        threading.Thread(target=start_binlog_listener, daemon=True).start()
+        threading.Thread(target=run_scheduler, daemon=True).start()
 
     mount_metrics(app)
 
