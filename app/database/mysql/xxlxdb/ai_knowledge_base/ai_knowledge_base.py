@@ -27,8 +27,8 @@ def get_keyword_by_database(database: str = None):
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='ai prompt';'''
 
 
-def get_prompt_by_type(type: str):
+def get_prompt_by_type():
     # 返回id最大的
-    sql = f"SELECT * FROM ai_prompt WHERE `type` = '{type}' AND state = 1 ORDER BY id DESC LIMIT 1"
-    prompt = xxlxdb.execute_one(sql)
-    return prompt
+    sql = f"SELECT type,prompt FROM ai_prompt WHERE state = 1 "
+    prompt_list = xxlxdb.execute_all2dict(sql)
+    return prompt_list
