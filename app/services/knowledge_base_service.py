@@ -114,7 +114,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         reference_data_count = reference_data_dict.get("reference_data_count")
 
         # 加载prompt模板
-        template = PromptTemplate.from_file(xiao_xi_chat)
+        template = PromptTemplate.from_template(xiao_xi_chat)
         prompt = template.format(input=query, reference_data=reference_data)
     elif query_type == "C":
         # 小希平台进行留学申请相关操作
@@ -151,12 +151,12 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # Convert the dictionary back to a list
                 application_progress_data_list = list(school_dict.values())
                 # 加载prompt模板
-                template = PromptTemplate.from_file(matching_summary)
+                template = PromptTemplate.from_template(matching_summary)
                 prompt = template.format(input=query, student_info=classification_model,
                                          application_progress_data_list=application_progress_data_list)
             else:
                 # 加载prompt模板
-                template = PromptTemplate.from_file(matching_information)
+                template = PromptTemplate.from_template(matching_information)
                 prompt = template.format(input=query, student_info=classification_model,
                                          application_information_list="学生申请信息")
     else:
