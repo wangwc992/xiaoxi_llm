@@ -15,6 +15,7 @@ from weaviate.classes.query import Filter
 from app.api.openai.api_server import create_chat_completion
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
+from app.common.utils.object_utils import ObjectFormatter
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
@@ -22,7 +23,7 @@ from vllm.utils import random_uuid
 
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatLogModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
-from app.prompt import classificationQuery
+from app.prompt import classification_query, xiao_xi_chat
 
 router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
@@ -36,28 +37,49 @@ class MyChatCompletionRequestModel(BaseModel):
     member_id: Optional[str] = Field("1001", description="用户ID")
 
 
+# {"queryType":"C","task":"3","studentName":"xuyunyi","schoolName":"oeinstein","majorName":"digitalhumanities"}
+class ClassificationModel(BaseModel):
+    query_type: Optional[str] = Field(None, description="问题类型")
+    task: Optional[str] = Field(None, description="任务编号")
+    student_name: Optional[str] = Field(None, description="学生姓名")
+    school_name: Optional[str] = Field(None, description="学校名称")
+    major_name: Optional[str] = Field(None, description="专业名称")
+
+
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
+    # 请求开始时间
+    start_time = datetime.now()
+    knowledge_link = {}
+    reference_data_count = 0
+    # 获取请求参数
+    member_id = request.member_id
+    conversation_id = request.conversation_id
+    query = request.query
+    model = request.model
+    stream = request.stream
+    # 判断是否为流式输出
+    stream_options = StreamOptions(include_usage=True) if request.stream else None
+
     # 加载classificationQuery模板，进行任务分类
-    classification_query = PromptTemplate.from_template(classificationQuery)
-    classification_query_prompt = classification_query.format(input=request.query)
+    classification_query_prompt = PromptTemplate.from_template(classification_query)
+    classification_query_prompt = classification_query.format(input=query)
     print(classification_query_prompt)
     system = {"role": "system", "content": "你是问题分类助手"}
     human = {"role": "human", "content": classification_query_prompt}
     chat_request = ChatCompletionRequest(
         messages=[system, human],
-        model=request.model,
+        model=model,
     )
+    # 创建chat_completion请求
     result = await create_chat_completion(chat_request, raw_request)
-    result_dict = await extract_message(result)
-    print(result_dict)
+    # 提取消息
+    output = await extract_message(result).get('output')
+    # 获取任务分类,转换为ClassificationModel
+    classification_model = ObjectFormatter.dict_to_object(json.loads(output), ClassificationModel)
+    # 获取任务类型
+    query_type = classification_model.query_type
 
-    # 请求开始时间
-    start_time = datetime.now()
-    member_id = request.member_id
-    # 获取会话id
-    conversation_id = request.conversation_id
-    query = request.query
     # 初始化历史消息列表
     history_message_list = []
     if not conversation_id:
@@ -72,34 +94,71 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         history_message_list = await get_weaviste_history(conversation_id, query)
     logger.info(f"history_message_list: {history_message_list}")
 
-    # 获取参考数据
-    reference_data_dict = await load_reference_data(query, 10)
-    reference_data = reference_data_dict.get("reference_data")
-    knowledge_link = reference_data_dict.get("knowledge_link")
-    reference_data_count = reference_data_dict.get("reference_data_count")
+    # ------------------------------------------------------------------------------------------------------------------
+    if query_type == "A" or query_type == "B":
+        # 留学相关的海外院校/专业/申请相关的知识
+        if query_type == "A":
+            # 获取海外院校/专业/申请相关的知识
+            filters = Filter.by_property("db_name").not_equal("platform_introduction")
+        else:
+            # 小希平台相关功能知识
+            filters = Filter.by_property("db_name").equal("platform_introduction")
+        # 获取参考数据
+        reference_data_dict = await load_reference_data(query=query, filters=filters, limit=10)
+        reference_data = reference_data_dict.get("reference_data")
+        knowledge_link = reference_data_dict.get("knowledge_link")
+        reference_data_count = reference_data_dict.get("reference_data_count")
 
-    # 加载prompt模板
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, '../prompt/knowledge_prompt.txt')
-    template = PromptTemplate.from_file(file_path)
-    prompt = template.format(input=query, reference_data=reference_data)
-    # 拼接prompt将用户输入添加到消息列表
-    history_message_list.append({"role": "human", "content": prompt})
-    # 判断是否为流式输出
-    stream_options = StreamOptions(include_usage=True) if request.stream else None
-    # 创建chat_completion请求
-    chat_request = ChatCompletionRequest(
-        messages=history_message_list,
-        stream=request.stream,
-        model=request.model,
-        stream_options=stream_options
-    )
+        # 加载prompt模板
+        template = PromptTemplate.from_file(xiao_xi_chat)
+        prompt = template.format(input=query, reference_data=reference_data)
+        # 拼接prompt将用户输入添加到消息列表
+        history_message_list.append({"role": "human", "content": prompt})
+        # 创建chat_completion请求
+        chat_request = ChatCompletionRequest(
+            messages=history_message_list,
+            stream=request.stream,
+            model=request.model,
+            stream_options=stream_options
+        )
+        # 获取返回结果
+        result = await create_chat_completion(chat_request, raw_request)
+    elif query_type == "C":
+        # 小希平台进行留学申请相关操作
+        student_name = classification_model.student_name
+        if not student_name:
+            #  # 学生姓名不存在，直接返回
+            pass
+        else:
+            task = classification_model.task
+            # 使用classification_model已知的学生信息，查询数据库，获取学生信息
+            student_info_dict_list = "假设这儿是查询数据库的返回的学生信息"
+            if not student_info_dict_list:
+                # 学生信息不存在，直接返回
+                pass
+            if task == "11":
+                # 生申请进度
+                pass
+            else:
+                pass
+    else:
+        # 闲聊
+        system = {"role": "system", "content": "你是ai闲聊助手"}
+        human = {"role": "human", "content": request.query}
+        history_message_list.append(system)
+        history_message_list.append(human)
+        chat_request = ChatCompletionRequest(
+            messages=history_message_list,
+            stream=stream,
+            model=model,
+            stream_options=stream_options
+        )
+        # 获取返回结果
+        result = await create_chat_completion(chat_request, raw_request)
+
+    # ------------------------------------------------------------------------------------------------------------------
     # 将用户输入添加到消息列表，便于后续保存
     history_message_list[-1]["content"] = query
-
-    # 获取返回结果
-    result = await create_chat_completion(chat_request, raw_request)
-
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
@@ -120,8 +179,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         return result
 
 
-async def stream_response(result, member_id, message_list, start_time, knowledge_link, conversation_id,
-                          reference_data_count):
+async def stream_response(result: str, member_id: str, message_list: list, start_time: datetime, knowledge_link: dict,
+                          conversation_id: str, reference_data_count: int):
     '''
     流式输出
     :param result:  返回结果
@@ -218,14 +277,7 @@ async def process_after_response(result_dict, member_id, chat_message_history, s
     # await save_langfuse(member_id, chat_message_history, output, usage, start_time, end_time)
 
 
-async def load_reference_data(query, limit):
-    # 匹配关键字使用特定知识库
-    filters = None
-    for key, values in ai_knowledge_base_keyword_dict.items():
-        if any(v in query for v in values):
-            filters = Filter.by_property("db_name").equal(key)
-            break
-
+async def load_reference_data(query, filters, limit):
     # 从weaviate获取参考数据
     response_list = await knowledge_base_weaviate.search_hybrid(query, limit, filters)
     reference_data = "\n\n".join(
@@ -253,6 +305,8 @@ async def get_weaviste_history(conversation_id, query):
 
     # 将历史记录转换为消息列表
     message_list = []
+    system = {"role": "system", "content": "你是小希留学顾问助手"}
+    message_list.append(system)
     for ai_chat_log in ai_chat_log_list:
         human = {"role": "human", "content": ai_chat_log.instruction}
         ai = {"role": "ai", "content": ai_chat_log.output}

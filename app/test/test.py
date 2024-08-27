@@ -4,7 +4,7 @@ from langchain_core.prompts import PromptTemplate
 
 from app.api.openai.api_server import create_chat_completion
 from app.common.utils.logging import get_logger
-from app.prompt import classificationQuery
+from app.prompt import classification_query
 from pydantic import BaseModel, Field
 from typing import Optional
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest
@@ -23,7 +23,7 @@ class MyChatCompletionRequestModel(BaseModel):
 
 @app.post("/knowledge_base/chat/completions")
 async def read_root(request: MyChatCompletionRequestModel, raw_request: Request, background_tasks: BackgroundTasks):
-    classification_query = PromptTemplate.from_template(classificationQuery)
+    classification_query = PromptTemplate.from_template(classification_query)
     classification_query_prompt = classification_query.format(input=request.query)
     system = {"role": "system", "content": "你是问题分类助手"}
     human = {"role": "human", "content": classification_query_prompt}
