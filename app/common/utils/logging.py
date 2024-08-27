@@ -65,13 +65,14 @@ def get_logger(name: str) -> logging.Logger:
 
     logger.setLevel(logging.INFO)
 
+    # TODO
     # 添加控制台输出处理程序
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_formatter = MillisecondFormatter(
-        fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-    )
-    console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
+    # console_handler = logging.StreamHandler(sys.stdout)
+    # console_formatter = MillisecondFormatter(
+    #     fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    # )
+    # console_handler.setFormatter(console_formatter)
+    # logger.addHandler(console_handler)
 
     # 添加文件输出处理程序
     # file_handler = logging.FileHandler(LOG_FILE)

@@ -49,7 +49,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         model=request.model,
     )
     result = await create_chat_completion(chat_request, raw_request)
-    print(result)
+    result_dict = await extract_message(result)
+    print(result_dict)
 
     # 请求开始时间
     start_time = datetime.now()
