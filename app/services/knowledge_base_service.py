@@ -77,7 +77,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 创建chat_completion请求
     result = await create_chat_completion(chat_request, raw_request)
     # 提取消息
-    output = await extract_message(result).get('output')
+    result_dict = await extract_message(result)
+    output = result_dict.get('output')
     # 获取任务分类,转换为ClassificationModel
     classification_model = ObjectFormatter.dict_to_object(json.loads(output), ClassificationModel)
     # 获取任务类型
