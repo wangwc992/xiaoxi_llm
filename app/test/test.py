@@ -7,6 +7,7 @@ from app.common.utils.logging import get_logger
 from app.prompt import classificationQuery
 from pydantic import BaseModel, Field
 from typing import Optional
+from vllm.entrypoints.openai.protocol import ChatCompletionRequest
 
 logger = get_logger(__name__)
 app = FastAPI()
@@ -20,7 +21,7 @@ class MyChatCompletionRequestModel(BaseModel):
     member_id: Optional[str] = Field("1001", description="用户ID")
 
 
-@app.post("/")
+@app.post("/knowledge_base/chat/completions")
 async def read_root(request: MyChatCompletionRequestModel, raw_request: Request, background_tasks: BackgroundTasks):
     classification_query = PromptTemplate.from_template(classificationQuery)
     classification_query_prompt = classification_query.format(input=request.query)

@@ -3,11 +3,9 @@ import json
 import os
 from typing import Optional
 
-import torch
 from datetime import datetime, timezone, timedelta
 from fastapi import Request, APIRouter, BackgroundTasks
 from fastapi.responses import JSONResponse, StreamingResponse
-from langchain_core.messages import SystemMessage
 from langchain_core.prompts import PromptTemplate
 from langfuse.client import Langfuse, ModelUsage
 from langfuse.decorators import observe, langfuse_context
@@ -21,10 +19,10 @@ from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keywor
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from vllm.utils import random_uuid
-from langchain_community.chat_message_histories import ChatMessageHistory
 
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatLogModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
+from app.prompt import classificationQuery
 
 router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
@@ -40,6 +38,19 @@ class MyChatCompletionRequestModel(BaseModel):
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
+    # 加载classificationQuery模板，进行任务分类
+    classification_query = PromptTemplate.from_template(classificationQuery)
+    classification_query_prompt = classification_query.format(input=request.query)
+    print(classification_query_prompt)
+    system = {"role": "system", "content": "你是问题分类助手"}
+    human = {"role": "human", "content": classification_query_prompt}
+    chat_request = ChatCompletionRequest(
+        messages=[system, human],
+        model=request.model,
+    )
+    result = await create_chat_completion(chat_request, raw_request)
+    print(result)
+
     # 请求开始时间
     start_time = datetime.now()
     member_id = request.member_id
