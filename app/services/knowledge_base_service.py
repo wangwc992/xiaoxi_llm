@@ -81,6 +81,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     output = result_dict.get('output')
     # 获取任务分类,转换为ClassificationModel
     classification_model = ObjectFormatter.dict_to_object(json.loads(output), ClassificationModel)
+    logger.info(f"classification_model: {classification_model.__dict__}")
     # 获取任务类型
     query_type = classification_model.query_type
 
