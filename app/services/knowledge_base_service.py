@@ -17,13 +17,15 @@ from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
+from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
+    select_service_history
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from vllm.utils import random_uuid
 
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatLogModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
-from app.prompt import classification_query, xiao_xi_chat
+from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information
 
 router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
@@ -52,6 +54,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     start_time = datetime.now()
     knowledge_link = {}
     reference_data_count = 0
+    reference_data = {}
     # 获取请求参数
     member_id = request.member_id
     conversation_id = request.conversation_id
@@ -62,8 +65,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     stream_options = StreamOptions(include_usage=True) if request.stream else None
 
     # 加载classificationQuery模板，进行任务分类
-    classification_query_prompt = PromptTemplate.from_template(classification_query)
-    classification_query_prompt = classification_query.format(input=query)
+    template = PromptTemplate.from_template(classification_query)
+    classification_query_prompt = template.format(input=query)
     print(classification_query_prompt)
     system = {"role": "system", "content": "你是问题分类助手"}
     human = {"role": "human", "content": classification_query_prompt}
@@ -112,49 +115,66 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         # 加载prompt模板
         template = PromptTemplate.from_file(xiao_xi_chat)
         prompt = template.format(input=query, reference_data=reference_data)
-        # 拼接prompt将用户输入添加到消息列表
-        history_message_list.append({"role": "human", "content": prompt})
-        # 创建chat_completion请求
-        chat_request = ChatCompletionRequest(
-            messages=history_message_list,
-            stream=request.stream,
-            model=request.model,
-            stream_options=stream_options
-        )
-        # 获取返回结果
-        result = await create_chat_completion(chat_request, raw_request)
     elif query_type == "C":
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
+        result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生姓名不存在，直接返回" }} ]}'''
         if not student_name:
-            #  # 学生姓名不存在，直接返回
-            pass
+            return result
         else:
             task = classification_model.task
             # 使用classification_model已知的学生信息，查询数据库，获取学生信息
             student_info_dict_list = "假设这儿是查询数据库的返回的学生信息"
             if not student_info_dict_list:
-                # 学生信息不存在，直接返回
-                pass
+                result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
+                return result
             if task == "11":
-                # 生申请进度
-                pass
+                service_school_dict_list = select_service_school(student_name)
+                service_school_id_list = [service_school_dict.get("id") for service_school_dict in
+                                          service_school_dict_list]
+                service_history_dict_list = select_service_history(service_school_id_list)
+
+                # Create a dictionary with school id as the key
+                school_dict = {school['id']: school for school in service_school_dict_list}
+
+                # Initialize the service_history field for each school
+                for school in school_dict.values():
+                    school['service_history'] = []
+
+                # Append each history item to the corresponding school dictionary
+                for history in service_history_dict_list:
+                    confirm_schl_id = history['confirm_schl_id']
+                    if confirm_schl_id in school_dict:
+                        school_dict[confirm_schl_id]['service_history'].append(history)
+
+                # Convert the dictionary back to a list
+                application_progress_data_list = list(school_dict.values())
+                # 加载prompt模板
+                template = PromptTemplate.from_file(matching_summary)
+                prompt = template.format(input=query, student_info=classification_model,
+                                         application_progress_data_list=application_progress_data_list)
             else:
-                pass
+                # 加载prompt模板
+                template = PromptTemplate.from_file(matching_information)
+                prompt = template.format(input=query, student_info=classification_model,
+                                         application_information_list="学生申请信息")
     else:
         # 闲聊
         system = {"role": "system", "content": "你是ai闲聊助手"}
-        human = {"role": "human", "content": request.query}
+        prompt = request.query
+
         history_message_list.append(system)
-        history_message_list.append(human)
-        chat_request = ChatCompletionRequest(
-            messages=history_message_list,
-            stream=stream,
-            model=model,
-            stream_options=stream_options
-        )
-        # 获取返回结果
-        result = await create_chat_completion(chat_request, raw_request)
+
+    human = {"role": "human", "content": prompt}
+    history_message_list.append(human)
+    chat_request = ChatCompletionRequest(
+        messages=history_message_list,
+        stream=stream,
+        model=model,
+        stream_options=stream_options
+    )
+    # 获取返回结果
+    result = await create_chat_completion(chat_request, raw_request)
 
     # ------------------------------------------------------------------------------------------------------------------
     # 将用户输入添加到消息列表，便于后续保存
@@ -179,7 +199,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         return result
 
 
-async def stream_response(result: str, member_id: str, message_list: list, start_time: datetime, knowledge_link: dict,
+async def stream_response(result: StreamingResponse, member_id: str, message_list: list, start_time: datetime,
+                          knowledge_link: dict,
                           conversation_id: str, reference_data_count: int):
     '''
     流式输出

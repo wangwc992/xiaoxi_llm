@@ -1,41 +1,23 @@
-from fastapi import Request, FastAPI, BackgroundTasks
+from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
+    select_service_history
 
-from langchain_core.prompts import PromptTemplate
+service_school_dict_list = select_service_school("测试减学分、配语言等流程功能")
+service_school_id_list = [service_school_dict.get("id") for service_school_dict in service_school_dict_list]
+service_history_dict_list = select_service_history(service_school_id_list)
 
-from app.api.openai.api_server import create_chat_completion
-from app.common.utils.logging import get_logger
-from app.prompt import classification_query
-from pydantic import BaseModel, Field
-from typing import Optional
-from vllm.entrypoints.openai.protocol import ChatCompletionRequest
+# Create a dictionary with school id as the key
+school_dict = {school['id']: school for school in service_school_dict_list}
 
-logger = get_logger(__name__)
-app = FastAPI()
+# Initialize the service_history field for each school
+for school in school_dict.values():
+    school['service_history'] = []
 
+# Append each history item to the corresponding school dictionary
+for history in service_history_dict_list:
+    confirm_schl_id = history['confirm_schl_id']
+    if confirm_schl_id in school_dict:
+        school_dict[confirm_schl_id]['service_history'].append(history)
 
-class MyChatCompletionRequestModel(BaseModel):
-    query: str = Field(None, description="用户输入的问题")
-    stream: Optional[bool] = Field(False, description="是否流式输出")
-    model: Optional[str] = Field("/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4", description="模型名称")
-    conversation_id: Optional[str] = Field(None, description="会话id，用于标识一个会话")
-    member_id: Optional[str] = Field("1001", description="用户ID")
-
-
-@app.post("/knowledge_base/chat/completions")
-async def read_root(request: MyChatCompletionRequestModel, raw_request: Request, background_tasks: BackgroundTasks):
-    classification_query = PromptTemplate.from_template(classification_query)
-    classification_query_prompt = classification_query.format(input=request.query)
-    system = {"role": "system", "content": "你是问题分类助手"}
-    human = {"role": "human", "content": classification_query_prompt}
-    chat_request = ChatCompletionRequest(
-        messages=[system, human],
-        model=request.model,
-    )
-    result = await create_chat_completion(chat_request, raw_request)
-    print(result)
-
-
-if __name__ == '__main__':
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=6006)
+# Convert the dictionary back to a list
+service_school_dict_list = list(school_dict.values())
+print(service_school_dict_list)
