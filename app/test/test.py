@@ -1,42 +1,40 @@
-import asyncio
+from fastapi import Request, FastAPI, BackgroundTasks
 
-from fastapi import FastAPI, BackgroundTasks
-import schedule
-import time
-import threading
+from langchain_core.prompts import PromptTemplate
 
+from app.api.openai.api_server import create_chat_completion
 from app.common.utils.logging import get_logger
+from app.prompt import classificationQuery
+from pydantic import BaseModel, Field
+from typing import Optional
 
 logger = get_logger(__name__)
 app = FastAPI()
 
 
-async def job():
-    print("任务执行中...")
-def sync_job():
-    asyncio.run(job())
-
-def run_scheduler():
-    logger.info("启动定时任务")
-    # 设置每分钟 第三秒执行一次任务
-    schedule.every().minute.at(":03").do(sync_job)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+class MyChatCompletionRequestModel(BaseModel):
+    query: str = Field(None, description="用户输入的问题")
+    stream: Optional[bool] = Field(False, description="是否流式输出")
+    model: Optional[str] = Field("/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4", description="模型名称")
+    conversation_id: Optional[str] = Field(None, description="会话id，用于标识一个会话")
+    member_id: Optional[str] = Field("1001", description="用户ID")
 
 
-@app.on_event("startup")
-def start_scheduler():
-    # 启动一个后台线程来运行调度器
-    scheduler_thread = threading.Thread(target=run_scheduler)
-    scheduler_thread.daemon = True  # 守护线程，主线程退出时也随之退出
-    scheduler_thread.start()
+@app.post("/")
+async def read_root(request: MyChatCompletionRequestModel, raw_request: Request, background_tasks: BackgroundTasks):
+    classification_query = PromptTemplate.from_template(classificationQuery)
+    classification_query_prompt = classification_query.format(input=request.query)
+    system = {"role": "system", "content": "你是问题分类助手"}
+    human = {"role": "human", "content": classification_query_prompt}
+    chat_request = ChatCompletionRequest(
+        messages=[system, human],
+        model=request.model,
+    )
+    result = await create_chat_completion(chat_request, raw_request)
+    print(result)
 
-
-@app.get("/")
-def read_root():
-    return {"message": "FastAPI with schedule is running"}
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+    uvicorn.run(app, host="0.0.0.0", port=6006)
