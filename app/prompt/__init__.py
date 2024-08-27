@@ -6,7 +6,13 @@ prompt_dict = {}
 for prompt in prompt_list:
     prompt_dict[prompt['type']] = prompt['prompt']
 
-xiaoXiChat = prompt_dict.get('xiaoXiChat')
-classificationQuery = prompt_dict.get('classificationQuery')
-matchingInformation = prompt_dict.get('matchingInformation')
-matchingSummary = prompt_dict.get('matchingSummary')
+# 小希正常加载RAG对话
+xiao_xi_chat = prompt_dict.get('xiao_xi_chat')
+# 进行任务分类
+classification_query = prompt_dict.get('classification_query')
+# C类任务，匹配使用prompt
+matching_information = prompt_dict.get('matching_information')
+# C类任务的申请进度总结使用prompt
+matching_summary = prompt_dict.get('matching_summary')
+# C类任务信息不全使用prompt
+information_completion = prompt_dict.get('information_completion')
