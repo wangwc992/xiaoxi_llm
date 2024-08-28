@@ -13,7 +13,7 @@ async def get_data():
 
 @app.get("/")
 async def read_root():
-    return StreamingResponse(get_data(), media_type="text/event-stream")
+    yield StreamingResponse(get_data(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn

@@ -144,7 +144,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
         yield stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
-                            reference_data_count)
+                              reference_data_count)
     else:
         result_dict = await extract_message(result)
         background_tasks.add_task(process_after_response, result_dict,
@@ -250,6 +250,7 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
     # 判断是否为第一个chunk
     first_chunk = True
     async for chunk in result.body_iterator:
+        logger.info(f"chunk: {chunk}")
         if first_chunk:
             # 第一个chunk，添加知识库链接,并将会话id添加到chunk中,并转码为json格式返回
             chunk = chunk[len("data: "):]
@@ -260,7 +261,7 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
             delta['reference_data_count'] = reference_data_count
             chunk_data['conversation_id'] = conversation_id
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
-        yield chunk
+        yield chunk.encode('utf-8')
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False
