@@ -262,7 +262,7 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
             delta['reference_data_count'] = reference_data_count
             chunk_data['conversation_id'] = conversation_id
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
-        yield chunk
+        yield chunk.encode('utf-8')
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False
