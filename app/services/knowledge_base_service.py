@@ -75,9 +75,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 加载classificationQuery模板，进行任务分类
     classification_model = await classification(model, query, raw_request)
     # if classification_model:
-    # classification_model变成json格式
-    classification_result = f'''data: {{"choices": [ {{ "index": 0, "delta": {{ "role": "classification", "content": {classification_model.json()} }}}} ]}}\n\n'''
-    yield classification_result
+    #     classification_result = f'''data: {{"choices": [ {{ "index": 0, "delta": {{ "role": "1", "content": {classification_model} }}}} ]}}'''
+    #     yield classification_result
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
@@ -103,14 +102,14 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         student_name = classification_model.student_name
         result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生姓名不存在，直接返回" }} ]}'''
         if not student_name:
-            yield result
+            return result
         else:
             task = classification_model.task
             # 使用classification_model已知的学生信息，查询数据库，获取学生信息
             student_info_dict_list = "假设这儿是查询数据库的返回的学生信息"
             if not student_info_dict_list:
                 result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
-                yield result
+                return result
             if task == "11":
                 application_progress_data_list = await get_application_progress_data_list(student_name)
                 # 加载prompt模板
@@ -138,57 +137,17 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     )
     # 获取返回结果
     result = await create_chat_completion(chat_request, raw_request)
-    logger.info(f"result: {result}")
-
 
     # ------------------------------------------------------------------------------------------------------------------
     # 将用户输入添加到消息列表，便于后续保存
     history_message_list[-1]["content"] = query
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
-        # TODO 稍后处理封装方法
-        # 初始化输出
-        output = ''
-        # 初始化使用情况
-        usage = None
-        # 判断是否为第一个chunk
-        first_chunk = True
-        async for chunk in result.body_iterator:
-            logger.info(f"chunk: {chunk}")
-            if first_chunk:
-                # 第一个chunk，添加知识库链接,并将会话id添加到chunk中,并转码为json格式返回
-                chunk = chunk[len("data: "):]
-                chunk_data = json.loads(chunk)
-                delta = chunk_data.get('choices')[0]['delta']
-                delta['role'] = "1"
-                delta['content'] = knowledge_link
-                delta['reference_data_count'] = reference_data_count
-                chunk_data['conversation_id'] = conversation_id
-                chunk = f"data: {json.dumps(chunk_data)}\n\n"
-            yield chunk.encode('utf-8')
-            # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
-            if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
-                first_chunk = False
-                continue
-            # 去除chunk中的data:前缀
-            if chunk.startswith("data: "):
-                chunk = chunk[len("data: "):]
-            try:
-                chunk_data = json.loads(chunk)
-                choices = chunk_data.get('choices')
-                # 判断choices是否为空或者finish_reason是否为stop，finish_reason=stop表示生成完成
-                if choices and choices[0].get('finish_reason') != 'stop':
-                    delta_content = choices[0]['delta'].get('content')
-                    if delta_content:
-                        output += delta_content
-                else:
-                    # 生成完成，获取使用情况
-                    usage = chunk_data.get('usage')
-            except json.JSONDecodeError as e:
-                logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
-
-        result_dict = {"output": output, "usage": usage}
-        await process_after_response(result_dict, member_id, history_message_list, start_time, conversation_id)
+        return StreamingResponse(
+            stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
+                            reference_data_count),
+            media_type="text/event-stream"
+        )
     else:
         result_dict = await extract_message(result)
         background_tasks.add_task(process_after_response, result_dict,
@@ -199,7 +158,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         response_dict["reference_data"] = reference_data
         response_dict["knowledge_link"] = knowledge_link
         result = JSONResponse(content=response_dict)
-        yield result
+        return result
 
 
 async def get_application_progress_data_list(student_name):
@@ -294,7 +253,6 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
     # 判断是否为第一个chunk
     first_chunk = True
     async for chunk in result.body_iterator:
-        logger.info(f"chunk: {chunk}")
         if first_chunk:
             # 第一个chunk，添加知识库链接,并将会话id添加到chunk中,并转码为json格式返回
             chunk = chunk[len("data: "):]
@@ -305,7 +263,7 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
             delta['reference_data_count'] = reference_data_count
             chunk_data['conversation_id'] = conversation_id
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
-        yield chunk.encode('utf-8')
+        yield chunk
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False
