@@ -118,9 +118,19 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                                          application_progress_data_list=application_progress_data_list)
             else:
                 # 加载prompt模板
+                service_school_dict_list = select_service_school(student_name)
                 template = PromptTemplate.from_template(matching_information)
                 prompt = template.format(input=query, student_info=classification_model,
-                                         application_information_list="学生申请信息")
+                                         application_information_list=service_school_dict_list)
+
+                system = {"role": "system", "content": "你是数据分析提取助手"}
+                human = {"role": "human", "content": prompt}
+                chat_request = ChatCompletionRequest(
+                    messages=[system, human],
+                    model=model,
+                )
+                # 创建chat_completion请求
+                result = await create_chat_completion(chat_request, raw_request)
     else:
         # 闲聊
         system = {"role": "system", "content": "你是ai闲聊助手"}
@@ -194,7 +204,6 @@ async def classification(model: str, query: str, raw_request: Request):
     """
     template = PromptTemplate.from_template(classification_query)
     classification_query_prompt = template.format(input=query)
-    print(classification_query_prompt)
     system = {"role": "system", "content": "你是问题分类助手"}
     human = {"role": "human", "content": classification_query_prompt}
     chat_request = ChatCompletionRequest(
