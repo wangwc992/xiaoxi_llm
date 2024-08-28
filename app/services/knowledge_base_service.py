@@ -143,11 +143,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     history_message_list[-1]["content"] = query
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
-        yield StreamingResponse(
-            stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
-                            reference_data_count),
-            media_type="text/event-stream"
-        )
+        yield stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
+                            reference_data_count)
     else:
         result_dict = await extract_message(result)
         background_tasks.add_task(process_after_response, result_dict,
