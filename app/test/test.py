@@ -1,23 +1,20 @@
-from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
-    select_service_history
+import time
+from fastapi import FastAPI
+from starlette.responses import StreamingResponse
 
-service_school_dict_list = select_service_school("测试减学分、配语言等流程功能")
-service_school_id_list = [service_school_dict.get("id") for service_school_dict in service_school_dict_list]
-service_history_dict_list = select_service_history(service_school_id_list)
+app = FastAPI()
 
-# Create a dictionary with school id as the key
-school_dict = {school['id']: school for school in service_school_dict_list}
+async def get_data():
+    yield '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "chat线程数量超了" }} ]}'''
+    yield '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "chat线程数量超了" }} ]}'''
+    time.sleep(5)
+    yield "3"
+    yield "4"
 
-# Initialize the service_history field for each school
-for school in school_dict.values():
-    school['service_history'] = []
+@app.get("/")
+async def read_root():
+    return StreamingResponse(get_data(), media_type="text/event-stream")
 
-# Append each history item to the corresponding school dictionary
-for history in service_history_dict_list:
-    confirm_schl_id = history['confirm_schl_id']
-    if confirm_schl_id in school_dict:
-        school_dict[confirm_schl_id]['service_history'].append(history)
-
-# Convert the dictionary back to a list
-service_school_dict_list = list(school_dict.values())
-print(service_school_dict_list)
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

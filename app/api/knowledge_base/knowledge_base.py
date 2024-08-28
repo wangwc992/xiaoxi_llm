@@ -41,14 +41,15 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         return StreamingResponse(content=result, media_type="text/event-stream")
 
     try:
-        return await knowledge_base_generate(request, raw_request, background_tasks)
+        return StreamingResponse(knowledge_base_generate(request, raw_request, background_tasks), media_type="text/event-stream")
     except Exception as e:
         # 捕获异常并处理
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
         logger.error(f"Error in /chat/completions: {error_message}")
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
 
+
 # 清空聊天记录
 @router.delete("/clear", description="Clear all chat data.")
 async def clear_chat_data():
-    ai_chat_log_weaviate.clear_all_data("instruction","*")
+    ai_chat_log_weaviate.clear_all_data("instruction", "*")
