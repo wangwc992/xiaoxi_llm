@@ -74,8 +74,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # 加载classificationQuery模板，进行任务分类
     classification_model = await classification(model, query, raw_request)
-    classification_result = f'''data: {{"choices": [ {{ "index": 0, "delta": {{ "role": "1", "content": {classification_model} }}}} ]}}'''
-    yield classification_result.encode('utf-8')
+    # if classification_model:
+    #     classification_result = f'''data: {{"choices": [ {{ "index": 0, "delta": {{ "role": "1", "content": {classification_model} }}}} ]}}'''
+    #     yield classification_result
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
@@ -101,14 +102,14 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         student_name = classification_model.student_name
         result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生姓名不存在，直接返回" }} ]}'''
         if not student_name:
-            yield result
+            return result
         else:
             task = classification_model.task
             # 使用classification_model已知的学生信息，查询数据库，获取学生信息
             student_info_dict_list = "假设这儿是查询数据库的返回的学生信息"
             if not student_info_dict_list:
                 result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
-                yield result
+                return result
             if task == "11":
                 application_progress_data_list = await get_application_progress_data_list(student_name)
                 # 加载prompt模板
@@ -142,7 +143,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     history_message_list[-1]["content"] = query
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
-        yield  StreamingResponse(
+        return StreamingResponse(
             stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
                             reference_data_count),
             media_type="text/event-stream"
@@ -157,7 +158,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         response_dict["reference_data"] = reference_data
         response_dict["knowledge_link"] = knowledge_link
         result = JSONResponse(content=response_dict)
-        yield result
+        return result
 
 
 async def get_application_progress_data_list(student_name):
@@ -262,7 +263,7 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
             delta['reference_data_count'] = reference_data_count
             chunk_data['conversation_id'] = conversation_id
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
-        yield chunk.encode('utf-8')
+        yield chunk
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
         if chunk.strip() == "data: [DONE]" or not chunk.strip() or first_chunk:
             first_chunk = False

@@ -41,7 +41,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         return StreamingResponse(content=result, media_type="text/event-stream")
 
     try:
-        return StreamingResponse(content=knowledge_base_generate(request, raw_request, background_tasks), media_type="text/event-stream")
+        return await knowledge_base_generate(request, raw_request, background_tasks)
     except Exception as e:
         # 捕获异常并处理
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
