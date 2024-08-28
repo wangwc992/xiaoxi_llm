@@ -79,7 +79,8 @@ def build_app(args, **uvicorn_kwargs):
     app.include_router(chat_dome.router)
     app.root_path = args.root_path
 
-    @app.on_event("startup")
+    # TODO 注册启动事件
+    # @app.on_event("startup")
     async def startup_event():
         threading.Thread(target=start_binlog_listener, daemon=True).start()
         threading.Thread(target=run_scheduler, daemon=True).start()
