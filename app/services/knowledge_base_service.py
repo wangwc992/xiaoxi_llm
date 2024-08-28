@@ -76,7 +76,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     classification_model = await classification(model, query, raw_request)
     if classification_model:
         classification_result = f'''data: {{"choices": [ {{ "index": 0, "delta": {{ "role": "1", "content": {classification_model} }}}} ]}}'''
-        yield classification_result
+        yield classification_result.encode('utf-8')
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
