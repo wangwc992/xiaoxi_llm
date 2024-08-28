@@ -68,7 +68,7 @@
                 <textarea id="display-area" style="width: 900px; height: 500px; overflow: auto;" readonly></textarea>
             </div>
             <div>
-                <textarea id="text-input" style="width: 900px; height: 100px; overflow: auto;">悉尼大学奖学金</textarea>
+                <textarea id="text-input" style="width: 900px; height: 100px; overflow: auto;">玄天姬申请进度</textarea>
             </div>
             <div>
                 <button onclick="clearInput()">Clear</button>
@@ -256,7 +256,7 @@
 
                     // 更新 display-area
                     let displayText = '';
-                    if (role) {
+                    if (role === "1") {
                         displayText = "ai回复：";
                     } else if (content) {
                         displayText = content;
