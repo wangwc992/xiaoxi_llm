@@ -137,7 +137,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     )
     # 获取返回结果
     result = await create_chat_completion(chat_request, raw_request)
-
+    logger.info(f"result: {result}")
     # ------------------------------------------------------------------------------------------------------------------
     # 将用户输入添加到消息列表，便于后续保存
     history_message_list[-1]["content"] = query
@@ -233,7 +233,7 @@ async def get_history_message_list(conversation_id: str, query: str):
 async def stream_response(result: StreamingResponse, member_id: str, message_list: list, start_time: datetime,
                           knowledge_link: dict,
                           conversation_id: str, reference_data_count: int):
-    '''
+    """
     流式输出
     :param result:  返回结果
     :param member_id:  用户ID
@@ -242,7 +242,8 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
     :param knowledge_link:  知识库链接
     :param conversation_id:     会话ID
     :return:    流式输出
-    '''
+    """
+    logger.info("流式输出")
     # 初始化输出
     output = ''
     # 初始化使用情况
