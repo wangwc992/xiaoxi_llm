@@ -58,10 +58,10 @@
             <div class="center-content">
                 <label for="model_name">选择模型：</label>
                 <select id="model_name" style="width: 900px; height: 30px;">
+                    <option value="A_72_xiaoxi_chat">A_72_xiaoxi_chat</option>
                     <option value="A_72_chat">A_72_chat</option>
-                    <option value="A_72_protogenesis_chat">A_72_protogenesis_chat</option>
+                    <option value="B_7_xiaoxi_chat">B_7_xiaoxi_chat</option>
                     <option value="B_7_chat">B_7_chat</option>
-                    <option value="B_7_protogenesis_chat">B_7_protogenesis_chat</option>
                 </select>
             </div>
             <div>
@@ -112,10 +112,10 @@
         var host;
         var uri;
         var data;
-        if (model_name === "A_72_chat" || model_name === "A_72_protogenesis_chat") {
+        if (model_name === "A_72_xiaoxi_chat" || model_name === "A_72_chat") {
             model = "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4"
             host = 'https://u430182-ac52-13068849.cqa1.seetacloud.com'
-            if (model_name === "A_72_protogenesis_chat") {
+            if (model_name === "A_72_chat") {
                 uri = '/v1/chat/completions'
                 data = {
                     model: model,
@@ -142,7 +142,7 @@
         } else {
             model = "/root/autodl-tmp/llm/Qwen2-7B-Instruct"
             host = 'https://u430182-ac52-9e557856.cqa1.seetacloud.com'
-            if (model_name === "B_7_protogenesis_chat") {
+            if (model_name === "B_7_chat") {
                 uri = '/v1/chat/completions'
                 data = {
                     model: model,
