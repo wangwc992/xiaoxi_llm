@@ -16,6 +16,7 @@ from app.api.openai.api_server import create_chat_completion
 from app.common.core.langchain_client import Embedding
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
+from app.data.dictionaries import school_abbreviations
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
     select_service_history
@@ -51,6 +52,8 @@ class ClassificationModel(BaseModel):
 result_format = '''{"choices": [ { "index": 0, "delta": { "role": "%s", "content": "%s" }} ]}'''
 
 
+
+
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
     # 接口开始时间
@@ -71,6 +74,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # 判断是否为流式输出
     stream_options = StreamOptions(include_usage=True) if request.stream else None
+
+    # query改写
+    query = query_rewrite(query)
 
     # 初始化历史消息列表
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
@@ -407,6 +413,15 @@ async def get_weaviste_history(conversation_id, query):
         message_list.append(ai)
     return message_list
 
+def query_rewrite(query):
+    # 遍历school_abbreviation
+    for index, school_abbreviation in enumerate(school_abbreviations):
+        # 从第二个元素开始，遍历school_abbreviation
+        for school in school_abbreviation[1:]:
+            if school in query:
+                query = query.replace(school, f'''{school}({school_abbreviation[0]})''')
+                return query
+    return query
 
 async def save_weaviste(conversation_id, member_id, input, output):
     """ 保存聊天记录到向量数据库

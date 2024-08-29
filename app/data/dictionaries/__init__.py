@@ -2,6 +2,7 @@ import os
 
 stopword_words = set()
 sensitive_words = set()
+school_abbreviations = list()
 
 
 def _get_abs_path(path):
@@ -16,16 +17,7 @@ def load_dictionaries(words, filepath):
         # self.stopwords 追加 set([line.strip() for line in f])
         words.update(set([line.strip() for line in f]))
 
-# 加载停用词和敏感词
-# baidu_stopwords.txt
-# chinese
-# cn_stopwords.txt
-# dictionary.txt
-# english
-# hit_stopwords.txt
-# README.md
-# scu_stopwords.txt
-# stopwords.txt
+# 加载停用词
 load_dictionaries(stopword_words, _get_abs_path('stopwords/scu_stopwords.txt'))
 load_dictionaries(stopword_words, _get_abs_path('stopwords/cn_stopwords.txt'))
 load_dictionaries(stopword_words, _get_abs_path('stopwords/hit_stopwords.txt'))
@@ -34,9 +26,15 @@ load_dictionaries(stopword_words, _get_abs_path('stopwords/baidu_stopwords.txt')
 load_dictionaries(stopword_words, _get_abs_path('stopwords/english'))
 load_dictionaries(stopword_words, _get_abs_path('stopwords/chinese'))
 
+# 加载敏感词
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/广告.txt'))
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/政治类.txt'))
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/涉枪涉爆违法信息关键词.txt'))
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/网址.txt'))
 load_dictionaries(sensitive_words, _get_abs_path('sensitive/色情类.txt'))
 sensitive_words.remove('')
+
+with open(_get_abs_path("dictionary/school_abbreviation"), 'r', encoding='utf-8') as f:
+    lines = f.readlines()
+    # 使用 , 分割,去除前后空格，去除换行符
+    school_abbreviatio = [line.strip().split(",") for line in lines]
