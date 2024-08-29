@@ -52,8 +52,6 @@ class ClassificationModel(BaseModel):
 result_format = '''{"choices": [ { "index": 0, "delta": { "role": "%s", "content": "%s" }} ]}'''
 
 
-
-
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
     # 接口开始时间
@@ -126,30 +124,33 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 if not service_school_dict_list:
                     result = result_format % ("5", "学生姓名为空")
                     return JSONResponse(content=json.loads(result))
-                template = PromptTemplate.from_template(matching_information)
-                prompt = template.format(input=query, student_info=classification_model,
-                                         application_information_list=service_school_dict_list)
-
-                system = {"role": "system", "content": "你是数据分析提取助手"}
-                human = {"role": "human", "content": prompt}
-                chat_request = ChatCompletionRequest(
-                    messages=[system, human],
-                    model=model,
-                )
-                # 创建chat_completion请求
-                result = await create_chat_completion(chat_request, raw_request)
-
-                result_dict = await extract_message(result)
-
-                output = result_dict.get("output")
-                logger.info(f"output: *********{output}************")
-                output_dict = eval(output)
 
                 result = result_format % ("5", "")
                 result_dict = json.loads(result)
-
                 classification_dict = classification_model.dict()
-                classification_dict["ids"] = output_dict.get("ids")
+                if task == "10":
+                    pass
+                else:
+                    template = PromptTemplate.from_template(matching_information)
+                    prompt = template.format(input=query, student_info=classification_model,
+                                             application_information_list=service_school_dict_list)
+
+                    system = {"role": "system", "content": "你是数据分析提取助手"}
+                    human = {"role": "human", "content": prompt}
+                    chat_request = ChatCompletionRequest(
+                        messages=[system, human],
+                        model=model,
+                    )
+                    # 创建chat_completion请求
+                    chat_result = await create_chat_completion(chat_request, raw_request)
+
+                    chat_result_dict = await extract_message(chat_result)
+
+                    output = chat_result_dict.get("output")
+                    logger.info(f"output: *********{output}************")
+                    output_dict = eval(output)
+
+                    classification_dict["ids"] = output_dict.get("ids")
                 delta = result_dict["choices"][0]["delta"]
                 delta["classification"] = classification_dict
 
@@ -413,6 +414,7 @@ async def get_weaviste_history(conversation_id, query):
         message_list.append(ai)
     return message_list
 
+
 def query_rewrite(query):
     # 遍历school_abbreviation
     for index, school_abbreviation in enumerate(school_abbreviations):
@@ -422,6 +424,7 @@ def query_rewrite(query):
                 query = query.replace(school, f'''{school}({school_abbreviation[0]})''')
                 return query
     return query
+
 
 async def save_weaviste(conversation_id, member_id, input, output):
     """ 保存聊天记录到向量数据库

@@ -37,4 +37,4 @@ sensitive_words.remove('')
 with open(_get_abs_path("dictionary/school_abbreviation"), 'r', encoding='utf-8') as f:
     lines = f.readlines()
     # 使用 , 分割,去除前后空格，去除换行符
-    school_abbreviatio = [line.strip().split(",") for line in lines]
+    school_abbreviations = [line.strip().split(",") for line in lines]
