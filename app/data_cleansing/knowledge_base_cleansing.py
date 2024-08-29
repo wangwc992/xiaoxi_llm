@@ -57,7 +57,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
 
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
-    class_list = ["换代理表", "授权表", "接受offer缴费指导表", "申请材料模板"]
+    class_list = ["换代理表", "授权表/接受offer缴费指导表", "申请材料模板"]
     global t_knowledge_info
     database = t_knowledge_info
     knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
