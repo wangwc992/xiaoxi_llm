@@ -130,6 +130,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 result = await create_chat_completion(chat_request, raw_request)
                 result_dict = await extract_message(result)
                 output = result_dict.get('output')
+                logger.info(f"output: {output}")
+                logger.info(f"service_school_dict_list: {service_school_dict_list}")
                 return JSONResponse(content=json.loads(output))
     else:
         # 闲聊
