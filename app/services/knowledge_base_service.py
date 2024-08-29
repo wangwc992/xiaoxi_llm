@@ -142,7 +142,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 字符串转换为字典
                 delta["output"] = eval(output)
                 delta["classification"] = classification_model.dict()
-                return JSONResponse(content=result_dict)
+                return JSONResponse(content=json.dumps(result_dict))
     else:
         # 闲聊
         system = {"role": "system", "content": "你是ai闲聊助手"}
