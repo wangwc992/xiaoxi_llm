@@ -136,14 +136,15 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 result_dict = await extract_message(result)
 
                 output = result_dict.get("output")
-                result = result_format % ("5", "")
-
-                result_dict = json.loads(result)
-                delta = result_dict["choices"][0]["delta"]
+                logger.info(f"output: *********{output}************")
                 output_dict = eval(output)
+
+                result = result_format % ("5", "")
+                result_dict = json.loads(result)
 
                 classification_dict = classification_model.dict()
                 classification_dict["ids"] = output_dict.get("ids")
+                delta = result_dict["choices"][0]["delta"]
                 delta["classification"] = classification_dict
 
                 return JSONResponse(content=result_dict)
@@ -220,7 +221,7 @@ async def classification(model: str, query: str, raw_request: Request):
     """
     template = PromptTemplate.from_template(classification_query)
     classification_query_prompt = template.format(input=query)
-    system = {"role": "system", "content": "你是问题分类助手"}
+    system = {"role": "system", "content": "你是一个严谨的智能问题分类助手，不会提供虚假信息"}
     human = {"role": "human", "content": classification_query_prompt}
     chat_request = ChatCompletionRequest(
         messages=[system, human],

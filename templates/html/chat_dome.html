@@ -149,7 +149,7 @@
                     messages: [
                         {
                             role: "system",
-                            content: "你是一个智能小助手"
+                            content: "你是一个严谨的智能问题分类助手，不会提供虚假信息"
                         },
                         {
                             role: "user",
@@ -253,6 +253,7 @@
                     // 提取出 role 和 content
                     const role = json.choices[0].delta.role;
                     const content = json.choices[0].delta.content;
+                    const classification = json.choices[0].delta.classification;
 
                     // 更新 display-area
                     let displayText = '';
@@ -260,6 +261,10 @@
                         displayText = "ai回复：" + content + "\n\n"
                     } else if (content) {
                         displayText = content;
+                    }
+                    if (classification) {
+                        // object to string
+                        displayText = JSON.stringify(classification) + "\n\n";
                     }
 
                     document.getElementById("display-area").value += displayText
