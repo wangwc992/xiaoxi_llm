@@ -57,6 +57,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
 
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
     内容为： 李薇于2024-06-07 16:26回复内容如下：两年总学费是74664'''
+    class_list = ["换代理表", "授权表", "接受offer缴费指导表", "申请材料模板"]
     global t_knowledge_info
     database = t_knowledge_info
     knowledge_info_dict_list = search_knowledge_info_data(id=start_id, limit=limit)
@@ -70,8 +71,9 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         content = knowledge_info.get("content", "")
         if content is None:
             content = ""
-        file_url_list.append(knowledge_info.get("fileurl"))
-        if knowledge_info.get("fileurl"):
+        file_url = knowledge_info.get("fileurl")
+        file_url_list.append(file_url)
+        if file_url:
             attachment_content = knowledge_info.get("attachment_content")
             if not attachment_content:
                 attachment_content = urlToText(knowledge_info["fileurl"])
@@ -80,6 +82,10 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
             if file_content:
                 content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
+                class_ = knowledge_info.get("class_")
+                for item in class_list:
+                    if item in class_:
+                        content += f"，文件链接：{file_url}"
         content = HtmlUtils.replace_link_with_url(content)
 
         db_id = str(knowledge_info["id"])
@@ -87,10 +93,10 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
         type = "1" if knowledge_info.get("type") == 1 else "2"
         name = knowledge_info.get("name" if type == "1" else "filename")
 
-        replyerTime= knowledge_info.get("replyerTime", "")
+        replyerTime = knowledge_info.get("replyerTime", "")
         if replyerTime:
             replyerTime = replyerTime.strftime("%Y-%m-%d %H:%H:%M")
-        url = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id},"attachment_url":"{knowledge_info.get("fileurl")}"}}'
+        url = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id},"attachment_url":"{file_url}"}}'
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
         output = f'平台顾问于{replyerTime}回复内容如下：{content}'
         link = url
