@@ -135,12 +135,12 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
                 result_dict = await extract_message(result)
                 output = result_dict.get("output")
-                result = result_format % ("5", output)
+                result = result_format % ("5", "占位符")
                 logger.info(f"result: {result}")
                 result_dict = json.loads(result)
                 delta = result_dict["choices"][0]["delta"]
                 # 字符串转换为字典
-                delta["output"] = eval(output)
+                delta["content"] = eval(output)
                 delta["classification"] = classification_model.dict()
                 return JSONResponse(content=json.dumps(result_dict))
     else:
