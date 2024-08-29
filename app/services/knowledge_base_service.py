@@ -74,9 +74,6 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # 加载classificationQuery模板，进行任务分类
     classification_model = await classification(model, query, raw_request)
-    # if classification_model:
-    #     classification_result = f'''data: {{"choices": [ {{ "index": 0, "delta": {{ "role": "1", "content": {classification_model} }}}} ]}}'''
-    #     yield classification_result
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
@@ -131,6 +128,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 )
                 # 创建chat_completion请求
                 result = await create_chat_completion(chat_request, raw_request)
+                result_dict = await extract_message(result)
+                output = result_dict.get('output')
+                return JSONResponse(content=json.loads(output))
     else:
         # 闲聊
         system = {"role": "system", "content": "你是ai闲聊助手"}
