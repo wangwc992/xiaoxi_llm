@@ -47,7 +47,7 @@ class ClassificationModel(BaseModel):
     school_name: Optional[str] = Field(None, description="学校名称")
     major_name: Optional[str] = Field(None, description="专业名称")
 
-
+result_format = '''data: {"choices": [ { "index": 0, "delta": { "role": "s%", "content": "s%" }} ]}'''
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
     # 接口开始时间
@@ -97,20 +97,15 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     elif query_type == "C":
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
-        result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生姓名不存在，直接返回" }} ]}'''
+        result = str.format(result_format, "1", "学生姓名为空")
         if not student_name:
             return result
         else:
             task = classification_model.task
-            # 使用classification_model已知的学生信息，查询数据库，获取学生信息
-            student_info_dict_list = "假设这儿是查询数据库的返回的学生信息"
-            if not student_info_dict_list:
-                result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
-                return result
             if task == "11":
                 application_progress_data_list = await get_application_progress_data_list(student_name)
                 if not application_progress_data_list:
-                    result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
+                    result = str.format(result_format, "1", "学生申请信息不存在")
                     return result
                 # 加载prompt模板
                 template = PromptTemplate.from_template(matching_summary)
@@ -120,7 +115,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(student_name)
                 if not service_school_dict_list:
-                    result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
+                    result = str.format(result_format, "1", "学生申请信息不存在")
                     return result
                 template = PromptTemplate.from_template(matching_information)
                 prompt = template.format(input=query, student_info=classification_model,
@@ -135,10 +130,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 创建chat_completion请求
                 result = await create_chat_completion(chat_request, raw_request)
                 result_dict = await extract_message(result)
-                output = result_dict.get('output')
-                logger.info(f"output: {output}")
-                logger.info(f"service_school_dict_list: {service_school_dict_list}")
-                return JSONResponse(content=json.loads(output))
+                result_dict.pop("usage")
+                result_dict["classification"] = classification_model.dict()
+                return JSONResponse(content=result_dict)
     else:
         # 闲聊
         system = {"role": "system", "content": "你是ai闲聊助手"}
