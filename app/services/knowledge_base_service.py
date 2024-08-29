@@ -310,7 +310,7 @@ async def extract_message(result):
     :return:  消息
     '''
     # 初始化输出
-    output = ''
+    output = None
     # 初始化使用情况
     usage = None
     if isinstance(result, JSONResponse):
@@ -320,7 +320,7 @@ async def extract_message(result):
             output = result_body
         else:
             # 获取输出
-            output += result_content['choices'][0]['message']['content']
+            output = result_content['choices'][0]['message']['content']
             # 获取使用情况
             usage = result_content.get('usage')
     return {"output": output, "usage": usage}
