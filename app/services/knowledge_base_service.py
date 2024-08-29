@@ -132,12 +132,16 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 )
                 # 创建chat_completion请求
                 result = await create_chat_completion(chat_request, raw_request)
+
                 result_dict = await extract_message(result)
-                result_dict.pop("usage")
                 output = result_dict.get("output")
+
+                result = result_format % ("5", output)
+                result_dict = json.loads(result)
+                delta = result_dict["choices"][0]["delta"]
                 # 字符串转换为字典
-                result_dict["output"] = eval(output)
-                result_dict["classification"] = classification_model.dict()
+                delta["output"] = eval(output)
+                delta["classification"] = classification_model.dict()
                 return JSONResponse(content=result_dict)
     else:
         # 闲聊
