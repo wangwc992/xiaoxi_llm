@@ -138,14 +138,15 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 output = result_dict.get("output")
                 result = result_format % ("5", "")
 
-                delta = json.loads(result)["choices"][0]["delta"]
+                result_dict = json.loads(result)
+                delta = result_dict["choices"][0]["delta"]
                 output_dict = eval(output)
 
                 classification_dict = classification_model.dict()
                 classification_dict["ids"] = output_dict.get("ids")
                 delta["classification"] = classification_dict
 
-                return JSONResponse(content=json.dumps(result_dict))
+                return JSONResponse(content=result_dict)
     else:
         # 闲聊
         system = {"role": "system", "content": "你是ai闲聊助手"}
