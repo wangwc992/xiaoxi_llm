@@ -109,6 +109,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 return result
             if task == "11":
                 application_progress_data_list = await get_application_progress_data_list(student_name)
+                if not application_progress_data_list:
+                    result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
+                    return result
                 # 加载prompt模板
                 template = PromptTemplate.from_template(matching_summary)
                 prompt = template.format(input=query, student_info=classification_model,
@@ -116,6 +119,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             else:
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(student_name)
+                if not service_school_dict_list:
+                    result = '''data: {"choices": [ { "index": 0, "delta": { "role": "1", "content": "学生申请信息不存在，直接返回" }} ]}'''
+                    return result
                 template = PromptTemplate.from_template(matching_information)
                 prompt = template.format(input=query, student_info=classification_model,
                                          application_information_list=service_school_dict_list)
