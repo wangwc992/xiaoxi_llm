@@ -162,6 +162,26 @@ async def abort(chat_id: str):
     return JSONResponse(content={"message": "Request aborted."})
 
 
+async def get_tokens(prompt) -> dict:
+    request = {
+        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
+        "prompt": prompt
+    }
+    generator = await openai_serving_tokenization.create_tokenize(**request)
+    j = generator.model_dump()
+    print("*"*50,j, type(j))
+    return j
+
+
+async def get_detokenize(tokens):
+    request = {
+        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
+        "tokens": tokens
+    }
+    generator = await openai_serving_tokenization.create_detokenize(**request)
+    return generator.model_dump()
+
+
 async def build_server(
         args,
         llm_engine: Optional[AsyncLLMEngine] = None
@@ -222,6 +242,7 @@ async def build_server(
         request_logger=request_logger,
         chat_template=args.chat_template,
     )
+
 
 async def scheduler():
     global engine

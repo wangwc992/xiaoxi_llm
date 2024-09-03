@@ -12,8 +12,10 @@ from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel, Field
 from weaviate.classes.query import Filter
 
-from app.api.openai.api_server import create_chat_completion
+from app.api.openai.api_server import create_chat_completion, get_tokens, get_detokenize
 from app.common.core.langchain_client import Embedding
+from app.common.utils.google_utils import invoke, get_link_title, get_link_text
+from app.common.utils.html_util import cleat_text, get_text_from_html, text2soup
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
 from app.data.dictionaries import school_abbreviations
@@ -471,3 +473,34 @@ async def save_langfuse(member_id: str, chat_message_history: list, output: str,
                                                 input=chat_message_history, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
+
+
+async def reference_networked_rag(query: str):
+    response = invoke(query)
+    items = response.get('items')
+    title_list = get_link_title(items)
+    similarity_list = Embedding.similarity(query, title_list)
+
+    # Sort items by similarity and take top 2 links
+    sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:2]
+    networked_links = [item[1].get('link') for item in sorted_items]
+
+    text_list = [cleat_text(get_text_from_html(text2soup(get_link_text(link)))) for link in networked_links]
+
+    networked_reference_datas = []
+    for text in text_list:
+        generator = get_tokens(text)
+        tokens = generator.get("tokens")
+        count = generator.get("count")
+        if count > 400:
+            token_sublists = [tokens[i:i + 300] for i in range(0, len(tokens) - 200, 200)]
+            networked_reference_datas.extend(token_sublists)
+        else:
+            networked_reference_datas.append(tokens)
+
+    networked_reference_prompt = [get_detokenize(item).get("prompt") for item in networked_reference_datas]
+
+    networked_reference_similarity_list = Embedding.similarity(query, networked_reference_prompt)
+    sorted_items = sorted(zip(networked_reference_similarity_list, networked_reference_prompt), key=lambda x: x[0],
+                          reverse=True)
+    return sorted_items

@@ -1,6 +1,6 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 from typing import List
-
+from sentence_transformers.util import cos_sim
 from app.common.core.config import settings
 
 
@@ -27,3 +27,11 @@ class Embedding:
     def embed_documents(cls, texts: List[str]) -> List[List[float]]:
         """ Embed a list of document texts """
         return cls.embedding.embed_documents(texts)
+
+    @staticmethod
+    def similarity(query: str, sentence_list: list):
+        query_vec = Embedding.embed_query(query)
+        doc_vecs = Embedding.embed_documents(sentence_list)
+        similarity = cos_sim(query_vec, doc_vecs)
+        similarity_list = similarity.tolist()[0]
+        return similarity_list

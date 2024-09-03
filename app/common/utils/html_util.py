@@ -27,24 +27,21 @@ class HtmlUtils:
         html_text = re.sub(r'<.*?>|&nbsp;', ' ', html_text).replace('  ', '')
         return html_text.strip()
 
-    @staticmethod
-    def text2soup(text: str) -> BeautifulSoup:
-        # 使用BeautifulSoup解析HTML文本
-        soup = BeautifulSoup(text, 'html.parser')
-        return soup
+def text2soup(text: str) -> BeautifulSoup:
+    # 使用BeautifulSoup解析HTML文本
+    soup = BeautifulSoup(text, 'html.parser')
+    return soup
 
-    @staticmethod
-    def get_text_from_html(soup: BeautifulSoup) -> str:
-        # 从HTML文本中提取纯文本
-        text = soup.get_text()
-        return text
+def get_text_from_html(soup: BeautifulSoup) -> str:
+    # 从HTML文本中提取纯文本
+    text = soup.get_text()
+    return text
 
-    @staticmethod
-    def cleat_text(text):  # 定义清理文本的方法
-        text = text.strip().replace("\n\n", "").replace(" ", " ")
-        # 多空格变成一个空格
-        text = re.sub(r"\s+", " ", text)
-        return text
+def cleat_text(text):  # 定义清理文本的方法
+    text = text.strip().replace("\n\n", "").replace(" ", " ")
+    # 多空格变成一个空格
+    text = re.sub(r"\s+", " ", text)
+    return text
 
 class TextUtils:
     @staticmethod
