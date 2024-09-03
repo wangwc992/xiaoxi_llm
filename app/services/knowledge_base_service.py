@@ -122,7 +122,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(student_name)
                 if not service_school_dict_list:
-                    result = result_format % ("5", "学生姓名为空")
+                    result = result_format % ("5", f"不存在{student_name}的学生")
                     return JSONResponse(content=json.loads(result))
 
                 result = result_format % ("5", "")
