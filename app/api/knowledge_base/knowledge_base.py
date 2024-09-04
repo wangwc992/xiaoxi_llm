@@ -54,7 +54,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
 @router.get("/networked/completions", description="Create a chat completion.")
 async def networked_generate(query: str):
     logger.info(f"networked_generate: {query}")
-    return await reference_networked_rag(query)
+    return await knowledge_base_networked_generate(query)
 
 
 # 清空聊天记录
