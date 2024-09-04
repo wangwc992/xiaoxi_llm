@@ -4,7 +4,7 @@ import requests
 def google_search(query: str) -> dict:
     try:
         # 在 URI 前添加 'http://'
-        uri = f'http://127.0.0.1:8000/google/search?query={query}'
+        uri = f'http://fcgvfm.natappfree.cc/google/search?query={query}'
         response = requests.get(uri)
         json_data = response.json()
         return json_data

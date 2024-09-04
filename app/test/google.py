@@ -8,6 +8,7 @@ import requests
 from sentence_transformers.util import cos_sim
 
 from app.common.core.langchain_client import Embedding
+from app.http.google_search import google_search
 
 __URL = 'https://www.googleapis.com/customsearch/v1'
 
@@ -115,7 +116,7 @@ def get_detokenize(tokens):
 
 
 def reference_networked_rag(query: str):
-    response = invoke(query)
+    response = google_search(query)
     items = response.get('items')
     title_list = get_link_title(items)
     similarity_list = similarity(query, title_list)
