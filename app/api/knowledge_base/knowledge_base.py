@@ -10,6 +10,7 @@ from app.middleware.exception import ChatSuspendException
 
 from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel,
                                                  knowledge_base_networked_generate)
+from app.test.google import reference_networked_rag
 
 router = APIRouter(prefix="/knowledge_base/chat")
 logger = get_logger(__name__)
@@ -52,7 +53,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
 
 @router.post("/networked/completions", description="Create a chat completion.")
 async def networked_generate(query: str):
-    return await knowledge_base_networked_generate(query)
+    return await reference_networked_rag(query)
 
 
 # 清空聊天记录
