@@ -51,8 +51,9 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
 
 
-@router.post("/networked/completions", description="Create a chat completion.")
+@router.get("/networked/completions", description="Create a chat completion.")
 async def networked_generate(query: str):
+    logger.info(f"networked_generate: {query}")
     return await reference_networked_rag(query)
 
 
