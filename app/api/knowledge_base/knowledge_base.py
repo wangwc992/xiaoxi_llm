@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 from fastapi import Request, APIRouter, BackgroundTasks
 from starlette.responses import StreamingResponse
@@ -54,7 +55,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
 @router.get("/weaviateSearch1")
 async def reference_data1(query: str):
     logger.info(f"networked_generate: {query}")
-    return await knowledge_base_networked_generate(query)
+    asyncio.run(reference_networked_rag(q))
 
 
 # 清空聊天记录
