@@ -111,7 +111,7 @@ def get_detokenize(tokens):
     return json_data
 
 
-async def reference_networked_rag(query: str):
+def reference_networked_rag(query: str):
     response = invoke(query)
     items = response.get('items')
     title_list = get_link_title(items)
@@ -150,6 +150,6 @@ async def reference_networked_rag(query: str):
 if __name__ == "__main__":
     q = "党的二十届三中全会"
     print(q)
-    asyncio.run(reference_networked_rag(q))
+    reference_networked_rag(q)
 
 
