@@ -21,7 +21,7 @@ def invoke(query: str):
         raise HTTPException(status_code=response.status_code, detail="Error calling Google Custom Search API")
 
 
-@app.get("/search")
+@app.get("/google/search")
 def search(query: str):
     try:
         result = invoke(query)
@@ -34,4 +34,4 @@ def search(query: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
