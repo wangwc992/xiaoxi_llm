@@ -51,10 +51,10 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
 
 
-@router.get("/networked/completions", description="Create a chat completion.")
-async def networked_generate(query: str):
+@router.get("/weaviateSearch1")
+async def reference_data1(query: str):
     logger.info(f"networked_generate: {query}")
-    return await knowledge_base_networked_generate(query)
+    return "await knowledge_base_networked_generate(query)"
 
 
 # 清空聊天记录
