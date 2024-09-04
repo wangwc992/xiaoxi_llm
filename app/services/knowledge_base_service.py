@@ -475,6 +475,12 @@ async def save_langfuse(member_id: str, chat_message_history: list, output: str,
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
 
 
+async def knowledge_base_networked_generate(query: str):
+    sorted_items = await reference_networked_rag(query)
+    reference_networked_data = "\n".join([f"{index + 1}. {item[1]}" for index, item in enumerate(sorted_items)])
+    return reference_networked_data
+
+
 async def reference_networked_rag(query: str):
     response = invoke(query)
     items = response.get('items')

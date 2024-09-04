@@ -8,7 +8,8 @@ from app.common.utils.logging import get_logger
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
 from app.middleware.exception import ChatSuspendException
 
-from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel)
+from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel,
+                                                 knowledge_base_networked_generate)
 
 router = APIRouter(prefix="/knowledge_base/chat")
 logger = get_logger(__name__)
@@ -47,6 +48,11 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         error_message = ''.join(traceback.format_exception(None, e, e.__traceback__))
         logger.error(f"Error in /chat/completions: {error_message}")
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
+
+
+@router.post("/networked/completions", description="Create a chat completion.")
+async def networked_generate(query: str):
+    return await knowledge_base_networked_generate(query)
 
 
 # 清空聊天记录
