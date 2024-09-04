@@ -21,13 +21,13 @@ def get_link_title(items: list) -> list:
     return title_list
 
 def get_link_text(link: str):
-    response = requests.get(link)
-
-    # 自动检测编码
-    response.encoding = response.apparent_encoding
-
-    # 如果知道具体的编码，可以手动指定，比如 'utf-8'
-    # response.encoding = 'utf-8'
-
-    text = response.text
+    try:
+        response = requests.get(link)
+        # 自动检测编码
+        response.encoding = response.apparent_encoding
+        # 如果知道具体的编码，可以手动指定，比如 'utf-8'
+        # response.encoding = 'utf-8'
+        text = response.text
+    except:
+        text = ""
     return text

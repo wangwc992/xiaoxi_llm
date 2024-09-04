@@ -48,15 +48,18 @@ def similarity(query: str, sentence_list: list):
 
 
 def get_link_text(link: str):
-    response = requests.get(link)
+    try:
+        response = requests.get(link)
 
-    # 自动检测编码
-    response.encoding = response.apparent_encoding
+        # 自动检测编码
+        response.encoding = response.apparent_encoding
 
-    # 如果知道具体的编码，可以手动指定，比如 'utf-8'
-    # response.encoding = 'utf-8'
+        # 如果知道具体的编码，可以手动指定，比如 'utf-8'
+        # response.encoding = 'utf-8'
 
-    text = response.text
+        text = response.text
+    except:
+        text = ""
     return text
 
 
@@ -141,15 +144,14 @@ def reference_networked_rag(query: str):
     networked_reference_prompt = [get_detokenize(item).get("prompt") for item in networked_reference_datas]
 
     networked_reference_similarity_list = similarity(query, networked_reference_prompt)
-    sorted_items = sorted(zip(networked_reference_similarity_list, networked_reference_prompt), key=lambda x: x[0], reverse=True)
+    sorted_items = sorted(zip(networked_reference_similarity_list, networked_reference_prompt), key=lambda x: x[0],
+                          reverse=True)
     reference_networked_data = "\n\n".join([f"{index + 1}. {item[1]}" for index, item in enumerate(sorted_items)])
     print(reference_networked_data)
     return sorted_items
 
 
 if __name__ == "__main__":
-    q = "党的二十届三中全会"
+    q = "如何申请留学"
     print(q)
     reference_networked_rag(q)
-
-
