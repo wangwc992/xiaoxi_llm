@@ -153,6 +153,6 @@ def reference_networked_rag(query: str):
 
 
 if __name__ == "__main__":
-    q = "如何申请留学"
+    q = "墨尔本"
     print(q)
     reference_networked_rag(q)

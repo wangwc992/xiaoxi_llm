@@ -180,7 +180,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
             stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
-                            reference_data_count),
+                            reference_data_count,classification_model),
             media_type="text/event-stream"
         )
     else:
@@ -269,7 +269,7 @@ async def get_history_message_list(conversation_id: str, query: str):
 
 async def stream_response(result: StreamingResponse, member_id: str, message_list: list, start_time: datetime,
                           knowledge_link: dict,
-                          conversation_id: str, reference_data_count: int):
+                          conversation_id: str, reference_data_count: int,classification_model: ClassificationModel):
     """
     流式输出
     :param result:  返回结果
@@ -296,6 +296,8 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
             delta['content'] = knowledge_link
             delta['reference_data_count'] = reference_data_count
             chunk_data['conversation_id'] = conversation_id
+            if classification_model.query_type == "C":
+                delta['classification'] = classification_model.dict()
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
         yield chunk
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
