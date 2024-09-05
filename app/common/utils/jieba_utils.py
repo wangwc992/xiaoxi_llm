@@ -1,7 +1,7 @@
 import os
+import re
 
 import jieba
-import threading
 
 
 class JiebaTool:
@@ -69,6 +69,12 @@ class JiebaTool:
         base_dir = os.path.dirname(os.path.abspath(__file__))
         file_path = os.path.join(base_dir, path)
         return file_path
+
+    @staticmethod
+    def chinese_sent_tokenize(text):
+        sentences = re.split(r'(?<=[。！？；?!])', text)
+        # 去掉空字符串
+        return [sentence for sentence in sentences if sentence.strip()]
 
 
 # 使用示例
