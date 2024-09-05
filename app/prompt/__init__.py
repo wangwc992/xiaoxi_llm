@@ -16,3 +16,5 @@ matching_information = prompt_dict.get('matching_information')
 matching_summary = prompt_dict.get('matching_summary')
 # C类任务信息不全使用prompt
 information_completion = prompt_dict.get('information_completion')
+# 再次回答分类任务的问题
+reanswer_classification_query = prompt_dict.get('reanswer_classification_query')

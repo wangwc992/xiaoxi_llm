@@ -19,7 +19,7 @@ from app.common.utils.object_utils import ObjectFormatter
 from app.data.dictionaries import school_abbreviations
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
-    select_service_history
+    select_service_history, select_member_id_by_company_id, select_student_by_member_id
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from vllm.utils import random_uuid
@@ -27,7 +27,8 @@ from vllm.utils import random_uuid
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatLogModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 from app.http.google_search import google_search
-from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information
+from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
+    reanswer_classification_query
 
 router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
@@ -38,7 +39,10 @@ class MyChatCompletionRequestModel(BaseModel):
     stream: Optional[bool] = Field(False, description="是否流式输出")
     model: Optional[str] = Field("/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4", description="模型名称")
     conversation_id: Optional[str] = Field(None, description="会话id，用于标识一个会话")
-    member_id: Optional[str] = Field("1001", description="用户ID")
+
+    user_type: Optional[str] = Field("1", description="用户类型2，顾问，3，机构")
+    user_id: Optional[str] = Field("0", description="2为member_id,3为机构id")
+    reanswer: Optional[bool] = Field(False, description="是否再次回答")
 
 
 # {"queryType":"C","task":"3","studentName":"xuyunyi","schoolName":"oeinstein","majorName":"digitalhumanities"}
@@ -51,6 +55,19 @@ class ClassificationModel(BaseModel):
 
 
 result_format = '''{"choices": [ { "index": 0, "delta": { "role": "%s", "content": "%s" }} ]}'''
+
+
+async def is_check_student_permission(user_type, user_id, student_name):
+    member_id_list = []
+    if user_type == "3":
+        member_id_list = select_member_id_by_company_id(user_id)
+    else:
+        member_id_list.append(user_id)
+
+    student_list = select_student_by_member_id(member_id_list, student_name)
+    if student_list:
+        return True
+    return False
 
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
@@ -71,17 +88,21 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     model = request.model
     stream = request.stream
 
+    user_type = request.user_type
+    user_id = request.user_id
+    reanswer = request.reanswer
+
     # 判断是否为流式输出
     stream_options = StreamOptions(include_usage=True) if request.stream else None
 
-    # query改写
+    # query改写,将学校简称替换为全称
     query = query_rewrite(query)
 
     # 初始化历史消息列表
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
 
     # 加载classificationQuery模板，进行任务分类
-    classification_model = await classification(model, query, raw_request)
+    classification_model = await classification(model=model, query=query, reanswer=reanswer, raw_request=raw_request)
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
@@ -106,6 +127,11 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
         result = result_format % ("5", "学生姓名为空")
+        # 判断此次请求是否有权限查看学生信息
+        check_student_permission = await is_check_student_permission(user_type, user_id, student_name)
+        if not check_student_permission:
+            result = result_format % ("5", "学生姓名为空")
+            return JSONResponse(content=json.loads(result))
         if not student_name:
             return JSONResponse(content=json.loads(result))
         else:
@@ -180,7 +206,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
             stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
-                            reference_data_count,classification_model),
+                            reference_data_count, classification_model),
             media_type="text/event-stream"
         )
     else:
@@ -220,14 +246,17 @@ async def get_application_progress_data_list(student_name):
     return application_progress_data_list
 
 
-async def classification(model: str, query: str, raw_request: Request):
+async def classification(model: str, query: str, reanswer: bool, raw_request: Request):
     """ 任务分类
     :param model: 模型名称
     :param query: 用户输入
     :param raw_request: 请求
     :return: 任务分类结果 ClassificationModel
     """
-    template = PromptTemplate.from_template(classification_query)
+    if reanswer:
+        template = PromptTemplate.from_template(reanswer_classification_query)
+    else:
+        template = PromptTemplate.from_template(classification_query)
     classification_query_prompt = template.format(input=query)
     system = {"role": "system", "content": "你是一个严谨的智能问题分类助手，不会提供虚假信息"}
     human = {"role": "human", "content": classification_query_prompt}
@@ -269,7 +298,7 @@ async def get_history_message_list(conversation_id: str, query: str):
 
 async def stream_response(result: StreamingResponse, member_id: str, message_list: list, start_time: datetime,
                           knowledge_link: dict,
-                          conversation_id: str, reference_data_count: int,classification_model: ClassificationModel):
+                          conversation_id: str, reference_data_count: int, classification_model: ClassificationModel):
     """
     流式输出
     :param result:  返回结果
@@ -484,7 +513,7 @@ async def knowledge_base_networked_generate(query: str):
 
 
 async def reference_networked_rag(query: str):
-    response = google_search(query)
+    response = await google_search(query)
     items = response.get('items')
     title_list = get_link_title(items)
     similarity_list = Embedding.similarity(query, title_list)

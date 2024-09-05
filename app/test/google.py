@@ -8,7 +8,7 @@ import requests
 from sentence_transformers.util import cos_sim
 
 from app.common.core.langchain_client import Embedding
-from app.http.google_search import google_search
+from app.http.google_search import google_search, google_search_text
 
 __URL = 'https://www.googleapis.com/customsearch/v1'
 
@@ -49,8 +49,9 @@ def similarity(query: str, sentence_list: list):
 
 
 def get_link_text(link: str):
+    print(link)
     try:
-        response = requests.get(link)
+        response = requests.get(link, timeout=2)
 
         # 自动检测编码
         response.encoding = response.apparent_encoding
@@ -115,8 +116,8 @@ def get_detokenize(tokens):
     return json_data
 
 
-def reference_networked_rag(query: str):
-    response = google_search(query)
+async def reference_networked_rag(query: str):
+    response = await google_search(query)
     items = response.get('items')
     title_list = get_link_title(items)
     similarity_list = similarity(query, title_list)
@@ -129,7 +130,7 @@ def reference_networked_rag(query: str):
 
     networked_links = [item[1].get('link') for item in sorted_items]
 
-    text_list = [cleat_text(get_text_from_html(text2soup(get_link_text(link)))) for link in networked_links]
+    text_list = [cleat_text(get_text_from_html(text2soup(await google_search_text(link)))) for link in networked_links]
 
     networked_reference_datas = []
     for text in text_list:
@@ -155,4 +156,4 @@ def reference_networked_rag(query: str):
 if __name__ == "__main__":
     q = "墨尔本"
     print(q)
-    reference_networked_rag(q)
+    asyncio.run(reference_networked_rag(q))

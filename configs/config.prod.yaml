@@ -50,3 +50,4 @@ redis:
   retry_delay: 3
 
 google_search: "http://59.108.41.117:5001/search?query="
+search_text: "http://59.108.41.117:5001/search_text?url="

@@ -46,4 +46,7 @@ redis:
   password: "aoji123!@#"
   max_retries: 5
   retry_delay: 3
-google_search: "http://192.168.0.139:5000/search?query="
+
+
+google_search: "http://127.0.0.1:5000/search?query="
+search_text: "http://127.0.0.1:5000/search_text?url="
