@@ -82,7 +82,6 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     reference_data_count = 0
 
     # 获取请求参数
-    member_id = request.member_id
     conversation_id = request.conversation_id
     query = request.query
     model = request.model
@@ -205,14 +204,14 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
-            stream_response(result, member_id, history_message_list, start_time, knowledge_link, conversation_id,
+            stream_response(result, user_id, history_message_list, start_time, knowledge_link, conversation_id,
                             reference_data_count, classification_model),
             media_type="text/event-stream"
         )
     else:
         result_dict = await extract_message(result)
         background_tasks.add_task(process_after_response, result_dict,
-                                  member_id, history_message_list, start_time, conversation_id)
+                                  user_id, history_message_list, start_time, conversation_id)
 
         # 转码为json格式
         response_dict = json.loads(result.body.decode('utf-8'))
@@ -296,13 +295,13 @@ async def get_history_message_list(conversation_id: str, query: str):
     return conversation_id, history_message_list
 
 
-async def stream_response(result: StreamingResponse, member_id: str, message_list: list, start_time: datetime,
+async def stream_response(result: StreamingResponse, user_id: str, message_list: list, start_time: datetime,
                           knowledge_link: dict,
                           conversation_id: str, reference_data_count: int, classification_model: ClassificationModel):
     """
     流式输出
     :param result:  返回结果
-    :param member_id:  用户ID
+    :param user_id:  用户ID
     :param message_list:  消息列表
     :param start_time:  请求开始时间
     :param knowledge_link:  知识库链接
@@ -352,7 +351,7 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
     result_dict = {"output": output, "usage": usage}
-    await process_after_response(result_dict, member_id, message_list, start_time, conversation_id)
+    await process_after_response(result_dict, user_id, message_list, start_time, conversation_id)
 
 
 async def extract_message(result):
@@ -378,7 +377,7 @@ async def extract_message(result):
     return {"output": output, "usage": usage}
 
 
-async def process_after_response(result_dict, member_id, chat_message_history, start_time, conversation_id):
+async def process_after_response(result_dict, user_id, chat_message_history, start_time, conversation_id):
     # 请求结束时间
     end_time = datetime.now()
     # 获取用户输入
@@ -392,10 +391,10 @@ async def process_after_response(result_dict, member_id, chat_message_history, s
         usage = ModelUsage(input=usage['prompt_tokens'], output=usage['completion_tokens'],
                            total=usage['total_tokens'], unit='TOKENS')
 
-    await save_weaviste(conversation_id, member_id, input, output)
+    await save_weaviste(conversation_id, user_id, input, output)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, result_dict)
-    # await save_langfuse(member_id=member_id, chat_message_history=chat_message_history, output=output, usage=usage,
+    # await save_langfuse(user_id=user_id, chat_message_history=chat_message_history, output=output, usage=usage,
     #                     start_time=start_time, end_time=end_time)
 
 
@@ -459,16 +458,16 @@ def query_rewrite(query):
     return query
 
 
-async def save_weaviste(conversation_id, member_id, input, output):
+async def save_weaviste(conversation_id, user_id, input, output):
     """ 保存聊天记录到向量数据库
     :param conversation_id: 会话ID
-    :param member_id: 用户ID
+    :param user_id: 用户ID
     :param input: 用户输入
     :param output: 输出
     """
     ai_chat_log_model = AiChatLogModel(
         conversation_id=conversation_id,
-        message_id=member_id,
+        message_id=user_id,
         user_id="123",
         instruction=input,
         output=output,
@@ -490,17 +489,17 @@ async def save_redis(chat_message_history, chat_message_history_key, result_dict
 
 
 @observe()
-async def save_langfuse(member_id: str, chat_message_history: list, output: str, usage: ModelUsage,
+async def save_langfuse(user_id: str, chat_message_history: list, output: str, usage: ModelUsage,
                         start_time: datetime, end_time: datetime):
     """ 保存聊天记录到langfuse
-    :param member_id: 用户ID
+    :param user_id: 用户ID
     :param chat_message_history: 聊天记录
     :param output: 输出
     :param usage: 使用情况
     :param start_time: 请求开始时间
     :param end_time: 请求结束时间
     """
-    langfuse_context.update_current_observation(user_id=member_id, metadata={"test": "test value"},
+    langfuse_context.update_current_observation(user_id=user_id, metadata={"test": "test value"},
                                                 input=chat_message_history, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
