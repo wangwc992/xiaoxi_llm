@@ -297,6 +297,7 @@ async def stream_response(result: StreamingResponse, member_id: str, message_lis
             delta['reference_data_count'] = reference_data_count
             chunk_data['conversation_id'] = conversation_id
             if classification_model.query_type == "C":
+                delta['role'] = "5"
                 delta['classification'] = classification_model.dict()
             chunk = f"data: {json.dumps(chunk_data)}\n\n"
         yield chunk
