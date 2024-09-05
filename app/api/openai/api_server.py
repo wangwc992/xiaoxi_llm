@@ -162,7 +162,7 @@ async def abort(chat_id: str):
     return JSONResponse(content={"message": "Request aborted."})
 
 
-async def get_tokens(prompt) -> dict:
+async def get_tokens(prompt) :
     tokenize_request = TokenizeRequest(model="/root/autodl-tmp/llm/Qwen2-7B-Instruct", prompt=prompt)
     generator = await openai_serving_tokenization.create_tokenize(tokenize_request)
     return generator
