@@ -51,8 +51,15 @@ def select_member_id_by_company_id(company_id: str):
 
 
 def select_student_by_member_id(member_id: list, student_name: str):
+    # 检查 member_id 是否为列表
+    if not isinstance(member_id, list):
+        raise TypeError("member_id 必须是一个列表")
+
+    # 确保 member_id 列表中的所有元素都是字符串
+    member_id = [str(id) for id in member_id]
+
     member_id_str = "','".join(member_id)
-    sql = f"SELECT * from service_master  where adviser_member_id in ('{member_id_str}') and user_real_name = '{student_name}'"
+    sql = f"SELECT * from service_master where adviser_member_id in ('{member_id_str}') and user_real_name = '{student_name}'"
     student_dict_list = xxlxdb.execute_all2dict(sql)
     student_list = [student_dict['user_real_name'] for student_dict in student_dict_list]
     return student_list
@@ -61,4 +68,6 @@ def select_student_by_member_id(member_id: list, student_name: str):
 if __name__ == '__main__':
     # SELECT * from service_master
     # where adviser_member_id in (11001692) and user_real_name = "玄天姬"
-    print(select_student_by_member_id(['11001692'], '玄天姬'))
+    # print(select_student_by_member_id(['11001692'], '玄天姬'))
+# SELECT wechat_id from user_adviser where company_id = 853 and delete_status = 0
+    print(select_member_id_by_company_id('853'))
