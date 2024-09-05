@@ -487,7 +487,7 @@ async def reference_networked_rag(query: str):
     similarity_list = Embedding.similarity(query, title_list)
 
     # Sort items by similarity and take top 2 links
-    sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:5]
+    sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:2]
     networked_links = [item[1].get('link') for item in sorted_items]
 
     text_list = [cleat_text(get_text_from_html(text2soup(get_link_text(link)))) for link in networked_links]
