@@ -495,7 +495,7 @@ async def reference_networked_rag(query: str):
     networked_reference_datas = []
     for text in text_list:
         generator = get_tokens(text)
-        logger.info(f"*****************generator: {generator},type: {type(generator)},generator {generator.tokens}")
+        logger.info(f"*****************generator: {generator},type: {type(generator)},generator {generator.__dict__}")
         tokens = generator.get("tokens")
         count = generator.get("count")
         if count > 400:
