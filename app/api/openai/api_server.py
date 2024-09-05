@@ -163,21 +163,13 @@ async def abort(chat_id: str):
 
 
 async def get_tokens(prompt) -> dict:
-    request = {
-        "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
-        "prompt": prompt
-    }
-    tokenize_request = TokenizeRequest(**request)
+    tokenize_request = TokenizeRequest(model="/root/autodl-tmp/llm/Qwen2-7B-Instruct", prompt=prompt)
     generator = await openai_serving_tokenization.create_tokenize(tokenize_request)
     return generator
 
 
 async def get_detokenize(tokens):
-    request = {
-        "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
-        "tokens": tokens
-    }
-    detokenize_request = DetokenizeRequest(**request)
+    detokenize_request = DetokenizeRequest(model="/root/autodl-tmp/llm/Qwen2-7B-Instruct", tokens=tokens)
     generator = await openai_serving_tokenization.create_detokenize(detokenize_request)
     return generator
 
