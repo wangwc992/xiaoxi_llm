@@ -21,7 +21,8 @@ from vllm.entrypoints.openai.protocol import (ChatCompletionRequest,
                                               DetokenizeResponse,
                                               EmbeddingRequest, ErrorResponse,
                                               TokenizeRequest,
-                                              TokenizeResponse)
+                                              TokenizeResponse,
+                                              TokenizeCompletionRequest)
 # yapf: enable
 from vllm.entrypoints.openai.serving_chat import OpenAIServingChat
 from vllm.entrypoints.openai.serving_completion import OpenAIServingCompletion
@@ -163,7 +164,7 @@ async def abort(chat_id: str):
 
 
 async def get_tokens(prompt) :
-    tokenize_request = TokenizeRequest(model="/root/autodl-tmp/llm/Qwen2-7B-Instruct", prompt=prompt)
+    tokenize_request = TokenizeCompletionRequest(model="/root/autodl-tmp/llm/Qwen2-7B-Instruct", prompt=prompt)
     generator = await openai_serving_tokenization.create_tokenize(tokenize_request)
     return generator
 
