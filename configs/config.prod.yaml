@@ -49,4 +49,4 @@ redis:
   max_retries: 5
   retry_delay: 3
 
-urlToText: "http://59.108.41.117:5001/urlToText"
+google_search: "http://59.108.41.117:5001/search?query="

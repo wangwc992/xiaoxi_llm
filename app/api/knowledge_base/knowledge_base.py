@@ -54,9 +54,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
 
 @router.get("/weaviateSearch1")
 async def reference_data1(query: str):
-    print("reference_data1")
-    logger.info(f"networked_generate: {query}")
-    reference_networked_rag(query)
+    return await knowledge_base_networked_generate(query)
 
 
 # 清空聊天记录

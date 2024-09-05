@@ -26,6 +26,7 @@ from vllm.utils import random_uuid
 
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatLogModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
+from app.http.google_search import google_search
 from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information
 
 router = APIRouter(prefix="/chat")
@@ -480,13 +481,13 @@ async def knowledge_base_networked_generate(query: str):
 
 
 async def reference_networked_rag(query: str):
-    response = invoke(query)
+    response = google_search(query)
     items = response.get('items')
     title_list = get_link_title(items)
     similarity_list = Embedding.similarity(query, title_list)
 
     # Sort items by similarity and take top 2 links
-    sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:2]
+    sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:5]
     networked_links = [item[1].get('link') for item in sorted_items]
 
     text_list = [cleat_text(get_text_from_html(text2soup(get_link_text(link)))) for link in networked_links]
