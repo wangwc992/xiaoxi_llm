@@ -167,7 +167,8 @@ async def get_tokens(prompt) -> dict:
         "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
         "prompt": prompt
     }
-    generator = await openai_serving_tokenization.create_tokenize(**request)
+    tokenize_request = TokenizeRequest(**request)
+    generator = await openai_serving_tokenization.create_tokenize(tokenize_request)
     return generator
 
 
@@ -176,7 +177,8 @@ async def get_detokenize(tokens):
         "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
         "tokens": tokens
     }
-    generator = await openai_serving_tokenization.create_detokenize(**request)
+    detokenize_request = DetokenizeRequest(**request)
+    generator = await openai_serving_tokenization.create_detokenize(detokenize_request)
     return generator
 
 
