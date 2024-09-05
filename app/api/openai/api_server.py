@@ -168,9 +168,7 @@ async def get_tokens(prompt) -> dict:
         "prompt": prompt
     }
     generator = await openai_serving_tokenization.create_tokenize(**request)
-    j = generator.model_dump()
-    print("*"*50,j, type(j))
-    return j
+    return generator
 
 
 async def get_detokenize(tokens):
@@ -179,7 +177,7 @@ async def get_detokenize(tokens):
         "tokens": tokens
     }
     generator = await openai_serving_tokenization.create_detokenize(**request)
-    return generator.model_dump()
+    return generator
 
 
 async def build_server(
