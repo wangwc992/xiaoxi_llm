@@ -496,15 +496,18 @@ async def reference_networked_rag(query: str):
     for text in text_list:
         generator = await get_tokens(text)
         logger.info(f"*****************generator: {generator},type: {type(generator)}")
-        tokens = generator.get("tokens")
-        count = generator.get("count")
+        tokens = generator.tokens
+        count = generator.count
         if count > 400:
             token_sublists = [tokens[i:i + 300] for i in range(0, len(tokens) - 200, 200)]
             networked_reference_datas.extend(token_sublists)
         else:
             networked_reference_datas.append(tokens)
 
-    networked_reference_prompt = [get_detokenize(item).get("prompt") for item in networked_reference_datas]
+    networked_reference_prompt = []
+    for item in networked_reference_datas:
+        detokenize = await get_detokenize(item)
+        networked_reference_prompt.append(detokenize.prompt)
 
     networked_reference_similarity_list = Embedding.similarity(query, networked_reference_prompt)
     sorted_items = sorted(zip(networked_reference_similarity_list, networked_reference_prompt), key=lambda x: x[0],
