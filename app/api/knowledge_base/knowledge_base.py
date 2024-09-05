@@ -52,7 +52,7 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
         raise ChatSuspendException("当前对话已暂停，请稍后再试。")
 
 
-@router.get("/weaviateSearch1")
+@router.get("/networked/completions")
 async def reference_data1(query: str):
     return await knowledge_base_networked_generate(query)
 
