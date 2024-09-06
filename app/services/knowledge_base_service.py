@@ -163,7 +163,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 result_dict = json.loads(result)
 
                 if task == "10":
-                    pass
+                    result_dict["choices"][0]["delta"]["task"] = "10"
                 else:
                     template = PromptTemplate.from_template(matching_information)
                     prompt = template.format(input=query, student_info=classification_model,
