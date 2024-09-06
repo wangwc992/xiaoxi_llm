@@ -170,5 +170,6 @@ async def now_time():
 
 if __name__ == "__main__":
     q = "党的二十届三中全会？"
+    q = "墨尔本？"
     print(q)
     asyncio.run(reference_networked_rag(q))

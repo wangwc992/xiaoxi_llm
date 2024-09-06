@@ -18,3 +18,5 @@ matching_summary = prompt_dict.get('matching_summary')
 information_completion = prompt_dict.get('information_completion')
 # 再次回答分类任务的问题
 reanswer_classification_query = prompt_dict.get('reanswer_classification_query')
+# json格式化
+json_formatting = prompt_dict.get('json_formatting')

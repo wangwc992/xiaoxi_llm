@@ -181,8 +181,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                     chat_result_dict = await extract_message(chat_result)
 
                     output = chat_result_dict.get("output")
-                    logger.info(f"output: *********{output}************")
-                    output_dict = eval(output)
+
+                    output_dict = await json_formatting(output)
 
                     classification_dict["ids"] = output_dict.get("ids")
                 delta = result_dict["choices"][0]["delta"]
@@ -559,3 +559,10 @@ async def reference_networked_rag(query: str):
 async def now_time(bj: str):
     now = datetime.now()
     print(bj, now.strftime('%Y-%m-%d %H:%M:%S') + f".{now.microsecond // 1000:03d}")
+
+
+async def json_formatting(json_str: str):
+    start = json_str.find("{")
+    end = json_str.rfind("}")
+    json_str = json_str[start:end + 1]
+    return eval(json_str)

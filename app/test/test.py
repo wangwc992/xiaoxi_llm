@@ -1,4 +1,7 @@
-from datetime import datetime
+json_str = "adsf{撒的{发生}的}adsf"
+# 找到第一个{的位置 和最后一个}的位置
 
-now = datetime.now()
-print(now.strftime('%Y-%m-%d %H:%M:%S') + f".{now.microsecond // 1000:03d}")
+start = json_str.find("{")
+end = json_str.rfind("}")
+json_str = json_str[start:end + 1]
+print(json_str)
