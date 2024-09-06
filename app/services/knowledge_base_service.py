@@ -105,8 +105,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     classification_dict = classification_model.dict()
 
     # 学生信息有错误返回task为-1
-    classification_dict["task"] = "-1"
-    classification_json = json.dumps(classification_dict)
+    student_info_error = classification_model.dict()["task"] = "-1"
+    classification_json = json.dumps(student_info_error)
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
@@ -163,7 +163,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 result_dict = json.loads(result)
 
                 if task == "10":
-                    result_dict["choices"][0]["delta"]["task"] = "10"
+                    result_dict["choices"][0]["delta"]["classification"]["task"] = "10"
                 else:
                     template = PromptTemplate.from_template(matching_information)
                     prompt = template.format(input=query, student_info=classification_model,
