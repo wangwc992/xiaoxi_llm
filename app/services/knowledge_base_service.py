@@ -103,6 +103,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 加载classificationQuery模板，进行任务分类
     classification_model = await classification(model=model, query=query, reanswer=reanswer, raw_request=raw_request)
     classification_dict = classification_model.dict()
+    classification_json = json.dumps(classification_dict)
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
@@ -127,13 +128,13 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
         if not student_name:
-            result = result_format % ("5", "学生姓名为空", classification_dict)
+            result = result_format % ("5", "学生姓名为空", classification_json)
             return JSONResponse(content=json.loads(result))
 
         # 判断此次请求是否有权限查看学生信息
         check_student_permission = await is_check_student_permission(user_type, user_id, student_name)
         if not check_student_permission:
-            result = result_format % ("5", f"名下没有 {student_name} 的学生", classification_dict)
+            result = result_format % ("5", f"名下没有 {student_name} 的学生", classification_json)
             logger.info(f"result: {result}")
             return JSONResponse(content=json.loads(result))
 
@@ -142,7 +143,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             if task == "14":
                 application_progress_data_list = await get_application_progress_data_list(student_name)
                 if not application_progress_data_list:
-                    result = result_format % ("5", f"学生{student_name}没有申请进度数据", classification_dict)
+                    result = result_format % ("5", f"学生{student_name}没有申请进度数据", classification_json)
                     return JSONResponse(content=json.loads(result))
                 # 加载prompt模板
                 template = PromptTemplate.from_template(matching_summary)
@@ -152,10 +153,10 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(student_name)
                 if not service_school_dict_list:
-                    result = result_format % ("5", f"不存在{student_name}的学生", classification_dict)
+                    result = result_format % ("5", f"不存在{student_name}的学生", classification_json)
                     return JSONResponse(content=json.loads(result))
 
-                result = result_format % ("5", "", classification_dict)
+                result = result_format % ("5", "", classification_json)
                 result_dict = json.loads(result)
 
                 if task == "10":
