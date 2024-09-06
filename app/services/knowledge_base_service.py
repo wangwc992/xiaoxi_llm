@@ -105,7 +105,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     classification_dict = classification_model.dict()
 
     # 学生信息有错误返回task为-1
-    student_info_error = classification_model.dict()["task"] = "-1"
+    student_info_error = classification_model.dict()
+    student_info_error["task"] = "-1"
     classification_json = json.dumps(student_info_error)
     # 获取任务类型
     query_type = classification_model.query_type
