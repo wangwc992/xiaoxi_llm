@@ -103,6 +103,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 加载classificationQuery模板，进行任务分类
     classification_model = await classification(model=model, query=query, reanswer=reanswer, raw_request=raw_request)
     classification_dict = classification_model.dict()
+
+    # 学生信息有错误返回task为-1
+    classification_dict["task"] = "-1"
     classification_json = json.dumps(classification_dict)
     # 获取任务类型
     query_type = classification_model.query_type
