@@ -134,6 +134,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         check_student_permission = await is_check_student_permission(user_type, user_id, student_name)
         if not check_student_permission:
             result = result_format % ("5", f"名下没有 {student_name} 的学生", classification_dict)
+            logger.info(f"result: {result}")
             return JSONResponse(content=json.loads(result))
 
         else:
