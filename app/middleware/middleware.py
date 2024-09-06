@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from fastapi import Request
 from starlette.responses import StreamingResponse, JSONResponse
+
+from app.common.utils.jieba_utils import JiebaTool
 from app.common.utils.logging import get_logger
 from app.data.dictionaries import sensitive_words
 
@@ -29,10 +31,11 @@ async def sensitive_word_filter(request: Request, call_next):
     # 获取请求体内容
     body = request._body if hasattr(request, '_body') else await request.body()
     body_text = body.decode("utf-8")
+    body_text_list = JiebaTool().cut_for_search(body_text)
 
     # 检查是否包含敏感词
     for word in sensitive_words:
-        if word in body_text:
+        if word in body_text_list:
             result = f'''data: {{"choices": [ {{"index": 0, "delta": {{"role": "3", "content": "您的问题涉及敏感内容 {word}，小希无法回答呦，请换个话题吧。" }}}}]}}'''
             return StreamingResponse(content=result, media_type="text/event-stream")
 

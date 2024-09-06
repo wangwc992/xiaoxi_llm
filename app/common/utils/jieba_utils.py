@@ -31,19 +31,19 @@ class JiebaTool:
                 # self.stopwords 追加 set([line.strip() for line in f])
                 self.stopwords.update(set([line.strip() for line in f]))
 
-    def cut(self, text):
+    def cut(self, text) -> list:
         with self.lock:
             self.initialize()
             words = jieba.lcut(text)
             return [word for word in words if word not in self.stopwords]
 
-    def cut_for_search(self, text):
+    def cut_for_search(self, text) -> list:
         with self.lock:
             self.initialize()
             words = jieba.cut_for_search(text)
             return [word for word in words if word not in self.stopwords and len(word) > 1]
 
-    def lcut_for_search(self, text):
+    def lcut_for_search(self, text) -> list:
         with self.lock:
             self.initialize()
             words = jieba.lcut_for_search(text)

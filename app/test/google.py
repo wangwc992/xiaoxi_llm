@@ -84,7 +84,7 @@ def cleat_text(text):  # 定义清理文本的方法
     return text
 
 
-def get_tokens(prompt):
+async def get_tokens(prompt):
     conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
     payload = json.dumps({
         "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
@@ -100,7 +100,7 @@ def get_tokens(prompt):
     return json_data
 
 
-def get_detokenize(tokens):
+async def get_detokenize(tokens):
     conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
     payload = json.dumps({
         "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
@@ -120,21 +120,17 @@ async def reference_networked_rag(query: str):
     response = await google_search(query)
     items = response.get('items')
     title_list = get_link_title(items)
-    similarity_list = similarity(query, title_list)
+    similarity_list = Embedding.similarity(query, title_list)
 
     # Sort items by similarity and take top 2 links
     sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:2]
-
-    for item in sorted_items:
-        print(item[1].get("link"), item[1].get("title"))
-
     networked_links = [item[1].get('link') for item in sorted_items]
 
-    text_list = [cleat_text(get_text_from_html(text2soup(await google_search_text(link)))) for link in networked_links]
+    text_list = [cleat_text(get_text_from_html(text2soup(get_link_text(link)))) for link in networked_links]
 
     networked_reference_datas = []
     for text in text_list:
-        generator = get_tokens(text)
+        generator = await get_tokens(text)
         tokens = generator.get("tokens")
         count = generator.get("count")
         if count > 400:
@@ -143,17 +139,20 @@ async def reference_networked_rag(query: str):
         else:
             networked_reference_datas.append(tokens)
 
-    networked_reference_prompt = [get_detokenize(item).get("prompt") for item in networked_reference_datas]
+    networked_reference_prompt = []
+    for item in networked_reference_datas:
+        detokenize = await get_detokenize(item)
+        networked_reference_prompt.append(detokenize.get("prompt"))
 
-    networked_reference_similarity_list = similarity(query, networked_reference_prompt)
+    networked_reference_similarity_list = Embedding.similarity(query, networked_reference_prompt)
     sorted_items = sorted(zip(networked_reference_similarity_list, networked_reference_prompt), key=lambda x: x[0],
                           reverse=True)
-    reference_networked_data = "\n\n".join([f"{index + 1}. {item[1]}" for index, item in enumerate(sorted_items)])
-    print(reference_networked_data)
+    for item in sorted_items:
+        print(item[0], item[1])
     return sorted_items
 
 
 if __name__ == "__main__":
-    q = "墨尔本"
+    q = "小希教育科技？"
     print(q)
     asyncio.run(reference_networked_rag(q))
