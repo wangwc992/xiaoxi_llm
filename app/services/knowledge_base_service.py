@@ -54,7 +54,7 @@ class ClassificationModel(BaseModel):
     major_name: Optional[str] = Field(None, description="专业名称")
 
 
-result_format = '''{"choices": [ { "index": 0, "delta": { "role": "%s", "content": "%s" }} ]}'''
+result_format = '''{"choices": [ { "index": 0, "delta": { "role": "%s", "content": "%s", "classification": %s}} ]}'''
 
 
 async def is_check_student_permission(user_type, user_id, student_name):
@@ -102,6 +102,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # 加载classificationQuery模板，进行任务分类
     classification_model = await classification(model=model, query=query, reanswer=reanswer, raw_request=raw_request)
+    classification_dict = classification_model.dict()
     # 获取任务类型
     query_type = classification_model.query_type
     # ------------------------------------------------------------------------------------------------------------------
@@ -125,20 +126,22 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     elif query_type == "C":
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
-        result = result_format % ("5", "学生姓名为空")
+        if not student_name:
+            result = result_format % ("5", "学生姓名为空", classification_dict)
+            return JSONResponse(content=json.loads(result))
+
         # 判断此次请求是否有权限查看学生信息
         check_student_permission = await is_check_student_permission(user_type, user_id, student_name)
         if not check_student_permission:
-            result = result_format % ("5", "学生姓名为空")
+            result = result_format % ("5", f"名下没有 {student_name} 的学生", classification_dict)
             return JSONResponse(content=json.loads(result))
-        if not student_name:
-            return JSONResponse(content=json.loads(result))
+
         else:
             task = classification_model.task
             if task == "14":
                 application_progress_data_list = await get_application_progress_data_list(student_name)
                 if not application_progress_data_list:
-                    result = result_format % ("5", "学生姓名为空")
+                    result = result_format % ("5", f"学生{student_name}没有申请进度数据", classification_dict)
                     return JSONResponse(content=json.loads(result))
                 # 加载prompt模板
                 template = PromptTemplate.from_template(matching_summary)
@@ -148,12 +151,12 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(student_name)
                 if not service_school_dict_list:
-                    result = result_format % ("5", f"不存在{student_name}的学生")
+                    result = result_format % ("5", f"不存在{student_name}的学生", classification_dict)
                     return JSONResponse(content=json.loads(result))
 
-                result = result_format % ("5", "")
+                result = result_format % ("5", "", classification_dict)
                 result_dict = json.loads(result)
-                classification_dict = classification_model.dict()
+
                 if task == "10":
                     pass
                 else:
@@ -547,6 +550,7 @@ async def reference_networked_rag(query: str):
                           reverse=True)
     return sorted_items
 
-async def now_time(bj:str):
+
+async def now_time(bj: str):
     now = datetime.now()
-    print(bj,now.strftime('%Y-%m-%d %H:%M:%S') + f".{now.microsecond // 1000:03d}")
+    print(bj, now.strftime('%Y-%m-%d %H:%M:%S') + f".{now.microsecond // 1000:03d}")
