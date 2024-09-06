@@ -512,17 +512,19 @@ async def knowledge_base_networked_generate(query: str):
 
 
 async def reference_networked_rag(query: str):
+    await now_time("1")
     response = await google_search(query)
     items = response.get('items')
     title_list = get_link_title(items)
+    await now_time("2")
     similarity_list = Embedding.similarity(query, title_list)
 
     # Sort items by similarity and take top 2 links
     sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:2]
     networked_links = [item[1].get('link') for item in sorted_items]
-
+    await now_time("3")
     text_list = [cleat_text(get_text_from_html(text2soup(get_link_text(link)))) for link in networked_links]
-
+    await now_time("4")
     networked_reference_datas = []
     for text in text_list:
         generator = await get_tokens(text)
@@ -534,13 +536,17 @@ async def reference_networked_rag(query: str):
             networked_reference_datas.extend(token_sublists)
         else:
             networked_reference_datas.append(tokens)
-
+    await now_time("5")
     networked_reference_prompt = []
     for item in networked_reference_datas:
         detokenize = await get_detokenize(item)
         networked_reference_prompt.append(detokenize.prompt)
-
+    await now_time("6")
     networked_reference_similarity_list = Embedding.similarity(query, networked_reference_prompt)
     sorted_items = sorted(zip(networked_reference_similarity_list, networked_reference_prompt), key=lambda x: x[0],
                           reverse=True)
     return sorted_items
+
+async def now_time(bj:str):
+    now = datetime.now()
+    print(bj,now.strftime('%Y-%m-%d %H:%M:%S') + f".{now.microsecond // 1000:03d}")

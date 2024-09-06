@@ -2,16 +2,19 @@ import asyncio
 import re
 import http.client
 import json
+from datetime import time, datetime
+
 from bs4 import BeautifulSoup
 
 import requests
 from sentence_transformers.util import cos_sim
 
 from app.common.core.langchain_client import Embedding
+from app.common.utils.logging import get_logger
 from app.http.google_search import google_search, google_search_text
 
 __URL = 'https://www.googleapis.com/customsearch/v1'
-
+logger = get_logger(__name__)
 
 def invoke(query: str):
     global __URL
@@ -85,9 +88,9 @@ def cleat_text(text):  # 定义清理文本的方法
 
 
 async def get_tokens(prompt):
-    conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
+    conn = http.client.HTTPSConnection("u430182-ac52-9e557856.cqa1.seetacloud.com")
     payload = json.dumps({
-        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
+        "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
         "prompt": prompt
     })
     headers = {
@@ -101,9 +104,9 @@ async def get_tokens(prompt):
 
 
 async def get_detokenize(tokens):
-    conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
+    conn = http.client.HTTPSConnection("u430182-ac52-9e557856.cqa1.seetacloud.com")
     payload = json.dumps({
-        "model": "/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4",
+        "model": "/root/autodl-tmp/llm/Qwen2-7B-Instruct",
         "tokens": tokens
     })
     headers = {
@@ -117,17 +120,24 @@ async def get_detokenize(tokens):
 
 
 async def reference_networked_rag(query: str):
+
+    await now_time()
+
     response = await google_search(query)
     items = response.get('items')
     title_list = get_link_title(items)
+
+    await now_time()
+
     similarity_list = Embedding.similarity(query, title_list)
 
     # Sort items by similarity and take top 2 links
     sorted_items = sorted(zip(similarity_list, items), key=lambda x: x[0], reverse=True)[:2]
     networked_links = [item[1].get('link') for item in sorted_items]
 
+    await now_time()
     text_list = [cleat_text(get_text_from_html(text2soup(get_link_text(link)))) for link in networked_links]
-
+    await now_time()
     networked_reference_datas = []
     for text in text_list:
         generator = await get_tokens(text)
@@ -138,13 +148,14 @@ async def reference_networked_rag(query: str):
             networked_reference_datas.extend(token_sublists)
         else:
             networked_reference_datas.append(tokens)
-
+    await now_time()
     networked_reference_prompt = []
     for item in networked_reference_datas:
         detokenize = await get_detokenize(item)
         networked_reference_prompt.append(detokenize.get("prompt"))
-
+    await now_time()
     networked_reference_similarity_list = Embedding.similarity(query, networked_reference_prompt)
+    await now_time()
     sorted_items = sorted(zip(networked_reference_similarity_list, networked_reference_prompt), key=lambda x: x[0],
                           reverse=True)
     for item in sorted_items:
@@ -152,7 +163,12 @@ async def reference_networked_rag(query: str):
     return sorted_items
 
 
+async def now_time():
+    now = datetime.now()
+    print(now.strftime('%Y-%m-%d %H:%M:%S') + f".{now.microsecond // 1000:03d}")
+
+
 if __name__ == "__main__":
-    q = "小希教育科技？"
+    q = "党的二十届三中全会？"
     print(q)
     asyncio.run(reference_networked_rag(q))
