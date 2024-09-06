@@ -277,6 +277,7 @@ async def classification(model: str, query: str, reanswer: bool, raw_request: Re
     # 提取消息
     result_dict = await extract_message(result)
     output = result_dict.get('output')
+    logger.info(f"output: ***************************{output}***")
     # 获取任务分类,转换为ClassificationModel
     classification_model = ObjectFormatter.dict_to_object(json.loads(output), ClassificationModel)
     logger.info(f"classification_model: {classification_model.__dict__}")
