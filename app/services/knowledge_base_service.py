@@ -267,7 +267,7 @@ async def classification(model: str, query: str, reanswer: bool, raw_request: Re
         template = PromptTemplate.from_template(classification_query)
     classification_query_prompt = template.format(input=query)
     system = {"role": "system", "content": "你是一个严谨的智能问题分类助手，不会提供虚假信息"}
-    human = {"role": "human", "content": classification_query_prompt}
+    human = {"role": "user", "content": classification_query_prompt}
     chat_request = ChatCompletionRequest(
         messages=[system, human],
         model=model,
