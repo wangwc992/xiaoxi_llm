@@ -16,10 +16,11 @@ from app.common.utils.google_utils import invoke, get_link_title, get_link_text
 from app.common.utils.html_util import cleat_text, get_text_from_html, text2soup
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
+from app.common.utils.text_utils import is_all_chinese, chinese_to_pinyin
 from app.data.dictionaries import school_abbreviations
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
-    select_service_history, select_member_id_by_company_id, select_student_by_member_id
+    select_service_history, select_member_id_by_company_id, select_student_by_member_id, select_student_by_name
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from vllm.utils import random_uuid
@@ -57,7 +58,7 @@ class ClassificationModel(BaseModel):
 result_format = '''{"choices": [ { "index": 0, "delta": { "role": "%s", "content": "%s", "classification": %s}} ]}'''
 
 
-async def is_check_student_permission(user_type, user_id, student_name):
+async def get_service_master(user_type, user_id, student_name):
     member_id_list = []
     if user_type == "3":
         member_id_list = select_member_id_by_company_id(user_id)
@@ -65,9 +66,15 @@ async def is_check_student_permission(user_type, user_id, student_name):
         member_id_list.append(user_id)
 
     student_list = select_student_by_member_id(member_id_list, student_name)
-    if student_list:
-        return True
-    return False
+    if not student_list:
+        # 判断是否纯中文，纯中文在变成拼音检索一次
+        if is_all_chinese(student_name):
+            pi_yin_list = chinese_to_pinyin(student_name)
+            fast_name = pi_yin_list[0]
+            # 第二个往后取出来拼接
+            last_name = ''.join(pi_yin_list[1:])
+            student_list = select_student_by_name(member_id_list, fast_name, last_name)
+    return student_list
 
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
@@ -136,8 +143,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             return JSONResponse(content=json.loads(result))
 
         # 判断此次请求是否有权限查看学生信息
-        check_student_permission = await is_check_student_permission(user_type, user_id, student_name)
-        if not check_student_permission:
+        service_master_list = await get_service_master(user_type, user_id, student_name)
+        if not service_master_list:
             result = result_format % ("5", f"名下没有 {student_name} 的学生", classification_json)
             logger.info(f"result: {result}")
             return JSONResponse(content=json.loads(result))
@@ -145,7 +152,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         else:
             task = classification_model.task
             if task == "14":
-                application_progress_data_list = await get_application_progress_data_list(student_name)
+                application_progress_data_list = await get_application_progress_data_list(service_master_list[0].id)
                 if not application_progress_data_list:
                     result = result_format % ("5", f"学生{student_name}没有申请进度数据", classification_json)
                     return JSONResponse(content=json.loads(result))
@@ -230,12 +237,12 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         return result
 
 
-async def get_application_progress_data_list(student_name):
+async def get_application_progress_data_list(service_master_id: str):
     """ 获取学生的申请进度数据列表
     :param student_name: 学生姓名
     :return: 学生的申请进度数据列表
     """
-    service_school_dict_list = select_service_school(student_name)
+    service_school_dict_list = select_service_school(service_master_id)
     service_school_id_list = [service_school_dict.get("id") for service_school_dict in
                               service_school_dict_list]
     service_history_dict_list = select_service_history(service_school_id_list)
