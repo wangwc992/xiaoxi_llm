@@ -165,7 +165,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(service_master_list[0].get("id"))
                 if not service_school_dict_list:
-                    result = result_format % ("5", f"不存在{student_name}的学生", classification_json)
+                    result = result_format % ("5", f"{student_name}没有可总结的申请进度", classification_json)
                     return JSONResponse(content=json.loads(result))
 
                 result = result_format % ("5", "", classification_json)
