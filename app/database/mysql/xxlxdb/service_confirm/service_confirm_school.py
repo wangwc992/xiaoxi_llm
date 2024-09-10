@@ -101,5 +101,5 @@ if __name__ == '__main__':
     # SELECT wechat_id from user_adviser where company_id = 853 and delete_status = 0
     # print(select_member_id_by_company_id('853'))
     # print(select_student_by_name(['107201'], 'huang', 'xinyi'))
-    for i in select_service_school('XT1028961'):
-        print(i)
+    # for i in select_service_school('XT1028961'):
+    #     print(i)

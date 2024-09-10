@@ -153,7 +153,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             print("service_master_list", service_master_list)
             task = classification_model.task
             if task == "14":
-                application_progress_data_list = await get_application_progress_data_list(service_master_list[0].id)
+                application_progress_data_list = await get_application_progress_data_list(service_master_list[0].get("id"))
                 if not application_progress_data_list:
                     result = result_format % ("5", f"学生{student_name}没有申请进度数据", classification_json)
                     return JSONResponse(content=json.loads(result))
@@ -163,7 +163,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                                          application_progress_data_list=application_progress_data_list)
             else:
                 # 加载prompt模板
-                service_school_dict_list = select_service_school(service_master_list[0].id)
+                service_school_dict_list = select_service_school(service_master_list[0].get("id"))
                 if not service_school_dict_list:
                     result = result_format % ("5", f"不存在{student_name}的学生", classification_json)
                     return JSONResponse(content=json.loads(result))
