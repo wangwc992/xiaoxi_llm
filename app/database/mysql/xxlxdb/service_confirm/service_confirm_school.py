@@ -61,7 +61,7 @@ def select_student_by_member_id(member_id_list: list, student_name: str):
     member_id_str = "','".join(member_id)
     sql = f"SELECT * from service_master where adviser_member_id in ('{member_id_str}') and user_real_name = '{student_name}'"
     student_dict_list = xxlxdb.execute_all2dict(sql)
-    return student_list
+    return student_dict_list
 
 
 def select_student_by_name(member_id_list: list,fast_name:str , last_name:str):
