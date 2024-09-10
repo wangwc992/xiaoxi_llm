@@ -98,9 +98,9 @@ def select_student_by_name(member_id_list: list,fast_name:str , last_name:str):
 if __name__ == '__main__':
     # SELECT * from service_master
     # where adviser_member_id in (11001692) and user_real_name = "玄天姬"
-    # print(select_student_by_member_id(['11001692'], '玄天姬'))
+    print(select_student_by_member_id(['11002435'], 'Jessie Cheng'))
     # SELECT wechat_id from user_adviser where company_id = 853 and delete_status = 0
     # print(select_member_id_by_company_id('853'))
     # print(select_student_by_name(['107201'], 'huang', 'xinyi'))
-    for i in select_service_school('XT1031663'):
+    for i in select_service_school('XT1028961'):
         print(i)

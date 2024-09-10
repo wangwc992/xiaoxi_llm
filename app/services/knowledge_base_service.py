@@ -150,6 +150,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             return JSONResponse(content=json.loads(result))
 
         else:
+            print("service_master_list", service_master_list)
             task = classification_model.task
             if task == "14":
                 application_progress_data_list = await get_application_progress_data_list(service_master_list[0].id)
