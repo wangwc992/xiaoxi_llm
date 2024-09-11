@@ -455,7 +455,7 @@ async def save_weaviste(ai_chat_log_model: AiChatLogModel):
         instruction=ai_chat_log_model.query,
         output=ai_chat_log_model.output,
         created_time=ai_chat_log_model.start_time,
-    ),
+    )
     logger.info(f"ai_chat_weaviate_model: {ai_chat_weaviate_model},type: {type(ai_chat_weaviate_model)}")
 
     vector = Embedding.embed_query(ai_chat_log_model.output)
