@@ -367,7 +367,7 @@ async def extract_message(result: JSONResponse, ai_chat_log_model: AiChatLogMode
         if result_content.get('object') == 'error':
             output = result_body
         else:
-            ai_chat_log_model.id = result_content.get('id')
+            ai_chat_log_model.chat_id = result_content.get('id')
             # 获取输出
             output = result_content['choices'][0]['message']['content']
 
@@ -458,7 +458,7 @@ async def save_weaviste(ai_chat_log_model: AiChatLogModel):
     """ 保存聊天记录到向量数据库"""
     ai_chat_weaviate_model = AiChatWeaviateModel(
         conversation_id=ai_chat_log_model.conversation_id,
-        message_id=ai_chat_log_model.id,
+        message_id=ai_chat_log_model.chat_id,
         user_id=ai_chat_log_model.user_id,
         instruction=ai_chat_log_model.query,
         output=ai_chat_log_model.output,

@@ -26,7 +26,8 @@ class ClassificationModel(BaseModel):
 
 class AiChatLogModel(BaseModel):
     """对话记录模型"""
-    id: Optional[str] = Field(None, description="聊天id")
+    id: Optional[int] = Field(None, description="主键id")
+    chat_id: Optional[str] = Field(None, description="聊天id")
     conversation_id: Optional[str] = Field(None, description="会话id")
     user_id: Optional[str] = Field(None, description="用户id")
     model_name: Optional[str] = Field(None, description="模型名称")
