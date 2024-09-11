@@ -382,9 +382,10 @@ async def process_after_response(ai_chat_log_model: AiChatLogModel):
 
     usage = ModelUsage(input=ai_chat_log_model.prompt_tokens, output=ai_chat_log_model.completion_tokens,
                        total=ai_chat_log_model.total_tokens, unit='TOKENS')
-
-    await save_weaviste(ai_chat_log_model)
+    total_duration = (end_time - ai_chat_log_model.start_time).seconds
+    ai_chat_log_model.total_duration = total_duration
     await save_mysql(ai_chat_log_model)
+    await save_weaviste(ai_chat_log_model)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, result_dict)
     # await save_langfuse(user_id=user_id, chat_message_history=chat_message_history, output=output, usage=usage,
