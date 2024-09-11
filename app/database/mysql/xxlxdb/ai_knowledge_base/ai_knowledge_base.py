@@ -36,12 +36,20 @@ def get_prompt_by_type():
 
 
 def insert_ai_chat_log(ai_chat_log: AiChatLogModel):
-    #     ai_chat_log里面的值不为空，才插入
-    #     过滤掉空值
-    print("*" * 100,"ai_chat_log",ai_chat_log)
+    # 过滤掉空值，并确保安全插入
     ai_chat_log_dict = ai_chat_log.dict(exclude_unset=True)
+
+    if not ai_chat_log_dict:
+        # 如果所有值都为空，直接返回
+        return
+
     keys = ','.join(ai_chat_log_dict.keys())
-    values = ','.join([f"'{value}'" for value in ai_chat_log_dict.values()])
-    sql = f"INSERT INTO ai_chat_log ({keys}) VALUES ({values})"
-    print("*" * 100,sql)
-    xxlxdb.execute(sql)
+    placeholders = ','.join(['%s'] * len(ai_chat_log_dict))  # 使用占位符
+    values = list(ai_chat_log_dict.values())  # 提取出所有的值
+
+    # 参数化查询，避免SQL注入
+    sql = f"INSERT INTO ai_chat_log ({keys}) VALUES ({placeholders})"
+
+    # 使用参数化的方式执行 SQL
+    xxlxdb.execute(sql, values)
+
