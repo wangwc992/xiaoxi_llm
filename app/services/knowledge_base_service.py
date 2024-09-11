@@ -27,7 +27,7 @@ from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from vllm.utils import random_uuid
 
-from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeaviatemodel
+from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeaviateModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 from app.http.google_search import google_search
 from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
@@ -74,10 +74,10 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # 初始化AiChatLog,用于保存聊天记录
     ai_chat_log_model = AiChatLogModel()
-    ai_chat_log_model.start_time = datetime.now()
+    ai_chat_log_model.start_time = datetime.now(timezone(timedelta(hours=8)))
     ai_chat_log_model.query = query
     ai_chat_log_model.model_name = model
-    ai_chat_log_model.member_id = user_id
+    ai_chat_log_model.user_id = user_id
 
     # 判断是否为流式输出
     stream_options = StreamOptions(include_usage=True) if request.stream else None
@@ -408,7 +408,8 @@ async def load_reference_data(query, filters, limit):
                 knowledge_link.append(eval(response.link.replace("\n", "")))
             except:
                 logger.error(f"knowledge_link error: {response.link},type: {type(response.link)}")
-    reference_data_dto = ReferenceDataDto(reference_data=reference_data, knowledge_link=knowledge_link, reference_data_count=len(response_list))
+    reference_data_dto = ReferenceDataDto(reference_data=reference_data, knowledge_link=knowledge_link,
+                                          reference_data_count=len(response_list))
     return reference_data_dto
 
 
@@ -447,14 +448,14 @@ def query_rewrite(query):
 
 async def save_weaviste(ai_chat_log_model: AiChatLogModel):
     """ 保存聊天记录到向量数据库"""
-    ai_chat_log_model = AiChatWeaviatemodel(
+    ai_chat_weaviate_model = AiChatWeaviateModel(
         conversation_id=ai_chat_log_model.conversation_id,
-        message_id=ai_chat_log_model.member_id,
-        user_id=ai_chat_log_model.member_id,
+        message_id=ai_chat_log_model.id,
+        user_id=ai_chat_log_model.user_id,
         instruction=ai_chat_log_model.query,
         output=ai_chat_log_model.output,
         created_time=ai_chat_log_model.start_time,
-    )
+    ),
     vector = Embedding.embed_query(ai_chat_log_model.output)
     uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
 

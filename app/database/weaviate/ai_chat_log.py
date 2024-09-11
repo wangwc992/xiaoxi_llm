@@ -10,7 +10,7 @@ from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.weaviate_client import WeaviateClient
 
 
-class AiChatWeaviatemodel(BaseModel):
+class AiChatWeaviateModel(BaseModel):
     conversation_id: str = Field(None, description="会话id，用于标识一个会话")
     message_id: str = Field(None, description="消息id，用于标识一个消息")
     user_id: str = Field(None, description="用户id，用于标识一个用户")
@@ -45,7 +45,7 @@ class AiChatLogWeaviate(WeaviateClient):
         response_list = []
         for o in response.objects:
             properties = o.properties
-            knowledge_base = ObjectFormatter.dict_to_object(properties, AiChatWeaviatemodel)
+            knowledge_base = ObjectFormatter.dict_to_object(properties, AiChatWeaviateModel)
             response_list.append(knowledge_base)
         return response_list
 
