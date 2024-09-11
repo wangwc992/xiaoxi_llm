@@ -1,11 +1,12 @@
-from datetime import datetime
-
 from pydantic import BaseModel
 
-class s(BaseModel):
-    times: datetime
 
-x = s(times='2021-01-01 00:00:00')
-print(x)
+class AiChatWeaviateModel(BaseModel):
+    a :str
 
+
+z = AiChatWeaviateModel(a="a")
+
+print(z.dict())
+print(z.__dict__)
 
