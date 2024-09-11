@@ -300,6 +300,7 @@ async def stream_response(result: StreamingResponse,
     :param classification_model: 任务分类
     :return:    流式输出
     """
+    logger.info("*"*50,"流式输出")
     # 初始化输出
     output = ''
     # 初始化使用情况
@@ -339,10 +340,14 @@ async def stream_response(result: StreamingResponse,
             else:
                 # 生成完成，获取使用情况
                 usage = chunk_data.get('usage')
+                if usage:
+                    ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
+                        usage['prompt_tokens'], usage['completion_tokens'], usage['total_tokens']
+                    )
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
-    result_dict = {"output": output, "usage": usage}
+    ai_chat_log_model.output = output
     await process_after_response(ai_chat_log_model)
 
 
@@ -352,7 +357,7 @@ async def extract_message(result: JSONResponse, ai_chat_log_model: AiChatLogMode
     :param result:  返回结果
     :return:  消息
     '''
-    # 初始化输出
+    logger.info("*"*50,"非流输出")
     output = None
     # 初始化使用情况
     usage = None
