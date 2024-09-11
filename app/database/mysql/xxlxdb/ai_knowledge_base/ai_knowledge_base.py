@@ -38,7 +38,7 @@ def get_prompt_by_type():
 def insert_ai_chat_log(ai_chat_log: AiChatLogModel):
     #     ai_chat_log里面的值不为空，才插入
     #     过滤掉空值
-    print("*" * 100," ai_chat_log里面的值不为空")
+    print("*" * 100,"ai_chat_log",ai_chat_log)
     ai_chat_log_dict = ai_chat_log.dict(exclude_unset=True)
     keys = ','.join(ai_chat_log_dict.keys())
     values = ','.join([f"'{value}'" for value in ai_chat_log_dict.values()])

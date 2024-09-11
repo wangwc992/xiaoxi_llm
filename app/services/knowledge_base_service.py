@@ -300,7 +300,7 @@ async def stream_response(result: StreamingResponse,
     :param classification_model: 任务分类
     :return:    流式输出
     """
-    logger.info("*"*50,"流式输出")
+    logger.info("*" * 50 + "流式输出")
     # 初始化输出
     output = ''
     # 初始化使用情况
@@ -357,7 +357,7 @@ async def extract_message(result: JSONResponse, ai_chat_log_model: AiChatLogMode
     :param result:  返回结果
     :return:  消息
     '''
-    logger.info("*"*50,"非流输出")
+    logger.info("*" * 50 + "非流输出")
     output = None
     # 初始化使用情况
     usage = None
