@@ -19,13 +19,15 @@ from app.common.utils.object_utils import ObjectFormatter
 from app.common.utils.text_utils import is_all_chinese, chinese_to_pinyin
 from app.data.dictionaries import school_abbreviations
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
+from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import AiChatLogModel, ReferenceDataDto, \
+    MyChatCompletionRequestModel, ClassificationModel
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
     select_service_history, select_member_id_by_company_id, select_student_by_member_id, select_student_by_name
 from app.database.redis.redis_client import get_object, set_object
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
 from vllm.utils import random_uuid
 
-from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatLogModel
+from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeaviatemodel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 from app.http.google_search import google_search
 from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
@@ -33,27 +35,6 @@ from app.prompt import classification_query, xiao_xi_chat, matching_summary, mat
 
 router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
-
-
-class MyChatCompletionRequestModel(BaseModel):
-    query: str = Field(..., description="用户输入的问题")
-    stream: Optional[bool] = Field(False, description="是否流式输出")
-    model: Optional[str] = Field("/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4", description="模型名称")
-    conversation_id: Optional[str] = Field(None, description="会话id，用于标识一个会话")
-
-    user_type: Optional[str] = Field("1", description="用户类型2，顾问，3，机构")
-    user_id: Optional[str] = Field("0", description="2为member_id,3为机构id")
-    reanswer: Optional[bool] = Field(False, description="是否再次回答")
-
-
-# {"queryType":"C","task":"3","studentName":"xuyunyi","schoolName":"oeinstein","majorName":"digitalhumanities"}
-class ClassificationModel(BaseModel):
-    query_type: Optional[str] = Field(None, description="问题类型")
-    task: Optional[str] = Field(None, description="任务编号")
-    student_name: Optional[str] = Field(None, description="学生姓名")
-    school_name: Optional[str] = Field(None, description="学校名称")
-    major_name: Optional[str] = Field(None, description="专业名称")
-
 
 result_format = '''{"choices": [ { "index": 0, "delta": { "role": "%s", "content": "%s", "classification": %s}} ]}'''
 
@@ -79,36 +60,35 @@ async def get_service_master(user_type, user_id, student_name):
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
-    # 接口开始时间
-    start_time = datetime.now()
-    # 知识库链接
-    knowledge_link = {}
-    # 参考数据
-    reference_data = {}
-    # 参考数据数量
-    reference_data_count = 0
+    reference_data_dto = ReferenceDataDto()
 
     # 获取请求参数
     conversation_id = request.conversation_id
-    query = request.query
+    # query改写,将学校简称替换为全称
+    query = query_rewrite(request.query)
     model = request.model
     stream = request.stream
-
     user_type = request.user_type
     user_id = request.user_id
     reanswer = request.reanswer
 
+    # 初始化AiChatLog,用于保存聊天记录
+    ai_chat_log_model = AiChatLogModel()
+    ai_chat_log_model.start_time = datetime.now()
+    ai_chat_log_model.query = query
+    ai_chat_log_model.model_name = model
+    ai_chat_log_model.member_id = user_id
+
     # 判断是否为流式输出
     stream_options = StreamOptions(include_usage=True) if request.stream else None
 
-    # query改写,将学校简称替换为全称
-    query = query_rewrite(query)
-
     # 初始化历史消息列表
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
+    ai_chat_log_model.conversation_id = conversation_id
 
     # 加载classificationQuery模板，进行任务分类
-    classification_model = await classification(model=model, query=query, reanswer=reanswer, raw_request=raw_request)
+    classification_model = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
+                                                raw_request=raw_request)
     classification_dict = classification_model.dict()
 
     # 学生信息有错误返回task为-1
@@ -117,6 +97,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     classification_json = json.dumps(student_info_error)
     # 获取任务类型
     query_type = classification_model.query_type
+    message_type = query_type
     # ------------------------------------------------------------------------------------------------------------------
     if query_type == "A" or query_type == "B":
         # 留学相关的海外院校/专业/申请相关的知识
@@ -127,14 +108,11 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             # 小希平台相关功能知识
             filters = Filter.by_property("db_name").equal("platform_introduction")
         # 获取参考数据
-        reference_data_dict = await load_reference_data(query=query, filters=filters, limit=10)
-        reference_data = reference_data_dict.get("reference_data")
-        knowledge_link = reference_data_dict.get("knowledge_link")
-        reference_data_count = reference_data_dict.get("reference_data_count")
+        reference_data_dto = await load_reference_data(query=query, filters=filters, limit=10)
 
         # 加载prompt模板
         template = PromptTemplate.from_template(xiao_xi_chat)
-        prompt = template.format(input=query, reference_data=reference_data)
+        prompt = template.format(input=query, reference_data=reference_data_dto.reference_data)
     elif query_type == "C":
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
@@ -148,12 +126,13 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             result = result_format % ("5", f"名下没有 {student_name} 的学生", classification_json)
             logger.info(f"result: {result}")
             return JSONResponse(content=json.loads(result))
-
         else:
             print("service_master_list", service_master_list)
             task = classification_model.task
+            message_type = query_type + "-" + task
             if task == "14":
-                application_progress_data_list = await get_application_progress_data_list(service_master_list[0].get("id"))
+                application_progress_data_list = await get_application_progress_data_list(
+                    service_master_list[0].get("id"))
                 if not application_progress_data_list:
                     result = result_format % ("5", f"学生{student_name}没有申请进度数据", classification_json)
                     return JSONResponse(content=json.loads(result))
@@ -187,11 +166,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                     # 创建chat_completion请求
                     chat_result = await create_chat_completion(chat_request, raw_request)
 
-                    chat_result_dict = await extract_message(chat_result)
-
-                    output = chat_result_dict.get("output")
-
-                    output_dict = await json_formatting(output)
+                    await extract_message(chat_result, ai_chat_log_model)
+                    output_dict = await json_formatting(ai_chat_log_model.output)
 
                     classification_dict["ids"] = output_dict.get("ids")
                 delta = result_dict["choices"][0]["delta"]
@@ -215,25 +191,24 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 获取返回结果
     result = await create_chat_completion(chat_request, raw_request)
 
+    ai_chat_log_model.prompt = prompt
+    ai_chat_log_model.message_type = message_type
     # ------------------------------------------------------------------------------------------------------------------
     # 将用户输入添加到消息列表，便于后续保存
     history_message_list[-1]["content"] = query
     # 判断是否为流式输出
     if isinstance(result, StreamingResponse):
         return StreamingResponse(
-            stream_response(result, user_id, history_message_list, start_time, knowledge_link, conversation_id,
-                            reference_data_count, classification_model),
+            stream_response(result, ai_chat_log_model, reference_data_dto, classification_model),
             media_type="text/event-stream"
         )
     else:
-        result_dict = await extract_message(result)
-        background_tasks.add_task(process_after_response, result_dict,
-                                  user_id, history_message_list, start_time, conversation_id)
+        await extract_message(result, ai_chat_log_model)
+        background_tasks.add_task(process_after_response, ai_chat_log_model)
 
         # 转码为json格式
         response_dict = json.loads(result.body.decode('utf-8'))
-        response_dict["reference_data"] = reference_data
-        response_dict["knowledge_link"] = knowledge_link
+        response_dict["reference_data_dto"] = reference_data_dto.dict()
         result = JSONResponse(content=response_dict)
         return result
 
@@ -262,10 +237,10 @@ async def get_application_progress_data_list(service_master_id: str):
     return application_progress_data_list
 
 
-async def classification(model: str, query: str, reanswer: bool, raw_request: Request):
+async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool, raw_request: Request):
     """ 任务分类
-    :param model: 模型名称
-    :param query: 用户输入
+    :param ai_chat_log_model: AiChatLogModel
+    :param reanswer: 是否再次回答
     :param raw_request: 请求
     :return: 任务分类结果 ClassificationModel
     """
@@ -273,22 +248,21 @@ async def classification(model: str, query: str, reanswer: bool, raw_request: Re
         template = PromptTemplate.from_template(reanswer_classification_query)
     else:
         template = PromptTemplate.from_template(classification_query)
-    classification_query_prompt = template.format(input=query)
+    classification_query_prompt = template.format(input=ai_chat_log_model.query)
     system = {"role": "system", "content": "你是一个严谨的智能问题分类助手，不会提供虚假信息"}
     human = {"role": "user", "content": classification_query_prompt}
     chat_request = ChatCompletionRequest(
         messages=[system, human],
-        model=model,
+        model=ai_chat_log_model.model_name,
     )
     # 创建chat_completion请求
     result = await create_chat_completion(chat_request, raw_request)
     # 提取消息
-    result_dict = await extract_message(result)
-    output = result_dict.get('output')
-    logger.info(f"output: ***************************{output}***")
+    await extract_message(result, ai_chat_log_model)
+    output = ai_chat_log_model.output
+    logger.info(f"reanswer_classification_query: ***************************{output}***")
     # 获取任务分类,转换为ClassificationModel
     classification_model = ObjectFormatter.dict_to_object(json.loads(output), ClassificationModel)
-    logger.info(f"classification_model: {classification_model.__dict__}")
     return classification_model
 
 
@@ -313,17 +287,16 @@ async def get_history_message_list(conversation_id: str, query: str):
     return conversation_id, history_message_list
 
 
-async def stream_response(result: StreamingResponse, user_id: str, message_list: list, start_time: datetime,
-                          knowledge_link: dict,
-                          conversation_id: str, reference_data_count: int, classification_model: ClassificationModel):
+async def stream_response(result: StreamingResponse,
+                          ai_chat_log_model: AiChatLogModel,
+                          reference_data_dto: ReferenceDataDto,
+                          classification_model: ClassificationModel):
     """
     流式输出
     :param result:  返回结果
-    :param user_id:  用户ID
-    :param message_list:  消息列表
-    :param start_time:  请求开始时间
-    :param knowledge_link:  知识库链接
-    :param conversation_id:     会话ID
+    :param ai_chat_log_model: AiChatLogModel
+    :param reference_data_dto: 参考数据
+    :param classification_model: 任务分类
     :return:    流式输出
     """
     # 初始化输出
@@ -339,9 +312,9 @@ async def stream_response(result: StreamingResponse, user_id: str, message_list:
             chunk_data = json.loads(chunk)
             delta = chunk_data.get('choices')[0]['delta']
             delta['role'] = "1"
-            delta['content'] = knowledge_link
-            delta['reference_data_count'] = reference_data_count
-            chunk_data['conversation_id'] = conversation_id
+            delta['content'] = reference_data_dto.knowledge_link
+            delta['reference_data_count'] = reference_data_dto.reference_data_count
+            chunk_data['conversation_id'] = ai_chat_log_model.conversation_id
             if classification_model.query_type == "C":
                 delta['role'] = "5"
                 delta['classification'] = classification_model.dict()
@@ -369,10 +342,10 @@ async def stream_response(result: StreamingResponse, user_id: str, message_list:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
 
     result_dict = {"output": output, "usage": usage}
-    await process_after_response(result_dict, user_id, message_list, start_time, conversation_id)
+    await process_after_response(ai_chat_log_model)
 
 
-async def extract_message(result):
+async def extract_message(result: JSONResponse, ai_chat_log_model: AiChatLogModel):
     '''
     非流式输出 提取消息
     :param result:  返回结果
@@ -388,28 +361,28 @@ async def extract_message(result):
         if result_content.get('object') == 'error':
             output = result_body
         else:
+            ai_chat_log_model.id = result_content.get('id')
             # 获取输出
             output = result_content['choices'][0]['message']['content']
+
             # 获取使用情况
             usage = result_content.get('usage')
-    return {"output": output, "usage": usage}
+            if usage:
+                ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
+                    usage['prompt_tokens'], usage['completion_tokens'], usage['total_tokens']
+                )
+        ai_chat_log_model.output = output
+    return output
 
 
-async def process_after_response(result_dict, user_id, chat_message_history, start_time, conversation_id):
+async def process_after_response(ai_chat_log_model: AiChatLogModel):
     # 请求结束时间
     end_time = datetime.now()
-    # 获取用户输入
-    input = chat_message_history[-1]['content']
-    # 获取输出
-    output = result_dict.get('output')
-    # 获取使用情况
-    usage = result_dict.get('usage')
-    if usage:
-        # 将使用情况转换为ModelUsage
-        usage = ModelUsage(input=usage['prompt_tokens'], output=usage['completion_tokens'],
-                           total=usage['total_tokens'], unit='TOKENS')
 
-    await save_weaviste(conversation_id, user_id, input, output)
+    usage = ModelUsage(input=ai_chat_log_model.prompt_tokens, output=ai_chat_log_model.completion_tokens,
+                       total=ai_chat_log_model.total_tokens, unit='TOKENS')
+
+    await save_weaviste(ai_chat_log_model)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, result_dict)
     # await save_langfuse(user_id=user_id, chat_message_history=chat_message_history, output=output, usage=usage,
@@ -435,12 +408,8 @@ async def load_reference_data(query, filters, limit):
                 knowledge_link.append(eval(response.link.replace("\n", "")))
             except:
                 logger.error(f"knowledge_link error: {response.link},type: {type(response.link)}")
-
-    return {
-        "reference_data": reference_data,
-        "knowledge_link": knowledge_link,
-        "reference_data_count": len(response_list),
-    }
+    reference_data_dto = ReferenceDataDto(reference_data=reference_data, knowledge_link=knowledge_link, reference_data_count=len(response_list))
+    return reference_data_dto
 
 
 async def get_weaviste_history(conversation_id, query):
@@ -476,21 +445,15 @@ def query_rewrite(query):
     return query
 
 
-async def save_weaviste(conversation_id, user_id, input, output):
-    """ 保存聊天记录到向量数据库
-    :param conversation_id: 会话ID
-    :param user_id: 用户ID
-    :param input: 用户输入
-    :param output: 输出
-    """
-    ai_chat_log_model = AiChatLogModel(
-        conversation_id=conversation_id,
-        message_id=user_id,
-        user_id="123",
-        instruction=input,
-        output=output,
-        created_time=datetime.now(timezone(timedelta(hours=8))),
-        reference_data_uuids=["123"]
+async def save_weaviste(ai_chat_log_model: AiChatLogModel):
+    """ 保存聊天记录到向量数据库"""
+    ai_chat_log_model = AiChatWeaviatemodel(
+        conversation_id=ai_chat_log_model.conversation_id,
+        message_id=ai_chat_log_model.member_id,
+        user_id=ai_chat_log_model.member_id,
+        instruction=ai_chat_log_model.query,
+        output=ai_chat_log_model.output,
+        created_time=ai_chat_log_model.start_time,
     )
     vector = Embedding.embed_query(ai_chat_log_model.output)
     uuid = ai_chat_log_weaviate.insert_data(ai_chat_log_model.dict(), vector)
@@ -521,6 +484,21 @@ async def save_langfuse(user_id: str, chat_message_history: list, output: str, u
                                                 input=chat_message_history, output=output)
     trace_id = langfuse_context.get_current_trace_id()
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
+
+
+@observe()
+async def save_mysql(user_id: str, chat_message_history: list, output: str, usage: ModelUsage,
+                     start_time: datetime, end_time: datetime):
+    """ 保存聊天记录到langfuse
+    :param user_id: 用户ID
+    :param chat_message_history: 聊天记录
+    :param output: 输出
+    :param usage: 使用情况
+    :param start_time: 请求开始时间
+    :param end_time: 请求结束时间
+    """
+
+    pass
 
 
 async def knowledge_base_networked_generate(query: str):
