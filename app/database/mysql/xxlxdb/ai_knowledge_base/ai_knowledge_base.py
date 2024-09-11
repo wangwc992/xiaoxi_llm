@@ -43,4 +43,5 @@ def insert_ai_chat_log(ai_chat_log: AiChatLogModel):
     keys = ','.join(ai_chat_log_dict.keys())
     values = ','.join([f"'{value}'" for value in ai_chat_log_dict.values()])
     sql = f"INSERT INTO ai_chat_log ({keys}) VALUES ({values})"
+    print("*" * 100,sql)
     xxlxdb.execute(sql)
