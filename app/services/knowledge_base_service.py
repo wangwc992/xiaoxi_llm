@@ -19,6 +19,7 @@ from app.common.utils.object_utils import ObjectFormatter
 from app.common.utils.text_utils import is_all_chinese, chinese_to_pinyin
 from app.data.dictionaries import school_abbreviations
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
+from app.database.mysql.xxlxdb.ai_knowledge_base.ai_knowledge_base import insert_ai_chat_log
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import AiChatLogModel, ReferenceDataDto, \
     MyChatCompletionRequestModel, ClassificationModel
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
@@ -383,6 +384,7 @@ async def process_after_response(ai_chat_log_model: AiChatLogModel):
                        total=ai_chat_log_model.total_tokens, unit='TOKENS')
 
     await save_weaviste(ai_chat_log_model)
+    await save_mysql(ai_chat_log_model)
     # TODO
     # await save_redis(chat_message_history, chat_message_history_key, result_dict)
     # await save_langfuse(user_id=user_id, chat_message_history=chat_message_history, output=output, usage=usage,
@@ -489,19 +491,11 @@ async def save_langfuse(user_id: str, chat_message_history: list, output: str, u
     Langfuse().generation(usage=usage, trace_id=trace_id, start_time=start_time, end_time=end_time)
 
 
-@observe()
-async def save_mysql(user_id: str, chat_message_history: list, output: str, usage: ModelUsage,
-                     start_time: datetime, end_time: datetime):
+async def save_mysql(ai_chat_log_model: AiChatLogModel):
     """ 保存聊天记录到langfuse
-    :param user_id: 用户ID
-    :param chat_message_history: 聊天记录
-    :param output: 输出
-    :param usage: 使用情况
-    :param start_time: 请求开始时间
-    :param end_time: 请求结束时间
+    :param ai_chat_log_model: AiChatLogModel
     """
-
-    pass
+    insert_ai_chat_log(ai_chat_log_model)
 
 
 async def knowledge_base_networked_generate(query: str):
