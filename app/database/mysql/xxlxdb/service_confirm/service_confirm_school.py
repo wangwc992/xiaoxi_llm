@@ -12,7 +12,8 @@ def select_service_school(service_master_id: str):
         scs.create_time
     FROM
         service_confirm_school scs
-        INNER JOIN service_master sm ON sm.id = scs.service_id 
+        INNER JOIN service_master sm ON sm.id = scs.service_id
+         AND scs.is_asny = 1 
     WHERE
         sm.id = '{service_master_id}'
 	"""
