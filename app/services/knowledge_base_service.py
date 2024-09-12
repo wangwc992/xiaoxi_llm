@@ -420,7 +420,10 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
         usage.prompt_tokens, usage.completion_tokens, usage.total_tokens
     )
     ai_chat_log_model.chat_id = chat_completion_stream_response.id
-    ai_chat_log_model.output = chat_completion_stream_response.choices[0].delta.content
+    content = chat_completion_stream_response.choices[0].delta.content
+    if not content:
+        content = chat_completion_stream_response.choices[0].message.content
+    ai_chat_log_model.output = content
 
     logger.info(f"********chat_responsr_to_chat_log: {ai_chat_log_model.dict()}"
                 f"********chat_responsr_to_chat_log: {chat_completion_stream_response.dict()}")
