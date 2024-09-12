@@ -216,7 +216,7 @@ async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
     # 创建chat_completion请求
     result = await create_chat_completion(chat_request, raw_request)
     # 提取消息
-    await extract_message(result, ai_chat_log_model)
+    await extract_message(result)
     output = ai_chat_log_model.output
     logger.info(f"reanswer_classification_query" + "*" * 50 + output)
     # 获取任务分类,转换为ClassificationModel
