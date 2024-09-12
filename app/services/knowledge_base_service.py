@@ -292,8 +292,8 @@ async def extract_message(result: JSONResponse) -> ChatCompletionStreamResponse:
     '''
     logger.info("*" * 50 + "非流输出")
     result_body = result.body.decode('utf-8')
-    result_content = json.loads(result_body)
-    chat_completion_stream_response = datat_to_chat_completion_stream_response(result_content)
+    # result_content = json.loads(result_body)
+    chat_completion_stream_response = datat_to_chat_completion_stream_response(result_body)
     return chat_completion_stream_response
 
 
