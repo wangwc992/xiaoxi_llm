@@ -254,10 +254,9 @@ async def stream_response(result: StreamingResponse,
         if first_chunk:
             # 第一个chunk，添加知识库链接,并将会话id添加到chunk中,并转码为json格式返回
             chat_completion_stream_response.conversation_id = ai_chat_log_model.conversation_id
+            chat_completion_stream_response.reference_data_dto = reference_data_dto
             delta = chat_completion_stream_response.choices[0].delta
             delta.role = "1"
-            delta.content = reference_data_dto.knowledge_link
-            delta.reference_data_count = reference_data_dto.reference_data_count
             if classification_model.query_type == "C":
                 delta.role = "5"
                 delta.classification = classification_model.dict()
