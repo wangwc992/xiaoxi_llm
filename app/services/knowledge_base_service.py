@@ -422,6 +422,9 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
     ai_chat_log_model.chat_id = chat_completion_stream_response.id
     ai_chat_log_model.output = chat_completion_stream_response.choices[0].delta.content
 
+    logger.info(f"********chat_responsr_to_chat_log: {ai_chat_log_model.dict()}"
+                f"********chat_responsr_to_chat_log: {chat_completion_stream_response.dict()}")
+
 
 async def get_service_master(user_type, user_id, student_name):
     member_id_list = []
