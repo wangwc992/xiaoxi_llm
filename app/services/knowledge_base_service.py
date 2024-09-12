@@ -76,7 +76,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     message_type = query_type
     # 返回对象
     chat_completion_stream_response = ChatCompletionStreamResponse()
-    chat_completion_stream_response.ClassificationModel = classification_model
+    chat_completion_stream_response.classification_model = classification_model
     # ------------------------------------------------------------------------------------------------------------------
     if query_type == "A" or query_type == "B":
         # 留学相关的海外院校/专业/申请相关的知识
