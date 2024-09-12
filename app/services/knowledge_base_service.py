@@ -246,14 +246,11 @@ async def stream_response(result: StreamingResponse,
     # 判断是否为第一个chunk
     first_chunk = True
     async for chunk in result.body_iterator:
-        chunk = chunk[len("data: "):]
-        chunk_data = json.loads(chunk)
-
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
         if chunk.strip() == "data: [DONE]" or not chunk.strip():
             continue
 
-        chat_completion_stream_response = datat_to_chat_completion_stream_response(chunk_data)
+        chat_completion_stream_response = datat_to_chat_completion_stream_response(chunk)
         if first_chunk:
             # 第一个chunk，添加知识库链接,并将会话id添加到chunk中,并转码为json格式返回
             chat_completion_stream_response.conversation_id = ai_chat_log_model.conversation_id
