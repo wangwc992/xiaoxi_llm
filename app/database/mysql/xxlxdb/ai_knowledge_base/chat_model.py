@@ -57,7 +57,7 @@ class UsageInfo(BaseModel):
 
 class ChatCompletionStreamResponse(BaseModel):
     id: Optional[str] = "default_id"
-    object: Optional[Literal["chat.completion.chunk"]] = "chat.completion.chunk"
+    object: str = "chat.completion.chunk"
     created: Optional[int] = 0  # Provide a default value
     model: Optional[str] = "default_model"  # Provide a default value
     choices: List[ChatCompletionResponseStreamChoice] = Field(
