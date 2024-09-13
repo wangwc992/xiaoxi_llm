@@ -36,8 +36,9 @@ from app.http.google_search import google_search
 from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
     reanswer_classification_query
 
-router = APIRouter(prefix="/chat")
 logger = get_logger(__name__)
+
+TASK_A, TASK_B, TASK_C, TASK_D = "A", "B", "C", "D"
 
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
@@ -78,9 +79,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     chat_completion_stream_response = ChatCompletionStreamResponse()
     chat_completion_stream_response.classification_model = classification_model
     # ------------------------------------------------------------------------------------------------------------------
-    if query_type == "A" or query_type == "B":
+    if query_type == TASK_A or query_type == TASK_B:
         # 留学相关的海外院校/专业/申请相关的知识
-        if query_type == "A":
+        if query_type == TASK_A:
             # 获取海外院校/专业/申请相关的知识
             filters = Filter.by_property("db_name").not_equal("platform_introduction")
         else:
@@ -92,7 +93,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         # 加载prompt模板
         template = PromptTemplate.from_template(xiao_xi_chat)
         prompt = template.format(input=query, reference_data=reference_data_dto.reference_data)
-    elif query_type == "C":
+    elif query_type == TASK_C:
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
         if not student_name:
@@ -151,7 +152,6 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 output_dict = await json_formatting(ai_chat_log_model.output)
                 # 将学校id添加到classification_model中
                 classification_model.service_school_id = output_dict.get("ids")
-
                 return JSONResponse(content=chat_completion_stream_response.dict())
     else:
         # 闲聊
@@ -243,12 +243,13 @@ async def stream_response(result: StreamingResponse,
     # 初始化输出
     output = ''
     # 初始化使用情况
-    usage = None
+    done = 'data: [DONE]'
     # 判断是否为第一个chunk
     first_chunk = True
     async for chunk in result.body_iterator:
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
-        if chunk.strip() == "data: [DONE]" or not chunk.strip():
+        if chunk.strip() == done:
+            yield chunk
             continue
 
         chat_completion_stream_response = datat_to_chat_completion_stream_response(chunk)
@@ -262,7 +263,7 @@ async def stream_response(result: StreamingResponse,
                 delta.role = "5"
                 delta.classification = classification_model.dict()
             first_chunk = False
-        yield f"data: {json.dumps(chat_completion_stream_response.dict())}\n\n"
+        yield chunk
 
         # 去除chunk中的data:前缀
         if first_chunk:
@@ -305,14 +306,11 @@ async def process_after_response(ai_chat_log_model: AiChatLogModel):
     """ 请求结束后的处理
     :param ai_chat_log_model: AiChatLogModel
     """
-
     # 请求结束时间
     end_time = datetime.now()
-
-    usage = ModelUsage(input=ai_chat_log_model.prompt_tokens, output=ai_chat_log_model.completion_tokens,
-                       total=ai_chat_log_model.total_tokens, unit='TOKENS')
     total_duration = (end_time - ai_chat_log_model.start_time).seconds
     ai_chat_log_model.total_duration = total_duration
+
     await save_mysql(ai_chat_log_model)
     await save_weaviste(ai_chat_log_model)
     # TODO
