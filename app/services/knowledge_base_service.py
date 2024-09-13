@@ -274,6 +274,7 @@ async def stream_response(result: StreamingResponse,
                 if delta_content:
                     output += delta_content
             elif chat_completion_stream_response.usage:
+                print("*"*10,chat_completion_stream_response.usage,type(chat_completion_stream_response.usage))
                 await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
                 ai_chat_log_model.output = output
         except json.JSONDecodeError as e:
@@ -411,6 +412,10 @@ async def save_weaviste(ai_chat_log_model: AiChatLogModel):
 
 async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response):
     """ 将chat_completion_stream_response转换为AiChatLogModel"""
+
+    logger.info(f"********chat_responsr_to_chat_log: {ai_chat_log_model.dict()}"
+                f"********chat_responsr_to_chat_log: {chat_completion_stream_response.dict()}")
+
     usage = chat_completion_stream_response.usage
     ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
         usage.prompt_tokens, usage.completion_tokens, usage.total_tokens
