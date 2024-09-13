@@ -67,13 +67,11 @@ async def get_service_master(user_type, user_id, student_name):
 
     student_list = select_student_by_member_id(member_id_list, student_name)
     if not student_list:
-        # 判断是否包含中文，纯中文在变成拼音检索一次
-        if has_chinese(student_name):
-            pi_yin_list = chinese_to_pinyin(student_name)
-            fast_name = pi_yin_list[0]
-            # 第二个往后取出来拼接
-            last_name = ''.join(pi_yin_list[1:])
-            student_list = select_student_by_name(member_id_list, fast_name, last_name)
+        pi_yin_list = chinese_to_pinyin(student_name)
+        fast_name = pi_yin_list[0]
+        # 第二个往后取出来拼接
+        last_name = ''.join(pi_yin_list[1:])
+        student_list = select_student_by_name(member_id_list, fast_name, last_name)
     return student_list
 
 
