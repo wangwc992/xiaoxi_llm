@@ -267,15 +267,20 @@ async def stream_response(result: StreamingResponse,
         if first_chunk:
             continue
         try:
-            choice = chat_completion_stream_response.choices[0]
+            choices = chat_completion_stream_response.choices
             # 判断choices是否为空或者finish_reason是否为stop，finish_reason=stop表示生成完成
-            if choice and choice.finish_reason != 'stop':
-                delta_content = choice.delta.content
+            if choices:
+                delta_content = choices[0].delta.content
                 if delta_content:
                     output += delta_content
             elif chat_completion_stream_response.usage:
-                print("*"*10,chat_completion_stream_response.usage,type(chat_completion_stream_response.usage))
+                print("*" * 10, chat_completion_stream_response.usage, type(chat_completion_stream_response.usage))
                 await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
+                usage = chat_completion_stream_response.usage
+                ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
+                    usage.prompt_tokens, usage.completion_tokens, usage.total_tokens
+                )
+
                 ai_chat_log_model.output = output
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
