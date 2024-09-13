@@ -170,29 +170,26 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 result = result_format % ("5", "", classification_json)
                 result_dict = json.loads(result)
 
-                if task == "10":
-                    result_dict["choices"][0]["delta"]["classification"]["task"] = "10"
-                else:
-                    template = PromptTemplate.from_template(matching_information)
-                    prompt = template.format(input=query, student_info=classification_model,
-                                             application_information_list=service_school_dict_list)
+                template = PromptTemplate.from_template(matching_information)
+                prompt = template.format(input=query, student_info=classification_model,
+                                         application_information_list=service_school_dict_list)
 
-                    system = {"role": "system", "content": "你是数据分析提取助手"}
-                    human = {"role": "human", "content": prompt}
-                    chat_request = ChatCompletionRequest(
-                        messages=[system, human],
-                        model=model,
-                    )
-                    # 创建chat_completion请求
-                    chat_result = await create_chat_completion(chat_request, raw_request)
+                system = {"role": "system", "content": "你是数据分析提取助手"}
+                human = {"role": "human", "content": prompt}
+                chat_request = ChatCompletionRequest(
+                    messages=[system, human],
+                    model=model,
+                )
+                # 创建chat_completion请求
+                chat_result = await create_chat_completion(chat_request, raw_request)
 
-                    chat_result_dict = await extract_message(chat_result)
+                chat_result_dict = await extract_message(chat_result)
 
-                    output = chat_result_dict.get("output")
+                output = chat_result_dict.get("output")
 
-                    output_dict = await json_formatting(output)
+                output_dict = await json_formatting(output)
 
-                    classification_dict["ids"] = output_dict.get("ids")
+                classification_dict["ids"] = output_dict.get("ids")
                 delta = result_dict["choices"][0]["delta"]
                 delta["classification"] = classification_dict
 
