@@ -16,7 +16,7 @@ from app.common.utils.google_utils import invoke, get_link_title, get_link_text
 from app.common.utils.html_util import cleat_text, get_text_from_html, text2soup
 from app.common.utils.logging import get_logger
 from app.common.utils.object_utils import ObjectFormatter
-from app.common.utils.text_utils import is_all_chinese, chinese_to_pinyin
+from app.common.utils.text_utils import is_all_chinese, chinese_to_pinyin, has_chinese
 from app.data.dictionaries import school_abbreviations
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
@@ -67,8 +67,8 @@ async def get_service_master(user_type, user_id, student_name):
 
     student_list = select_student_by_member_id(member_id_list, student_name)
     if not student_list:
-        # 判断是否纯中文，纯中文在变成拼音检索一次
-        if is_all_chinese(student_name):
+        # 判断是否包含中文，纯中文在变成拼音检索一次
+        if has_chinese(student_name):
             pi_yin_list = chinese_to_pinyin(student_name)
             fast_name = pi_yin_list[0]
             # 第二个往后取出来拼接
