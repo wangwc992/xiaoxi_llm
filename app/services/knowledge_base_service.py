@@ -257,6 +257,8 @@ async def get_application_progress_data_list(service_master_id: str):
             history['status_name'] = "申请资料已提交给⼩希平台"
         elif history['status'] == "140":
             history['status_name'] = "已为学⽣递交院校申请"
+        #  create_time 格式化年月日
+        history['create_time'] = history['create_time'].strftime("%Y-%m-%d")
         history.pop('status')
         if confirm_schl_id in school_dict:
             school_dict[confirm_schl_id]['service_history'].append(history)
