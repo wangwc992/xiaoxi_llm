@@ -5,6 +5,7 @@ def select_service_school(service_master_id: str):
     sql = f"""
     SELECT
         scs.id,
+        sm.user_real_name
         scs.school_chinese_name,
         scs.school_english_name,
         scs.project_chinese_name,
@@ -28,6 +29,7 @@ def select_service_history(service_school_id_list: list):
     sql = f"""
     SELECT
         confirm_schl_id,
+        status,
         status_name,
         create_time 
     FROM

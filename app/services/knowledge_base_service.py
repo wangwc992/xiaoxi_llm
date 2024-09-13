@@ -148,9 +148,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             result = result_format % ("5", f"名下没有 {student_name} 的学生", classification_json)
             logger.info(f"result: {result}")
             return JSONResponse(content=json.loads(result))
-
         else:
-            print("service_master_list", service_master_list)
+            classification_model.student_name = service_master_list[0].get("user_real_name")
             task = classification_model.task
             if task == "14":
                 application_progress_data_list = await get_application_progress_data_list(service_master_list[0].get("id"))
@@ -255,6 +254,11 @@ async def get_application_progress_data_list(service_master_id: str):
     # Append each history item to the corresponding school dictionary
     for history in service_history_dict_list:
         confirm_schl_id = history['confirm_schl_id']
+        if history['status'] == "130":
+            history['status_name'] = "申请资料已提交给⼩希平台"
+        elif history['status'] == "140":
+            history['status_name'] = "已为学⽣递交院校申请"
+        history.pop('status')
         if confirm_schl_id in school_dict:
             school_dict[confirm_schl_id]['service_history'].append(history)
     # Convert the dictionary back to a list
