@@ -275,12 +275,11 @@ async def stream_response(result: StreamingResponse,
                     output += delta_content
             elif chat_completion_stream_response.usage:
                 print("*" * 10, chat_completion_stream_response.usage, type(chat_completion_stream_response.usage))
-                await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
                 usage = chat_completion_stream_response.usage
                 ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
                     usage.prompt_tokens, usage.completion_tokens, usage.total_tokens
                 )
-
+                ai_chat_log_model.chat_id = chat_completion_stream_response.id
                 ai_chat_log_model.output = output
         except json.JSONDecodeError as e:
             logger.error(f"JSONDecodeError: {e} - Skipping chunk: {chunk}")
@@ -430,10 +429,6 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
     if not content:
         content = chat_completion_stream_response.choices[0].message.content
     ai_chat_log_model.output = content
-
-    logger.info(f"********chat_responsr_to_chat_log: {ai_chat_log_model.dict()}"
-                f"********chat_responsr_to_chat_log: {chat_completion_stream_response.dict()}")
-
 
 async def get_service_master(user_type, user_id, student_name):
     member_id_list = []
