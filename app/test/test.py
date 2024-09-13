@@ -2,19 +2,23 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
+    select_service_history
 
-class AiChatWeaviateModel(BaseModel):
-    conversation_id: str = Field(None, description="会话id，用于标识一个会话")
-    message_id: str = Field(None, description="消息id，用于标识一个消息")
-    user_id: str = Field(None, description="用户id，用于标识一个用户")
-    instruction: str = Field(None, description="用户输入的问题")
-    output: str = Field(None, description="小希的回答")
-    created_time: datetime = Field(None, description="消息创建时间")
-
-
-
-z = AiChatWeaviateModel(conversation_id="1", message_id="2", user_id="3", instruction="4", output="5", created_time=datetime.now())
-
-print(z.dict())
-print(z.__dict__)
+service_school_dict_list = select_service_school("XT1020156")
+service_school_id_list = [service_school_dict.get("id") for service_school_dict in
+                          service_school_dict_list]
+service_history_dict_list = select_service_history(service_school_id_list)
+# Create a dictionary with school id as the key
+school_dict = {school['id']: school for school in service_school_dict_list}
+# Initialize the service_history field for each school
+for school in school_dict.values():
+    school['service_history'] = []
+# Append each history item to the corresponding school dictionary
+for history in service_history_dict_list:
+    confirm_schl_id = history['confirm_schl_id']
+    if confirm_schl_id in school_dict:
+        school_dict[confirm_schl_id]['service_history'].append(history)
+# Convert the dictionary back to a list
+application_progress_data_list = list(school_dict.values())
 

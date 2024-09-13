@@ -104,52 +104,53 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         if not service_master_list:
             await chat_result_msg05(chat_completion_stream_response, f"名下没有 {student_name} 的学生")
             return JSONResponse(content=chat_completion_stream_response.dict())
+
         else:
+            # 将学生姓名添加到classification_model中
+            classification_model.student_name = service_master_list[0].get("student_name")
             task = classification_model.task
             message_type = query_type + "-" + task
             if task == "14":
                 application_progress_data_list = await get_application_progress_data_list(
                     service_master_list[0].get("id"))
                 if not application_progress_data_list:
-                    await chat_result_msg05(chat_completion_stream_response, f"学生{student_name}没有申请进度数据")
+                    await chat_result_msg05(chat_completion_stream_response, f"学生{student_name}没有可总结的申请进度")
                     return JSONResponse(content=chat_completion_stream_response.dict())
                 # 加载prompt模板
                 template = PromptTemplate.from_template(matching_summary)
+
                 prompt = template.format(input=query, student_info=classification_model,
                                          application_progress_data_list=application_progress_data_list)
             else:
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(service_master_list[0].get("id"))
                 if not service_school_dict_list:
-                    await chat_result_msg05(chat_completion_stream_response, f"{student_name}没有可总结的申请进度")
+                    await chat_result_msg05(chat_completion_stream_response, f"{student_name}没有可操作的学校")
                     return JSONResponse(content=chat_completion_stream_response.dict())
 
                 choice = chat_completion_stream_response.choices[0].delta
                 choice.role = "5"
 
-                if task == "10":
-                    pass
-                else:
-                    template = PromptTemplate.from_template(matching_information)
-                    prompt = template.format(input=query, student_info=classification_model,
-                                             application_information_list=service_school_dict_list)
+                template = PromptTemplate.from_template(matching_information)
+                prompt = template.format(input=query, student_info=classification_model,
+                                         application_information_list=service_school_dict_list)
 
-                    system = Message(role="system", content="你是数据分析提取助手")
-                    human = Message(role="user", content=prompt)
-                    chat_request = ChatCompletionRequest(
-                        messages=[system, human],
-                        model=model,
-                    )
-                    # 创建chat_completion请求
-                    chat_result = await create_chat_completion(chat_request, raw_request)
-                    # 提取消息
-                    chat_completion_stream_response = await extract_message(chat_result)
-                    # 将用户输入添加到消息列表，便于后续保存
-                    await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
-                    # 获取返回结果
-                    output_dict = await json_formatting(ai_chat_log_model.output)
-                    # 将学校id添加到classification_model中
-                    classification_model.service_school_id = output_dict.get("ids")
+                system = Message(role="system", content="你是数据分析提取助手")
+                human = Message(role="user", content=prompt)
+                chat_request = ChatCompletionRequest(
+                    messages=[system, human],
+                    model=model,
+                )
+                # 创建chat_completion请求
+                chat_result = await create_chat_completion(chat_request, raw_request)
+                # 提取消息
+                chat_completion_stream_response = await extract_message(chat_result)
+                # 将用户输入添加到消息列表，便于后续保存
+                await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
+                # 获取返回结果
+                output_dict = await json_formatting(ai_chat_log_model.output)
+                # 将学校id添加到classification_model中
+                classification_model.service_school_id = output_dict.get("ids")
 
                 return JSONResponse(content=chat_completion_stream_response.dict())
     else:
@@ -430,6 +431,7 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
         content = chat_completion_stream_response.choices[0].message.content
     ai_chat_log_model.output = content
 
+
 async def get_service_master(user_type, user_id, student_name):
     member_id_list = []
     if user_type == "3":
@@ -466,6 +468,11 @@ async def get_application_progress_data_list(service_master_id: str):
     # Append each history item to the corresponding school dictionary
     for history in service_history_dict_list:
         confirm_schl_id = history['confirm_schl_id']
+        if history['status'] == "130":
+            history['status_name'] = "申请资料已提交给⼩希平台"
+        elif history['status'] == "140":
+            history['status_name'] = "已为学⽣递交院校申请"
+        history.pop('status')
         if confirm_schl_id in school_dict:
             school_dict[confirm_schl_id]['service_history'].append(history)
     # Convert the dictionary back to a list
