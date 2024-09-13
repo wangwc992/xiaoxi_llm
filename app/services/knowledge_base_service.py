@@ -273,7 +273,7 @@ async def stream_response(result: StreamingResponse,
                 delta_content = choice.delta.content
                 if delta_content:
                     output += delta_content
-            else:
+            elif chat_completion_stream_response.usage:
                 await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
                 ai_chat_log_model.output = output
         except json.JSONDecodeError as e:
