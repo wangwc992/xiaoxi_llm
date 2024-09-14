@@ -262,7 +262,7 @@ async def stream_response(result: StreamingResponse,
             delta = chat_completion_stream_response.choices[0].delta
             if classification_model.query_type == "C":
                 delta.role = "platform_operation"
-                delta.classification = classification_model.dict()
+                chat_completion_stream_response.classification_model = classification_model.dict()
             first_chunk = False
         yield "data: " + chat_completion_stream_response.json() + "\n\n"
 
