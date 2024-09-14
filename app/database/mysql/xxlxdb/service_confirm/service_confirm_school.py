@@ -5,7 +5,6 @@ def select_service_school(service_master_id: str):
     sql = f"""
     SELECT
         scs.id,
-        sm.user_real_name
         scs.school_chinese_name,
         scs.school_english_name,
         scs.project_chinese_name,
