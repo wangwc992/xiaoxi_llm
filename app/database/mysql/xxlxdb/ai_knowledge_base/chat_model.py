@@ -44,7 +44,7 @@ class ChatCompletionLogProbs(BaseModel):
 class ChatCompletionResponseStreamChoice(BaseModel):
     index: int
     delta: Optional[DeltaMessage] = Field(default_factory=DeltaMessage)
-    message: Optional[DeltaMessage] = Field(default_factory=DeltaMessage)
+    message: Optional[DeltaMessage] = None
     logprobs: Optional[ChatCompletionLogProbs] = None
     finish_reason: Optional[str] = None
     stop_reason: Optional[Union[int, str]] = None
@@ -72,7 +72,6 @@ class ChatCompletionStreamResponse(BaseModel):
 
 def datat_to_chat_completion_stream_response(data_str: str) -> ChatCompletionStreamResponse:
     """对话完成流响应转换"""
-    print("*" * 20, data_str, "*" * 20)
     if data_str.startswith("data: "):
         data_str = data_str[len("data: "):]
     chat_completion_stream_response = ChatCompletionStreamResponse.parse_raw(data_str)
