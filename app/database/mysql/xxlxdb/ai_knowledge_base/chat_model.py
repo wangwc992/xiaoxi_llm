@@ -23,8 +23,8 @@ class DeltaToolCall(BaseModel):
 
 class DeltaMessage(BaseModel):
     role: Optional[str] = None
-    content: Optional[str] = None
-    tool_calls: List[DeltaToolCall] = Field(default_factory=list)
+    content: Optional[str] = ''
+    tool_calls: Optional[List[DeltaToolCall]] = None
 
 
 class ChatCompletionLogProb(BaseModel):

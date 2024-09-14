@@ -49,4 +49,4 @@ class ReferenceDataDto(BaseModel):
     """参考数据模型"""
     reference_data: str = Field(None, description="参考数据")
     knowledge_link: list = Field(None, description="知识链接")
-    reference_data_count: int = Field(0, description="参考数据数量")
+    reference_data_count: int = Field(None, description="参考数据数量")
