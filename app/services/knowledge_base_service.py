@@ -261,7 +261,7 @@ async def stream_response(result: StreamingResponse,
             delta = chat_completion_stream_response.choices[0].delta
             if classification_model.query_type == "C":
                 delta.role = "platform_operation"
-            if classification_model.query_type == "A" or classification_model.query_type == "B" or classification_model.query_type == "D":
+            if classification_model.query_type == "A" or classification_model.query_type == "B" or classification_model.query_type == "C":
                 chat_completion_stream_response.reference_data_dto = reference_data_dto
 
             chat_completion_stream_response.classification_model = classification_model.dict()
