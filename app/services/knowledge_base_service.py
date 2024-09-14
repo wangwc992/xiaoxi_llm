@@ -130,7 +130,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                     return JSONResponse(content=chat_completion_stream_response.dict())
 
                 choice = chat_completion_stream_response.choices[0].delta
-                choice.role = "5"
+                choice.role = "platform_operation"
 
                 template = PromptTemplate.from_template(matching_information)
                 prompt = template.format(input=query, student_info=classification_model,
@@ -258,12 +258,11 @@ async def stream_response(result: StreamingResponse,
             chat_completion_stream_response.conversation_id = ai_chat_log_model.conversation_id
             chat_completion_stream_response.reference_data_dto = reference_data_dto
             delta = chat_completion_stream_response.choices[0].delta
-            delta.role = "1"
             if classification_model.query_type == "C":
-                delta.role = "5"
+                delta.role = "platform_operation"
                 delta.classification = classification_model.dict()
             first_chunk = False
-        yield chunk
+        yield "data: " + chat_completion_stream_response.json() + "\n\n"
 
         # 去除chunk中的data:前缀
         if first_chunk:
@@ -570,5 +569,5 @@ async def json_formatting(json_str: str) -> dict:
 async def chat_result_msg05(chat_completion_stream_response: ChatCompletionStreamResponse, content: str):
     choice = chat_completion_stream_response.choices[0].delta
     choice.content = content
-    choice.role = "5"
+    choice.role = "platform_operation"
     chat_completion_stream_response.classification_model.task = "-1"
