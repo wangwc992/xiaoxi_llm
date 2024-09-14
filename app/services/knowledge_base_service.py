@@ -77,7 +77,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     message_type = query_type
     # 返回对象
     chat_completion_stream_response = ChatCompletionStreamResponse()
-    chat_completion_stream_response.classification_model = classification_model
+
     # ------------------------------------------------------------------------------------------------------------------
     if query_type == TASK_A or query_type == TASK_B:
         # 留学相关的海外院校/专业/申请相关的知识
@@ -146,6 +146,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 chat_result = await create_chat_completion(chat_request, raw_request)
                 # 提取消息
                 chat_completion_stream_response = await extract_message(chat_result)
+
+                chat_completion_stream_response.classification_model = classification_model
                 # 将用户输入添加到消息列表，便于后续保存
                 await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
                 # 获取返回结果
