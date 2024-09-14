@@ -153,7 +153,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         else:
             classification_model.student_name = service_master_list[0].get("user_real_name")
             task = classification_model.task
-            if task == "14":
+            if task == "14" or task == "":
+                classification_model.task = "14"
                 application_progress_data_list = await get_application_progress_data_list(service_master_list[0].get("id"))
                 if not application_progress_data_list:
                     result = result_format % ("5", f"学生{student_name}没有申请进度数据", classification_json)
