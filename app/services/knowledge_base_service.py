@@ -34,7 +34,7 @@ from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeavia
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 from app.http.google_search import google_search
 from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
-    reanswer_classification_query
+    reanswer_classification_query, small_talk
 
 logger = get_logger(__name__)
 
@@ -158,7 +158,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     else:
         # 闲聊
         system = Message(role="system", content="你是ai闲聊助手")
-        prompt = request.query
+        template = PromptTemplate.from_template(small_talk)
+        prompt = template.format(input=query)
         history_message_list.append(system)
 
     human = Message(role="human", content=prompt)
