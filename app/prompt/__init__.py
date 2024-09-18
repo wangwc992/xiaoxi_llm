@@ -20,3 +20,5 @@ information_completion = prompt_dict.get('information_completion')
 reanswer_classification_query = prompt_dict.get('reanswer_classification_query')
 # json格式化
 json_formatting = prompt_dict.get('json_formatting')
+# 闲聊small_talk
+small_talk = prompt_dict.get('small_talk')
