@@ -262,7 +262,8 @@ async def stream_response(result: StreamingResponse,
             delta = chat_completion_stream_response.choices[0].delta
             if classification_model.query_type == "C":
                 delta.role = "platform_operation"
-            if classification_model.query_type == "A" or classification_model.query_type == "B" or classification_model.query_type == "C":
+            if classification_model.query_type == "A" or classification_model.query_type == "B":
+                reference_data_dto.reference_data = ''
                 chat_completion_stream_response.reference_data_dto = reference_data_dto
 
             chat_completion_stream_response.classification_model = classification_model.dict()
@@ -422,7 +423,7 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
 
     logger.info(f"********chat_responsr_to_chat_log: {ai_chat_log_model.dict()}"
                 f"********chat_responsr_to_chat_log: {chat_completion_stream_response.dict()}")
-
+    chat_completion_stream_response.conversation_id = ai_chat_log_model.conversation_id
     usage = chat_completion_stream_response.usage
     ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
         usage.prompt_tokens, usage.completion_tokens, usage.total_tokens
