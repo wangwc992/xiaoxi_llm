@@ -4,8 +4,10 @@ from fastapi import Request, APIRouter, BackgroundTasks
 from starlette.responses import StreamingResponse
 
 from app.api.openai.api_server import scheduler
+from app.common.constant.knowledge_base_constant import CHAT_CALL_OUT
 from app.common.core.context import get_chat_visits_number
 from app.common.utils.logging import get_logger
+from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionStreamResponse
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
 from app.middleware.exception import ChatSuspendException
 
@@ -40,9 +42,11 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
     await scheduler()
     # 判断是否超过最大并发数
     if get_chat_visits_number():
-        result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "chat线程数量超了" }} ]}'''
-        return StreamingResponse(content=result, media_type="text/event-stream")
-
+        chat_completion_stream_response = ChatCompletionStreamResponse()
+        choice = chat_completion_stream_response.choices[0].delta
+        choice.role = CHAT_CALL_OUT
+        choice.content = "chat线程数量超了"
+        return StreamingResponse(content=chat_completion_stream_response.dict(), media_type="text/event-stream")
     try:
         return await knowledge_base_generate(request, raw_request, background_tasks)
     except Exception as e:
