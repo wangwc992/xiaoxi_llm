@@ -25,8 +25,7 @@ from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_know
                                                                      search_zn_school_recruit_graduate_1,
                                                                      search_zn_school_recruit_graduate_2,
                                                                      search_zn_school_recruit_art,
-                                                                     search_zn_school_department_project,
-                                                                     search_knowledge_info_data2)
+                                                                     search_zn_school_department_project)
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
