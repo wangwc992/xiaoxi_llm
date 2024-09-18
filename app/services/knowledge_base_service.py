@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from weaviate.classes.query import Filter
 
 from app.api.openai.api_server import create_chat_completion, get_tokens, get_detokenize
+from app.common.constant.knowledge_base_constant import TASK_A, TASK_B, TASK_C,TASK_D, PLATFORM_OPERATION,ASSISTANT
 from app.common.core.langchain_client import Embedding
 from app.common.utils.google_utils import invoke, get_link_title, get_link_text
 from app.common.utils.html_util import cleat_text, get_text_from_html, text2soup
@@ -37,8 +38,6 @@ from app.prompt import classification_query, xiao_xi_chat, matching_summary, mat
     reanswer_classification_query, small_talk
 
 logger = get_logger(__name__)
-
-TASK_A, TASK_B, TASK_C, TASK_D = "A", "B", "C", "D"
 
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
@@ -130,8 +129,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                     return JSONResponse(content=chat_completion_stream_response.dict())
 
                 choice = chat_completion_stream_response.choices[0].delta
-                choice.role = "platform_operation"
-
+                choice.role = PLATFORM_OPERATION
                 template = PromptTemplate.from_template(matching_information)
                 prompt = template.format(input=query, student_info=classification_model,
                                          application_information_list=service_school_dict_list)
@@ -261,7 +259,9 @@ async def stream_response(result: StreamingResponse,
             chat_completion_stream_response.conversation_id = ai_chat_log_model.conversation_id
             delta = chat_completion_stream_response.choices[0].delta
             if classification_model.query_type == "C":
-                delta.role = "platform_operation"
+                delta.role = PLATFORM_OPERATION
+            else:
+                delta.role = ASSISTANT
             if classification_model.query_type == "A" or classification_model.query_type == "B":
                 reference_data_dto.reference_data = ''
                 chat_completion_stream_response.reference_data_dto = reference_data_dto

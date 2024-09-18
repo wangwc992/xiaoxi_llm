@@ -1,3 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 import weaviate
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.collections.classes.grpc import HybridFusion
@@ -13,7 +16,7 @@ logger = get_logger(__name__)
 client = weaviate.connect_to_local(grpc_port=weaviate_client.get('grpc_port'), port=weaviate_client.get('port'),host=weaviate_client.get('host'), skip_init_checks=True)
 collections_name = 'Qwen_data_base'
 ai_chat_log = 'Ai_chat_log'
-collection = client.collections.get(ai_chat_log)
+collection = client.collections.get(collections_name)
 
 
 def delete_many():
@@ -93,7 +96,7 @@ def search_hybrid(query, limit):
         query=query,
         fusion_type=HybridFusion.RELATIVE_SCORE,
         query_properties=["instruction"],
-        filters=Filter.by_property("database").equal("notice_message"),
+        filters=Filter.by_property("db_name").equal("notice_message"),
         vector=Embedding.embed_query(query),
         return_metadata=MetadataQuery(score=True, explain_score=True),
         limit=limit,
@@ -118,7 +121,7 @@ def fetch_objects():
 
 
 if __name__ == "__main__":
-    delete_many()
+    # delete_many()
     # delete_collection_name()
     # ai_chat_log_weaviate.delete_collection_name(ai_chat_log_weaviate.collections_name)
     # ai_chat_log_weaviate.create_collection(ai_chat_log_weaviate.properties)
@@ -133,6 +136,6 @@ if __name__ == "__main__":
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
 
-    # search_hybrid("墨尔本大学 怎么样", 10)
+    search_hybrid("墨尔本大学 怎么样", 10)
     # fetch_objects()
     pass
