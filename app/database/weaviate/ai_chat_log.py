@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 from weaviate.classes.config import Configure, Property, DataType
 from weaviate.collections.classes.grpc import HybridFusion, MetadataQuery
 
@@ -10,14 +10,13 @@ from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.weaviate_client import WeaviateClient
 
 
-class AiChatLogModel(BaseModel):
+class AiChatWeaviateModel(BaseModel):
     conversation_id: str = Field(None, description="会话id，用于标识一个会话")
     message_id: str = Field(None, description="消息id，用于标识一个消息")
     user_id: str = Field(None, description="用户id，用于标识一个用户")
     instruction: str = Field(None, description="用户输入的问题")
     output: str = Field(None, description="小希的回答")
     created_time: datetime = Field(None, description="消息创建时间")
-    reference_data_uuids: list = Field(None, description="参考数据uuids")
 
 
 class AiChatLogWeaviate(WeaviateClient):
@@ -29,7 +28,6 @@ class AiChatLogWeaviate(WeaviateClient):
         Property(name='instruction', data_type=DataType.TEXT, description='用户输入的问题'),
         Property(name='output', data_type=DataType.TEXT, description='小希的回答'),
         Property(name='created_time', data_type=DataType.DATE, description='消息创建时间'),
-        Property(name='reference_data_uuids', data_type=DataType.TEXT_ARRAY, description='参考数据uuids')
     ]
 
     async def search_hybrid(self, query, limit, filters=None):
@@ -47,7 +45,7 @@ class AiChatLogWeaviate(WeaviateClient):
         response_list = []
         for o in response.objects:
             properties = o.properties
-            knowledge_base = ObjectFormatter.dict_to_object(properties, AiChatLogModel)
+            knowledge_base = ObjectFormatter.dict_to_object(properties, AiChatWeaviateModel)
             response_list.append(knowledge_base)
         return response_list
 

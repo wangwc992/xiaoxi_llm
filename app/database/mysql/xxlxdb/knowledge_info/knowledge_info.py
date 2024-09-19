@@ -77,11 +77,6 @@ def search_knowledge_info_data(id=0, limit=10):
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
 
 
-# def search_knowledge_info_data2(id=0, limit=10):
-#     sql = f"SELECT id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl,attachment_content FROM weaviate_knowledge_info where id > {id}"
-#     return yhj.execute_all2dict(sql=sql, limit=limit)
-
-
 def search_notice_message_data(id: int = 0, limit: int = 10):
     '''小希平台院校资讯'''
     if limit == 1:

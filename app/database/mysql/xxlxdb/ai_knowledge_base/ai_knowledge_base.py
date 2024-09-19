@@ -1,4 +1,5 @@
 from app.database.mysql.mysql_client import xxlxdb
+from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import AiChatLogModel
 
 '''CREATE TABLE `ai_knowledge_base_keyword` (
 	`id` INT(10) NOT NULL COMMENT '主键id',
@@ -32,3 +33,23 @@ def get_prompt_by_type():
     sql = f"SELECT type,prompt FROM ai_prompt WHERE state = 1 "
     prompt_list = xxlxdb.execute_all2dict(sql)
     return prompt_list
+
+
+def insert_ai_chat_log(ai_chat_log: AiChatLogModel):
+    # 过滤掉空值，并确保安全插入
+    ai_chat_log_dict = ai_chat_log.dict(exclude_unset=True)
+
+    if not ai_chat_log_dict:
+        # 如果所有值都为空，直接返回
+        return
+
+    keys = ','.join(ai_chat_log_dict.keys())
+    placeholders = ','.join(['%s'] * len(ai_chat_log_dict))  # 使用占位符
+    values = list(ai_chat_log_dict.values())  # 提取出所有的值
+
+    # 参数化查询，避免SQL注入
+    sql = f"INSERT INTO ai_chat_log ({keys}) VALUES ({placeholders})"
+
+    # 使用参数化的方式执行 SQL
+    xxlxdb.execute(sql, values)
+
