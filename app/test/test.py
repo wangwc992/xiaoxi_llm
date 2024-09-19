@@ -15,11 +15,11 @@ class AAA(BaseModel):
     bbb: Optional[BBB] = Field(default_factory=BBB)
 
 
-a = AAA(w = "w")
+a = AAA(w="w")
 z1 = a.model_dump(exclude_unset=True)
 z2 = a.model_dump_json(exclude_defaults=True)
 z3 = a.model_dump_json(exclude_none=True)
-z4= a.dict()
+z4 = a.dict()
 print(z1)
 # z1 变成字典类型
 

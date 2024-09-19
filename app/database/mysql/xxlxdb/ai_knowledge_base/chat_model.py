@@ -15,21 +15,21 @@ class DeltaFunctionCall(BaseModel):
 
 
 class DeltaToolCall(BaseModel):
-    id: str
-    type: Literal["function"] = "function"
-    index: int
+    id: str = None
+    type: Literal["function"] = None
+    index: int = None
     function: Optional[DeltaFunctionCall] = None
 
 
 class DeltaMessage(BaseModel):
     role: Optional[str] = None
-    content: Optional[str] = ''
+    content: Optional[str] = None
     tool_calls: Optional[List[DeltaToolCall]] = None
 
 
 class ChatCompletionLogProb(BaseModel):
-    token: str
-    logprob: float = -9999.0
+    token: str = None
+    logprob: float = None
     bytes: Optional[List[int]] = None
 
 
@@ -57,10 +57,10 @@ class UsageInfo(BaseModel):
 
 
 class ChatCompletionStreamResponse(BaseModel):
-    id: Optional[str] = "default_id"
-    object: str = "chat.completion.chunk"
-    created: Optional[int] = 0  # Provide a default value
-    model: Optional[str] = "default_model"  # Provide a default value
+    id: Optional[str] = None
+    object: str = None
+    created: Optional[int] = None  # Provide a default value
+    model: Optional[str] = None  # Provide a default value
     choices: List[ChatCompletionResponseStreamChoice] = Field(
         default_factory=lambda: [ChatCompletionResponseStreamChoice(index=0, delta=DeltaMessage())])
     usage: Optional[UsageInfo] = Field(default_factory=UsageInfo)

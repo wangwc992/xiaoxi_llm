@@ -97,14 +97,14 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         student_name = classification_model.student_name
         if not student_name:
             await chat_result_msg05(chat_completion_stream_response, "学生姓名为空")
-            return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+            return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_none=True))
 
         # 判断此次请求是否有权限查看学生信息
         service_master_list = await get_service_master(user_type, user_id, student_name)
         if not service_master_list:
             await chat_result_msg05(chat_completion_stream_response, f"名下没有 {student_name} 的学生")
             logger.info(chat_completion_stream_response.dict())
-            return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+            return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_none=True))
         else:
             # 将学生姓名添加到classification_model中
             classification_model.student_name = service_master_list[0].get("student_name")
@@ -115,7 +115,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                     service_master_list[0].get("id"))
                 if not application_progress_data_list:
                     await chat_result_msg05(chat_completion_stream_response, f"学生{student_name}没有可总结的申请进度")
-                    return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+                    return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_none=True))
                 # 加载prompt模板
                 template = PromptTemplate.from_template(matching_summary)
 
@@ -126,7 +126,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 service_school_dict_list = select_service_school(service_master_list[0].get("id"))
                 if not service_school_dict_list:
                     await chat_result_msg05(chat_completion_stream_response, f"{student_name}没有可操作的学校")
-                    return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+                    return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_none=True))
 
                 choice = chat_completion_stream_response.choices[0].delta
                 choice.role = PLATFORM_OPERATION
@@ -152,7 +152,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 output_dict = await json_formatting(ai_chat_log_model.output)
                 # 将学校id添加到classification_model中
                 classification_model.service_school_id = output_dict.get("ids")
-                return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+                return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_none=True))
     else:
         # 闲聊
         system = Message(role="system", content="你是ai闲聊助手")
