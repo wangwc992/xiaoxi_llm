@@ -51,9 +51,9 @@ class ChatCompletionResponseStreamChoice(BaseModel):
 
 
 class UsageInfo(BaseModel):
-    prompt_tokens: int = 0
-    total_tokens: int = 0
-    completion_tokens: Optional[int] = 0
+    prompt_tokens: Optional[int] = None
+    total_tokens: Optional[int] = None
+    completion_tokens: Optional[int] = None
 
 
 class ChatCompletionStreamResponse(BaseModel):

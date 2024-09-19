@@ -42,7 +42,7 @@ logger = get_logger(__name__)
 
 async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_request: Request,
                                   background_tasks: BackgroundTasks):
-    reference_data_dto = ReferenceDataDto()
+    reference_data_dto = None
 
     # 获取请求参数
     conversation_id = request.conversation_id
@@ -265,8 +265,9 @@ async def stream_response(result: StreamingResponse,
             else:
                 delta.role = ASSISTANT
             if classification_model.query_type == "A" or classification_model.query_type == "B" or classification_model.query_type == "C":
-                reference_data_dto.reference_data = ''
-                chat_completion_stream_response.reference_data_dto = reference_data_dto
+                if reference_data_dto:
+                    reference_data_dto.reference_data = ''
+                    chat_completion_stream_response.reference_data_dto = reference_data_dto
 
             first_chunk = False
         yield "data: " + chat_completion_stream_response.model_dump_json(exclude_unset=True) + "\n\n"

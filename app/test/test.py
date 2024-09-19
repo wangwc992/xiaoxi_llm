@@ -10,11 +10,12 @@ class BBB(BaseModel):
 
 
 class AAA(BaseModel):
-    q: Optional[str] = None
-    w: Optional[str] = None
+    q: Optional[str] = "None"
+    w: Optional[str]
     bbb: Optional[BBB] = Field(default_factory=BBB)
 
 
-a = AAA()
-
+a = AAA(w = "w")
 print(a.model_dump_json(exclude_unset=True))
+print(a.model_dump_json(exclude_defaults=True))
+print(a.model_dump_json(exclude_none=True))
