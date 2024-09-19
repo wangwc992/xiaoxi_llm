@@ -24,7 +24,7 @@ from app.database.mysql.xxlxdb.ai_knowledge_base.ai_knowledge_base import insert
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import AiChatLogModel, ReferenceDataDto, \
     MyChatCompletionRequestModel, ClassificationModel
 from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionStreamResponse, Message, \
-    datat_to_chat_completion_stream_response, DeltaMessage
+    datat_to_chat_completion_stream_response, DeltaMessage, ChatCompletionResponseStreamChoice
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
     select_service_history, select_member_id_by_company_id, select_student_by_member_id, select_student_by_name
 from app.database.redis.redis_client import get_object, set_object
@@ -575,9 +575,12 @@ async def json_formatting(json_str: str) -> dict:
 
 
 async def chat_result_msg05(chat_completion_stream_response: ChatCompletionStreamResponse, content: str):
-    choice = DeltaMessage()
-    choice.content = content
-    choice.role = "platform_operation"
+    delta = DeltaMessage()
+    delta.content = content
+    delta.role = "platform_operation"
+    chat_completion_response_stream_choice = ChatCompletionResponseStreamChoice()
+    chat_completion_response_stream_choice.delta = delta
+    chat_completion_stream_response.choices.append(chat_completion_response_stream_choice)
     classification_model = ClassificationModel()
     classification_model.task = "-1"
     classification_model.query_type = "C"
