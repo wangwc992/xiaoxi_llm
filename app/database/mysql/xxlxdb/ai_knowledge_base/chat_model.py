@@ -42,7 +42,7 @@ class ChatCompletionLogProbs(BaseModel):
 
 
 class ChatCompletionResponseStreamChoice(BaseModel):
-    index: int
+    index: int = None
     delta: Optional[DeltaMessage] = Field(default_factory=DeltaMessage)
     message: Optional[DeltaMessage] = None
     logprobs: Optional[ChatCompletionLogProbs] = None
