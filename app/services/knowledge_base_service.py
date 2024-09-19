@@ -103,8 +103,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         service_master_list = await get_service_master(user_type, user_id, student_name)
         if not service_master_list:
             await chat_result_msg05(chat_completion_stream_response, f"名下没有 {student_name} 的学生")
+            logger.info(chat_completion_stream_response.dict())
             return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
-
         else:
             # 将学生姓名添加到classification_model中
             classification_model.student_name = service_master_list[0].get("student_name")
