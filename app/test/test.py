@@ -16,6 +16,10 @@ class AAA(BaseModel):
 
 
 a = AAA(w = "w")
-print(a.model_dump_json(exclude_unset=True))
-print(a.model_dump_json(exclude_defaults=True))
-print(a.model_dump_json(exclude_none=True))
+z1 = a.model_dump(exclude_unset=True)
+z2 = a.model_dump_json(exclude_defaults=True)
+z3 = a.model_dump_json(exclude_none=True)
+z4= a.dict()
+print(z1)
+# z1 变成字典类型
+
