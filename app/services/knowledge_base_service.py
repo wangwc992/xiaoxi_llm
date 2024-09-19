@@ -580,7 +580,8 @@ async def chat_result_msg05(chat_completion_stream_response: ChatCompletionStrea
     delta.role = "platform_operation"
     chat_completion_response_stream_choice = ChatCompletionResponseStreamChoice()
     chat_completion_response_stream_choice.delta = delta
-    chat_completion_stream_response.choices.append(chat_completion_response_stream_choice)
+    chat_completion_response_stream_choices = [chat_completion_response_stream_choice]
+    chat_completion_stream_response.choices = chat_completion_response_stream_choices
     classification_model = ClassificationModel()
     classification_model.task = "-1"
     classification_model.query_type = "C"
