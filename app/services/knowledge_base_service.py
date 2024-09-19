@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from weaviate.classes.query import Filter
 
 from app.api.openai.api_server import create_chat_completion, get_tokens, get_detokenize
-from app.common.constant.knowledge_base_constant import TASK_A, TASK_B, TASK_C,TASK_D, PLATFORM_OPERATION,ASSISTANT
+from app.common.constant.knowledge_base_constant import TASK_A, TASK_B, TASK_C, TASK_D, PLATFORM_OPERATION, ASSISTANT
 from app.common.core.langchain_client import Embedding
 from app.common.utils.google_utils import invoke, get_link_title, get_link_text
 from app.common.utils.html_util import cleat_text, get_text_from_html, text2soup
@@ -96,15 +96,15 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         # 小希平台进行留学申请相关操作
         student_name = classification_model.student_name
         if not student_name:
-            await chat_result_msg05(chat_completion_stream_response, "学生姓名为空")
-            return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+            return JSONResponse(content=chat_result_msg05(chat_completion_stream_response, "学生姓名为空"))
 
         # 判断此次请求是否有权限查看学生信息
         service_master_list = await get_service_master(user_type, user_id, student_name)
         if not service_master_list:
-            await chat_result_msg05(chat_completion_stream_response, f"名下没有 {student_name} 的学生")
+
             logger.info(chat_completion_stream_response.dict())
-            return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+            return JSONResponse(
+                content=chat_result_msg05(chat_completion_stream_response, f"名下没有 {student_name} 的学生"))
         else:
             # 将学生姓名添加到classification_model中
             classification_model.student_name = service_master_list[0].get("student_name")
@@ -114,8 +114,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 application_progress_data_list = await get_application_progress_data_list(
                     service_master_list[0].get("id"))
                 if not application_progress_data_list:
-                    await chat_result_msg05(chat_completion_stream_response, f"学生{student_name}没有可总结的申请进度")
-                    return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+                    return JSONResponse(content=chat_result_msg05(chat_completion_stream_response,
+                                                                  f"学生{student_name}没有可总结的申请进度"))
                 # 加载prompt模板
                 template = PromptTemplate.from_template(matching_summary)
 
@@ -125,8 +125,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 加载prompt模板
                 service_school_dict_list = select_service_school(service_master_list[0].get("id"))
                 if not service_school_dict_list:
-                    await chat_result_msg05(chat_completion_stream_response, f"{student_name}没有可操作的学校")
-                    return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
+                    return JSONResponse(
+                        content=chat_result_msg05(chat_completion_stream_response, f"{student_name}没有可操作的学校"))
 
                 choice = chat_completion_stream_response.choices[0].delta
                 choice.role = PLATFORM_OPERATION
@@ -574,15 +574,10 @@ async def json_formatting(json_str: str) -> dict:
     return eval(json_str)
 
 
-async def chat_result_msg05(chat_completion_stream_response: ChatCompletionStreamResponse, content: str):
-    delta = DeltaMessage()
-    delta.content = content
-    delta.role = "platform_operation"
-    chat_completion_response_stream_choice = ChatCompletionResponseStreamChoice()
-    chat_completion_response_stream_choice.delta = delta
-    chat_completion_response_stream_choices = [chat_completion_response_stream_choice]
-    chat_completion_stream_response.choices = chat_completion_response_stream_choices
-    classification_model = ClassificationModel()
-    classification_model.task = "-1"
-    classification_model.query_type = "C"
-    chat_completion_stream_response.classification_model = classification_model
+def chat_result_msg05(chat_completion_stream_response: ChatCompletionStreamResponse, content: str):
+    choice = chat_completion_stream_response.choices[0].delta
+    choice.content = content
+    choice.role = "platform_operation"
+    chat_completion_stream_response.classification_model.task = "-1"
+    chat_completion_stream_response.classification_model.query_type = "C"
+    return chat_completion_stream_response.model_dump()
