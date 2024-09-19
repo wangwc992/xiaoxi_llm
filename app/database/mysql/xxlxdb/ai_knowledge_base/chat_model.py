@@ -66,8 +66,8 @@ class ChatCompletionStreamResponse(BaseModel):
     usage: Optional[UsageInfo] = Field(default_factory=UsageInfo)
 
     conversation_id: Optional[str] = None
-    classification_model: Optional[ClassificationModel] = None
-    reference_data_dto: Optional[ReferenceDataDto] = None
+    classification_model: Optional[ClassificationModel] = Field(default_factory=ClassificationModel)
+    reference_data_dto: Optional[ReferenceDataDto] = Field(default_factory=ReferenceDataDto)
 
 
 def datat_to_chat_completion_stream_response(data_str: str) -> ChatCompletionStreamResponse:
