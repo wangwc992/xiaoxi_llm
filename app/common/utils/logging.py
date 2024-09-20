@@ -75,12 +75,12 @@ def get_logger(name: str) -> logging.Logger:
     # logger.addHandler(console_handler)
 
     # 添加文件输出处理程序
-    # file_handler = logging.FileHandler(LOG_FILE)
-    # file_formatter = MillisecondFormatter(
-    #     fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-    # )
-    # file_handler.setFormatter(file_formatter)
-    # logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(LOG_FILE)
+    file_formatter = MillisecondFormatter(
+        fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+    )
+    file_handler.setFormatter(file_formatter)
+    logger.addHandler(file_handler)
 
     return logger
 

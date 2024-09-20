@@ -577,7 +577,7 @@ async def json_formatting(json_str: str) -> dict:
 def chat_result_msg05(chat_completion_stream_response: ChatCompletionStreamResponse, content: str):
     choice = chat_completion_stream_response.choices[0].delta
     choice.content = content
-    choice.role = "platform_operation"
+    choice.role = PLATFORM_OPERATION
     chat_completion_stream_response.classification_model.task = "-1"
     chat_completion_stream_response.classification_model.query_type = "C"
     return chat_completion_stream_response.model_dump()
