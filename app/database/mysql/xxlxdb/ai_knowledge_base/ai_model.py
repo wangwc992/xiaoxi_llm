@@ -19,7 +19,7 @@ class MyChatCompletionRequestModel(BaseModel):
 class ClassificationModel(BaseModel):
     """分类模型"""
     query_type: Optional[str] = Field(None, description="问题类型")
-    task: Optional[int] = Field(None, description="任务编号")
+    task: Optional[str] = Field(None, description="任务编号")
     student_name: Optional[str] = Field(None, description="学生姓名")
     school_name: Optional[str] = Field(None, description="学校名称")
     major_name: Optional[str] = Field(None, description="专业名称")
