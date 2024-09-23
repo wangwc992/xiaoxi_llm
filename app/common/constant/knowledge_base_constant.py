@@ -1,5 +1,4 @@
-
-TASK_A, TASK_B, TASK_C, TASK_D = "A", "B", "C", "D"
+TASK_A, TASK_B, TASK_C, TASK_D, TASK_Z = "A", "B", "C", "D", "Z"
 
 # assistant助理回复:assistant
 ASSISTANT = "1"

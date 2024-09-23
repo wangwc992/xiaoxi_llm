@@ -35,7 +35,7 @@ from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeavia
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 from app.http.google_search import google_search
 from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
-    reanswer_classification_query, small_talk
+    reanswer_classification_query, small_talk, information_cue
 
 logger = get_logger(__name__)
 
@@ -69,8 +69,23 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     ai_chat_log_model.conversation_id = conversation_id
 
     # 加载classificationQuery模板，进行任务分类
-    classification_model = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
+    chat_completion_stream_response = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
                                                 raw_request=raw_request)
+
+    # 将chat_completion_stream_response转换为AiChatLogModel
+    await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
+    output = ai_chat_log_model.output
+    logger.info(f"reanswer_classification_query" + "*" * 50 + output)
+    # 判断output 是否可以转换为json
+
+    try:
+        output_json = json.loads(output)
+        # 获取任务分类,转换为ClassificationModel
+        classification_model = ObjectFormatter.dict_to_object(json.loads(output), ClassificationModel)
+    except:
+        classification_model = ClassificationModel()
+        classification_model.query_type = "Z"
+
     # 获取任务类型
     query_type = classification_model.query_type
     message_type = query_type
@@ -157,12 +172,17 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 chat_completion_stream_response.choices[0].delta = message
 
                 return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
-    else:
+    elif query_type == TASK_D:
         # 闲聊
         system = Message(role="system", content="你是ai闲聊助手")
         template = PromptTemplate.from_template(small_talk)
         prompt = template.format(input=query)
         history_message_list.append(system)
+    else:
+        # 任务分类失败
+        template = PromptTemplate.from_template(information_cue)
+        prompt = template.format(input=query)
+        message_type = "Z"
 
     human = Message(role="human", content=prompt)
     history_message_list.append(human)
@@ -201,12 +221,12 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
 
 async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
-                         raw_request: Request) -> ClassificationModel:
+                         raw_request: Request) -> ChatCompletionStreamResponse:
     """ 任务分类
     :param ai_chat_log_model: AiChatLogModel
     :param reanswer: 是否再次回答
     :param raw_request: 请求
-    :return: 任务分类结果 ClassificationModel
+    :return: 任务分类结果 ChatCompletionStreamResponse
     """
     if reanswer:
         template = PromptTemplate.from_template(reanswer_classification_query)
@@ -223,13 +243,7 @@ async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
     result = await create_chat_completion(chat_request, raw_request)
     # 提取消息
     chat_completion_stream_response = await extract_message(result)
-    # 将chat_completion_stream_response转换为AiChatLogModel
-    await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
-    output = ai_chat_log_model.output
-    logger.info(f"reanswer_classification_query" + "*" * 50 + output)
-    # 获取任务分类,转换为ClassificationModel
-    classification_model = ObjectFormatter.dict_to_object(json.loads(output), ClassificationModel)
-    return classification_model
+    return chat_completion_stream_response
 
 
 async def stream_response(result: StreamingResponse,

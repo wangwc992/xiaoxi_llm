@@ -22,3 +22,5 @@ reanswer_classification_query = prompt_dict.get('reanswer_classification_query')
 json_formatting = prompt_dict.get('json_formatting')
 # small_talk
 small_talk = prompt_dict.get('small_talk')
+# 分类失败,走提示prompt
+information_cue = prompt_dict.get('information_cue')
