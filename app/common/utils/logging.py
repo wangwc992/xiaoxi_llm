@@ -63,8 +63,9 @@ def get_log_file_path() -> str:
     动态生成日志文件路径，按分钟命名
     """
     current_time = datetime.now().strftime('%Y_%m_%d_%H_%M')
-    log_file = f"log_{current_time}.log"
-    log_dir = "/root/autodl-tmp/project/xiaoxi_llm"
+    # log_file = f"log_{current_time}.log"
+    log_file = f"run_log.log"
+    log_dir = "/root/autodl-tmp/project/xiaoxi_llm/logs"
     os.makedirs(log_dir, exist_ok=True)
     return os.path.join(log_dir, log_file)
 

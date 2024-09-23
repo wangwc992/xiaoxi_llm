@@ -9,23 +9,22 @@ def rename_log_file():
     # 当前时间
     current_time = datetime.now().strftime('%Y_%m_%d:%H-%M-%S')
 
-    # 原日志文件路径
-    old_file_path = '/root/autodl-tmp/project/xiaoxi_llm/log.log'
+    log_dir = "/root/autodl-tmp/project/xiaoxi_llm/logs"
+    # 根据当前时间创建新的日志文件，将run_log.log的文件内容写入新的日志文件，并清空run_log.log
 
-    # 新的文件路径
-    new_file_name = f'log_{current_time}.log'
-    new_file_path = f'/root/autodl-tmp/project/xiaoxi_llm/{new_file_name}'
-
-    # 如果旧文件存在，则重命名
-    if os.path.exists(old_file_path):
-        os.rename(old_file_path, new_file_path)
-        print(f'Renamed log file to {new_file_name}')
-        # 再创建一个新的日志文件old_file_path
-        with open(old_file_path, 'w') as f:
-            f.write('')
-
-    else:
-        print('Log file does not exist.')
+    # 获取run_log.log文件的路径
+    run_log_file_path = os.path.join(log_dir, "run_log.log")
+    # 获取新的日志文件的路径
+    new_log_file_path = os.path.join(log_dir, f"run_log_{current_time}.log")
+    # 将run_log.log文件的内容写入新的日志文件
+    with open(run_log_file_path, "r") as f:
+        log_content = f.read()
+        with open(new_log_file_path, "w") as new_f:
+            new_f.write(log_content)
+    # 清空run_log.log文件
+    with open(run_log_file_path, "w") as f:
+        f.write("")
+    print(f"rename log file success, new log file path: {new_log_file_path}")
 
 
 def run_rename_log_file_task():
