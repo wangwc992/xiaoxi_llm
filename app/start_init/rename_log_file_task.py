@@ -7,7 +7,7 @@ from datetime import datetime
 # 定义文件重命名函数
 def rename_log_file():
     # 当前时间
-    current_time = datetime.now().strftime('%Y%m%d%H%M%S')
+    current_time = datetime.now().strftime('%Y_%m_%d:%H-%M-%S')
 
     # 原日志文件路径
     old_file_path = '/root/autodl-tmp/project/xiaoxi_llm/log.log'
