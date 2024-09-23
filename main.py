@@ -6,6 +6,7 @@ from app.data.dictionaries import sensitive_words
 from app.middleware.exception import ChatSuspendException, chat_suspend_exception_handler
 from app.middleware.middleware import log_request_body, sensitive_word_filter, authentication
 from app.start_init.mysql_binglog_monitoring import start_binlog_listener
+from app.start_init.rename_log_file_task import run_rename_log_file_task
 from app.start_init.timed_task import run_scheduler
 
 gpu_count = settings.get('gpu_count', 0)
@@ -80,10 +81,11 @@ def build_app(args, **uvicorn_kwargs):
     app.root_path = args.root_path
 
     # TODO 注册启动事件
-    # @app.on_event("startup")
+    @app.on_event("startup")
     async def startup_event():
         threading.Thread(target=start_binlog_listener, daemon=True).start()
         threading.Thread(target=run_scheduler, daemon=True).start()
+        threading.Thread(target=run_rename_log_file_task, daemon=True).start()
 
     mount_metrics(app)
 
