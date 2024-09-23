@@ -20,6 +20,10 @@ def rename_log_file():
     if os.path.exists(old_file_path):
         os.rename(old_file_path, new_file_path)
         print(f'Renamed log file to {new_file_name}')
+        # 再创建一个新的日志文件old_file_path
+        with open(old_file_path, 'w') as f:
+            f.write('')
+
     else:
         print('Log file does not exist.')
 
