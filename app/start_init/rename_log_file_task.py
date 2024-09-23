@@ -10,7 +10,7 @@ def rename_log_file():
     current_time = datetime.now().strftime('%Y%m%d%H%M%S')
 
     # 原日志文件路径
-    old_file_path = '/autodl-tmp/project/xiaoxi_llm/log.log'
+    old_file_path = '/root/autodl-tmp/project/xiaoxi_llm/log.log'
 
     # 新的文件路径
     new_file_name = f'log_{current_time}.log'
