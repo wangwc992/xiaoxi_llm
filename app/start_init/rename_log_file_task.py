@@ -14,7 +14,7 @@ def rename_log_file():
 
     # 新的文件路径
     new_file_name = f'log_{current_time}.log'
-    new_file_path = f'/autodl-tmp/project/xiaoxi_llm/{new_file_name}'
+    new_file_path = f'/root/autodl-tmp/project/xiaoxi_llm/{new_file_name}'
 
     # 如果旧文件存在，则重命名
     if os.path.exists(old_file_path):
