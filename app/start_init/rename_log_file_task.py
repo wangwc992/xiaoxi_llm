@@ -29,9 +29,9 @@ def rename_log_file():
 
 def run_rename_log_file_task():
     # 每天定时执行
-    # schedule.every().day.at("00:00").do(rename_log_file)
+    schedule.every().day.at("00:00").do(rename_log_file)
     # 每分钟执行一次
-    schedule.every().minute.do(rename_log_file)
+    # schedule.every().minute.do(rename_log_file)
 
     while True:
         schedule.run_pending()
