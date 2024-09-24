@@ -76,6 +76,9 @@ def get_logger(name: str) -> logging.Logger:
 
     # 添加控制台输出处理程序
     console_handler = logging.StreamHandler(sys.stdout)
+    # 设置编码为utf-8
+    console_handler.encoding = 'utf-8'
+
     console_formatter = MillisecondFormatter(
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
