@@ -258,7 +258,7 @@ async def stream_response(result: StreamingResponse,
     :param classification_model: 任务分类
     :return:    流式输出
     """
-    logger.info("*" * 50 + "流式输出")
+    # logger.info("*" * 50 + "流式输出")
     # 初始化输出
     output = ''
     # 初始化使用情况
@@ -320,7 +320,7 @@ async def extract_message(result: JSONResponse) -> ChatCompletionStreamResponse:
     :param result:  返回结果
     :return:  消息
     '''
-    logger.info("*" * 50 + "非流输出")
+    # logger.info("*" * 50 + "非流输出")
     result_body = result.body.decode('utf-8')
     # result_content = json.loads(result_body)
     chat_completion_stream_response = datat_to_chat_completion_stream_response(result_body)
