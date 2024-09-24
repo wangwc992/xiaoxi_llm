@@ -122,7 +122,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 content=chat_result_msg05(chat_completion_stream_response, f"名下没有 {student_name} 的学生"))
         else:
             # 将学生姓名添加到classification_model中
-            classification_model.student_name = service_master_list[0].get("student_name")
+            classification_model.student_name = service_master_list[0].get("user_real_name")
             task = classification_model.task
             message_type = query_type + "-" + task
             if task == "14":
