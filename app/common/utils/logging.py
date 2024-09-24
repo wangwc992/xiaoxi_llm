@@ -6,7 +6,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 RUNNING_LOG = "running_log.txt"
 
+
 class MillisecondFormatter(logging.Formatter):
+    """
+    自定义 Formatter，用于毫秒级日志记录。
+    """
+
     def formatTime(self, record, datefmt=None):
         dt = datetime.fromtimestamp(record.created)
         if datefmt:
@@ -16,7 +21,12 @@ class MillisecondFormatter(logging.Formatter):
             s = f"{t},{int(record.msecs):03d}"
         return s
 
+
 class LoggerHandler(logging.Handler):
+    """
+    Logger handler used in Web UI.
+    """
+
     def __init__(self, output_dir: str) -> None:
         super().__init__()
         formatter = MillisecondFormatter(
@@ -47,12 +57,18 @@ class LoggerHandler(logging.Handler):
         self.thread_pool.shutdown(wait=True)
         return super().close()
 
+
 def get_log_file_path() -> str:
+    """
+    动态生成日志文件路径，按分钟命名
+    """
     current_time = datetime.now().strftime('%Y_%m_%d_%H_%M')
+    # log_file = f"log_{current_time}.log"
     log_file = f"run_log.log"
     log_dir = "/root/autodl-tmp/project/xiaoxi_llm/logs"
     os.makedirs(log_dir, exist_ok=True)
     return os.path.join(log_dir, log_file)
+
 
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
@@ -60,17 +76,15 @@ def get_logger(name: str) -> logging.Logger:
 
     # 添加控制台输出处理程序
     console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.INFO)
-
     console_formatter = MillisecondFormatter(
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     console_handler.setFormatter(console_formatter)
     logger.addHandler(console_handler)
 
-    # 添加文件输出处理程序
+    # 添加文件输出处理程序，日志文件按分钟命名
     log_file_path = get_log_file_path()
-    file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
+    file_handler = logging.FileHandler(log_file_path)
     file_formatter = MillisecondFormatter(
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
@@ -79,12 +93,18 @@ def get_logger(name: str) -> logging.Logger:
 
     return logger
 
-def reset_logging() -> None:
-    root = logging.getLogger()
-    for handler in root.handlers[:]:
-        root.removeHandler(handler)
 
+def reset_logging() -> None:
+    """
+    Removes basic config of root logger.
+    """
+    root = logging.getLogger()
+    list(map(root.removeHandler, root.handlers))
+    list(map(root.removeFilter, root.filters))
+
+
+# 示例：获取日志器并记录日志
 if __name__ == "__main__":
     logger = get_logger("MyLogger")
-    logger.info("这是一个信息消息。")
-    logger.error("这是一个错误消息。")
+    logger.info("This is an info message.")
+    logger.error("This is an error message.")
