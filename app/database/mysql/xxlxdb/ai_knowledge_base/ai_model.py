@@ -23,7 +23,7 @@ class ClassificationModel(BaseModel):
     student_name: Optional[str] = Field(None, description="学生姓名")
     school_name: Optional[str] = Field(None, description="学校名称")
     major_name: Optional[str] = Field(None, description="专业名称")
-    service_school_id: Optional[list] = Field(None, description="服务学校id")
+    ids: Optional[list] = Field(None, description="服务学校id")
 
 
 class AiChatLogModel(BaseModel):

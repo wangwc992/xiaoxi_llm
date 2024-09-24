@@ -166,7 +166,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 # 获取返回结果
                 output_dict = await json_formatting(ai_chat_log_model.output)
                 # 将学校id添加到classification_model中
-                classification_model.service_school_id = output_dict.get("ids")
+                classification_model.ids = output_dict.get("ids")
                 message = chat_completion_stream_response.choices[0].message
                 message.role = PLATFORM_OPERATION
                 chat_completion_stream_response.choices[0].delta = message
