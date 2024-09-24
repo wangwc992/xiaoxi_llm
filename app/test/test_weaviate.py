@@ -1,4 +1,9 @@
+import os
 import warnings
+
+import openpyxl
+from openpyxl.workbook import Workbook
+
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import weaviate
@@ -110,14 +115,19 @@ def search_hybrid(query, limit):
 
 def fetch_objects():
     response = collection.query.fetch_objects(
-        filters=(
-                Filter.by_property("db_id").equal("26487")
-                & Filter.by_property("database").equal("t_knowledge_info")
-        ),
+        # filters=(
+        #         Filter.by_property("db_id").equal("26487")
+        #         & Filter.by_property("database").equal("t_knowledge_info")
+        # ),
         limit=5,
+        offset=2
     )
     for o in response.objects:
+        # {'file_content': None, 'link': '{"object":"json","type": 1,"title":"本科雅思要求多少分？","id":6589,"attachment_url":""}', 'db_id': '6589', 'db_name': 't_knowledge_info', 'instruction': '英国其他其他的以下问题: 本科雅思要求多少分？', 'input': None, 'output': '平台顾问于2023-07-21 15:15:41回复内容如下：一般是总分6.0，小分5.5', 'keyword': '英国 本科 雅思'}
+        # 将instruction和output的数据添加到excel文件中中
         print(o.properties)
+
+
 
 
 if __name__ == "__main__":
@@ -136,6 +146,35 @@ if __name__ == "__main__":
     # vec = Embedding.embed_query(hybrid_data_query)
     # response = hybrid_data(hybrid_data_query, vec)
 
-    search_hybrid("墨尔本大学 怎么样", 10)
+    # search_hybrid("墨尔本大学 怎么样", 10)
     # fetch_objects()
-    pass
+    # 创建或加载工作簿
+    def clean_string(value: str) -> str:
+        """清理字符串中的非法字符。"""
+        return ''.join(c for c in value if c.isprintable())
+
+
+    # 创建或加载工作簿
+    file_path = "C:\\Users\\wishfyc\\Desktop\\rag.xlsx"
+    if not os.path.exists(file_path):
+        workbook = openpyxl.Workbook()
+        sheet = workbook.active
+        sheet.append(["Instruction", "Output"])  # 添加标题
+    else:
+        workbook = openpyxl.load_workbook(file_path)
+        sheet = workbook.active
+
+    for i in range(1, 10):
+        response = collection.query.fetch_objects(
+            limit=100,
+            offset=i
+        )
+        for o in response.objects:
+            properties = o.properties
+            instruction = clean_string(properties.get('instruction', ''))
+            output = clean_string(properties.get('output', ''))
+            sheet.append([instruction, output])  # 添加行
+
+        # 保存工作簿
+        workbook.save(file_path)
+        print(f"第{i}页数据已保存。")
