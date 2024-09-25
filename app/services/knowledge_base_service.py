@@ -124,6 +124,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             # 将学生姓名添加到classification_model中
             classification_model.student_name = service_master_list[0].get("user_real_name")
             task = classification_model.task
+            if not task:
+                task = "14"
             message_type = query_type + "-" + task
             if task == "14":
                 application_progress_data_list = await get_application_progress_data_list(
