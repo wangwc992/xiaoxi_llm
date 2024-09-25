@@ -385,7 +385,7 @@ async def get_history_message_list(conversation_id: str, query: str):
     else:
         # 会话id存在，获取历史记录
         history_message_list = await get_weaviste_history(conversation_id, query)
-    logger.info(f"history_message_list: {history_message_list}")
+    # logger.info(f"history_message_list: {history_message_list}")
     return conversation_id, history_message_list
 
 
