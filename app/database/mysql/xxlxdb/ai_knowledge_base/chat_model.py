@@ -74,7 +74,7 @@ def datat_to_chat_completion_stream_response(data_str: str) -> ChatCompletionStr
     """对话完成流响应转换"""
     if data_str.startswith("data: "):
         data_str = data_str[len("data: "):]
-    chat_completion_stream_response = ChatCompletionStreamResponse.parse_raw(data_str)
+    chat_completion_stream_response = ChatCompletionStreamResponse.model_validate_json(data_str)
     return chat_completion_stream_response
 
 
