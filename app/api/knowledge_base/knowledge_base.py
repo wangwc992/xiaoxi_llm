@@ -42,11 +42,8 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
     await scheduler()
     # 判断是否超过最大并发数
     if get_chat_visits_number():
-        chat_completion_stream_response = ChatCompletionStreamResponse()
-        choice = chat_completion_stream_response.choices[0].delta
-        choice.role = CHAT_CALL_OUT
-        choice.content = "chat线程数量超了"
-        return StreamingResponse(content=chat_completion_stream_response.dict(), media_type="text/event-stream")
+        result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "chat线程数量超了" }} ]}'''
+        return StreamingResponse(content=result, media_type="text/event-stream")
     try:
         return await knowledge_base_generate(request, raw_request, background_tasks)
     except Exception as e:
