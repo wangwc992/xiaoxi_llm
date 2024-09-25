@@ -81,7 +81,7 @@ def build_app(args, **uvicorn_kwargs):
     app.root_path = args.root_path
 
     # TODO 注册启动事件
-    # @app.on_event("startup")
+    @app.on_event("startup")
     async def startup_event():
         threading.Thread(target=start_binlog_listener, daemon=True).start()
         threading.Thread(target=run_scheduler, daemon=True).start()

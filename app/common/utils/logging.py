@@ -75,7 +75,7 @@ def get_logger(name: str) -> logging.Logger:
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     file_handler.setFormatter(file_formatter)
-    # logger.addHandler(file_handler)
+    logger.addHandler(file_handler)
 
     return logger
 
