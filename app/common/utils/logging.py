@@ -60,6 +60,7 @@ def get_log_file_path() -> str:
 
 
 def get_logger(name: str) -> logging.Logger:
+    reset_logging()
     logger = logging.getLogger(name)
 
     logger.setLevel(logging.INFO)
@@ -87,6 +88,7 @@ def get_logger(name: str) -> logging.Logger:
 
 def reset_logging() -> None:
     root = logging.getLogger()
+    print("Removing all handlers from root logger")
     for handler in root.handlers[:]:
         print("Removing handler", handler)
         root.removeHandler(handler)

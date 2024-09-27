@@ -70,12 +70,12 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
     # 加载classificationQuery模板，进行任务分类
     chat_completion_stream_response = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
-                                                raw_request=raw_request)
+                                                           raw_request=raw_request)
 
     # 将chat_completion_stream_response转换为AiChatLogModel
     await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
     output = ai_chat_log_model.output
-    logger.info(f"reanswer_classification_query" + "*" * 50 + output)
+    logger.info(f"reanswer_classification_query：{output}", output)
     # 判断output 是否可以转换为json
 
     try:
