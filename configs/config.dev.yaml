@@ -1,5 +1,5 @@
 port: 8000
-
+profiles: "dev"
 weaviate:
   #  host: "192.168.0.139"
   #  port: "8080"

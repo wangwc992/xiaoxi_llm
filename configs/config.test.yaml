@@ -1,4 +1,5 @@
 port: 6006
+profiles: "test"
 
 weaviate:
   host: "localhost"

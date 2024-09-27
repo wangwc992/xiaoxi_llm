@@ -1,5 +1,5 @@
 port: 6006
-
+profiles: "prod"
 weaviate:
   host: "localhost"
   port: "8079"
