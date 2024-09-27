@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 RUNNING_LOG = "running_log.txt"
 
+
 class MillisecondFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
         dt = datetime.fromtimestamp(record.created)
@@ -15,6 +16,7 @@ class MillisecondFormatter(logging.Formatter):
             t = dt.strftime("%Y-%m-%d %H:%M:%S")
             s = f"{t},{int(record.msecs):03d}"
         return s
+
 
 class LoggerHandler(logging.Handler):
     def __init__(self, output_dir: str) -> None:
@@ -47,6 +49,7 @@ class LoggerHandler(logging.Handler):
         self.thread_pool.shutdown(wait=True)
         return super().close()
 
+
 def get_log_file_path() -> str:
     current_time = datetime.now().strftime('%Y_%m_%d_%H_%M')
     log_file = f"run_log.log"
@@ -54,14 +57,17 @@ def get_log_file_path() -> str:
     os.makedirs(log_dir, exist_ok=True)
     return os.path.join(log_dir, log_file)
 
+
 def get_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
+    # 清空已有的handler
+    logger.handlers.clear()
+
     logger.setLevel(logging.INFO)
 
     # 添加控制台输出处理程序
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
-
     console_formatter = MillisecondFormatter(
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
@@ -79,10 +85,12 @@ def get_logger(name: str) -> logging.Logger:
 
     return logger
 
+
 def reset_logging() -> None:
     root = logging.getLogger()
     for handler in root.handlers[:]:
         root.removeHandler(handler)
+
 
 if __name__ == "__main__":
     logger = get_logger("MyLogger")
