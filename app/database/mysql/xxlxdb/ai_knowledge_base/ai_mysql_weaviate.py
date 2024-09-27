@@ -75,13 +75,23 @@ def insert_ai_mysql_weaviate_bath(ai_mysql_weaviate_list: list[Union[AiMysqlWeav
     #     批处理插入
     if isinstance(ai_mysql_weaviate_list, list):
         ai_mysql_weaviate_list = [AiMysqlWeaviate(**ai_mysql_weaviate) for ai_mysql_weaviate in ai_mysql_weaviate_list]
-    # 使用预编译的格式ai_mysql_weaviate 插入数据
-    sql = '''INSERT INTO ai_mysql_weaviate (weaviate_id, db_id, db_name, instruction, input, output, file_url, file_content) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'''
-    params = [(ai_mysql_weaviate.weaviate_id, ai_mysql_weaviate.db_id, ai_mysql_weaviate.db_name,
-               ai_mysql_weaviate.instruction, ai_mysql_weaviate.input, ai_mysql_weaviate.output,
-               ai_mysql_weaviate.file_url, ai_mysql_weaviate.file_content) for ai_mysql_weaviate in
-              ai_mysql_weaviate_list]
-    xxlxdb.mysql_client.executemany(sql, params)
+    db_name = ai_mysql_weaviate_list[0].db_name
+
+    # 先删除ai_mysql_weaviate的数据
+    delete_params = [ai_mysql_weaviate.db_id for ai_mysql_weaviate in ai_mysql_weaviate_list]
+    # 生成占位符字符串
+    placeholders = ', '.join(['%s'] * len(delete_params))  # 为每个参数创建一个占位符
+    delete_sql = f'''DELETE FROM ai_mysql_weaviate WHERE db_name = "{db_name}" AND db_id IN ({placeholders})'''
+    xxlxdb.execute(delete_sql, delete_params)  # 传递参数
+
+    # 插入数据
+    insert_sql = '''INSERT INTO ai_mysql_weaviate (weaviate_id, db_id, db_name, instruction, input, output, file_url, file_content) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'''
+    insert_params = [(ai_mysql_weaviate.weaviate_id, ai_mysql_weaviate.db_id, ai_mysql_weaviate.db_name,
+                      ai_mysql_weaviate.instruction, ai_mysql_weaviate.input, ai_mysql_weaviate.output,
+                      ai_mysql_weaviate.file_url, ai_mysql_weaviate.file_content) for ai_mysql_weaviate in
+                     ai_mysql_weaviate_list]
+
+    xxlxdb.mysql_client.executemany(insert_sql, insert_params)
     xxlxdb.mysql_client.connection.commit()
 
 

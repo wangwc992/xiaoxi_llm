@@ -33,6 +33,7 @@ async def knowledge_base_cleansing():
         limit=1000,
         start_id=0,
         frequency=-1,
-        is_async=True
+        is_async=True,
+        insert_to_ai_mysql_weaviate=False
     )
     await cleansing_manner_execution(manner_execution)

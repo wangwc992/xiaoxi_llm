@@ -67,38 +67,33 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = []
     file_url_list = []
     for knowledge_info in knowledge_info_dict_list:
-        content = knowledge_info.get("content", "")
-        if content is None:
-            content = ""
         file_url = knowledge_info.get("fileurl")
         file_url_list.append(file_url)
-        if file_url:
-            attachment_content = knowledge_info.get("attachment_content")
-            if not attachment_content:
-                attachment_content = urlToText(knowledge_info["fileurl"])
-            file_content = attachment_content
-            filename = knowledge_info.get("filename", "")
-            if file_content:
-                content += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
+        output = knowledge_info.get("output")
+        if not output:
+            output = knowledge_info.get("content", "")
+            if file_url:
+                file_content = urlToText(knowledge_info["fileurl"])
+                if file_content:
+                    filename = knowledge_info.get("filename", "")
+                    output += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
 
-                class_ = knowledge_info.get("class_")
-                for item in class_list:
-                    if item in class_:
-                        content += f"，文件链接：{file_url}"
-        content = HtmlUtils.replace_link_with_url(content)
+                    class_ = knowledge_info.get("class_")
+                    for item in class_list:
+                        if item in class_:
+                            output += f"，文件链接：{file_url}"
+                output = HtmlUtils.replace_link_with_url(output)
+                replyer_time = knowledge_info.get("replyerTime", "")
+                if replyer_time:
+                    replyer_time = replyer_time.strftime("%Y-%m-%d %H:%H:%M")
+                output = f'平台顾问于{replyer_time}回复内容如下：{output}'
 
         db_id = str(knowledge_info["id"])
 
         type = "1" if knowledge_info.get("type") == 1 else "2"
         name = knowledge_info.get("name" if type == "1" else "filename")
-
-        replyerTime = knowledge_info.get("replyerTime", "")
-        if replyerTime:
-            replyerTime = replyerTime.strftime("%Y-%m-%d %H:%H:%M")
-        url = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id},"attachment_url":"{file_url}"}}'
         instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
-        output = f'平台顾问于{replyerTime}回复内容如下：{content}'
-        link = url
+        link = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id},"attachment_url":"{file_url}"}}'
 
         knowledge_base_model.append({
             "db_name": database,
@@ -806,6 +801,7 @@ class MannerExecution(BaseModel):
     start_id: Optional[int] = 0
     frequency: Optional[int] = 1
     is_all: Optional[bool] = False
+    insert_to_ai_mysql_weaviate: Optional[bool] = False
 
 
 async def cleansing_manner_execution(manner_execution: MannerExecution):
@@ -813,6 +809,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     start_id = manner_execution.start_id
     method = manner_execution.method_name
     is_all = manner_execution.is_all
+    insert_to_ai_mysql_weaviate = manner_execution.insert_to_ai_mysql_weaviate
 
     method_mapping = {
         "t_knowledge_info": lambda: insert_t_knowledge_info_data(start_id=start_id, limit=limit),
@@ -829,6 +826,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     }
 
     if is_all:
+        # 清空数据库
         knowledge_base_weaviate.clear_all_data(property="db_name", like_str="*")
         # 排除使用的方法
         method_mapping.pop("t_knowledge_info")
@@ -844,15 +842,14 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
                         logger.info(f"{method_name} 数据清洗完成")
                         break
                     uuid_list = insert_weaviate_data_all(knowledge_base_model)
-                    insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+                    if insert_to_ai_mysql_weaviate:
+                        insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
                     frequency -= 1
             except Exception as e:
                 logger.error(e)
     else:
         frequency = manner_execution.frequency
-        while True:
-            if frequency == 0:
-                break
+        while frequency != 0:
             frequency -= 1
             if method in method_mapping:
                 start_id, knowledge_base_model, file_url_list = method_mapping[method]()
@@ -860,9 +857,8 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
                     logger.info(f"{method} 数据清洗完成")
                     break
                 uuid_list = insert_weaviate_data_all(knowledge_base_model)
-                if method == "t_knowledge_info" and method == "notice_message":
-                    logger.info(f"{method} 插入记录")
-                    # insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+                if insert_to_ai_mysql_weaviate:
+                    insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
             else:
                 print("请输入正确的参数")
                 break
@@ -892,11 +888,12 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
 if __name__ == '__main__':
     manner_execution = {
         "method_name": "t_knowledge_info",
-        "limit": 2,
+        "limit": 6,
         "start_id": 0,
-        "frequency": 1,
+        "frequency": 2,
         "is_all": True,
-        # "is_all": False
+        # "is_all": False,
+        "insert_to_ai_mysql_weaviate": True
     }
     manner_execution = MannerExecution(**manner_execution)
     asyncio.run(cleansing_manner_execution(manner_execution))
