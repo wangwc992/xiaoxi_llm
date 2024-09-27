@@ -60,7 +60,7 @@ def get_log_file_path() -> str:
 
 
 def get_logger(name: str) -> logging.Logger:
-    reset_logging()
+    # reset_logging()
     logger = logging.getLogger(name)
 
     logger.setLevel(logging.INFO)
