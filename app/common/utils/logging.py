@@ -88,9 +88,10 @@ def get_logger(name: str) -> logging.Logger:
 
 def reset_logging() -> None:
     root = logging.getLogger()
-    print("Removing all handlers from root logger")
+    logger = get_logger("MyLogger")
+    logger.info("Resetting logging configuration.")
     for handler in root.handlers[:]:
-        print("Removing handler", handler)
+        logger.info("Removing handler", handler)
         root.removeHandler(handler)
 
 
