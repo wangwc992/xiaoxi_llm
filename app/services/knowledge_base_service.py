@@ -303,7 +303,6 @@ async def stream_response(result: StreamingResponse,
                 if delta_content:
                     output += delta_content
             elif chat_completion_stream_response.usage:
-                print("*" * 10, chat_completion_stream_response.usage, type(chat_completion_stream_response.usage))
                 usage = chat_completion_stream_response.usage
                 ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
                     usage.prompt_tokens, usage.completion_tokens, usage.total_tokens

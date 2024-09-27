@@ -37,7 +37,7 @@ def get_prompt_by_type():
 
 def insert_ai_chat_log(ai_chat_log: AiChatLogModel):
     # 过滤掉空值，并确保安全插入
-    ai_chat_log_dict = ai_chat_log.dict(exclude_unset=True)
+    ai_chat_log_dict = ai_chat_log.model_dump(exclude_unset=True)
 
     if not ai_chat_log_dict:
         # 如果所有值都为空，直接返回
