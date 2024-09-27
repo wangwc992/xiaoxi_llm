@@ -40,7 +40,6 @@ from app.api.openai import api_server
 from app.api.knowledge_base import knowledge_base
 from app.api.knowledge_base import knowledge_base_weaviate
 from app.api.text2vec_custom import text2vec_custom
-from app.api.html import chat_dome
 
 logger = init_logger('vllm.entrypoints.openai.api_server')
 
@@ -77,7 +76,6 @@ def build_app(args, **uvicorn_kwargs):
     app.include_router(knowledge_base.router)
     app.include_router(text2vec_custom.router)
     app.include_router(knowledge_base_weaviate.router)
-    app.include_router(chat_dome.router)
     app.root_path = args.root_path
 
     # TODO 注册启动事件
