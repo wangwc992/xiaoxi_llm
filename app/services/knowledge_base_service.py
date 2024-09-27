@@ -436,7 +436,7 @@ async def save_weaviste(ai_chat_log_model: AiChatLogModel):
         created_time=ai_chat_log_model.start_time.replace(tzinfo=timezone(timedelta(hours=8))),
     )
     vector = Embedding.embed_query(ai_chat_log_model.output)
-    uuid = ai_chat_log_weaviate.insert_data(ai_chat_weaviate_model.dict(), vector)
+    uuid = ai_chat_log_weaviate.insert_data(ai_chat_weaviate_model.model_dump(), vector)
 
 
 async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response):

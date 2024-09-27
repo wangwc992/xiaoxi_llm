@@ -132,7 +132,7 @@ class WeaviateClient:
     def search_id(self, uuid):
         logger.info(f"Searching data by id: {uuid}")
         data_object = self.collection.query.fetch_object_by_id(uuid)
-        print(data_object.properties)
+        return data_object
 
     def hybrid_data(self, query, vec, limit=10):
         '''混合查询数据'''
