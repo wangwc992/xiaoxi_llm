@@ -61,6 +61,8 @@ def get_log_file_path() -> str:
 
 def get_logger(name: str) -> logging.Logger:
     # reset_logging()
+    root = logging.getLogger()
+    print("Removing all handlers from root logger" ,"*" * 50,root.handlers)
     logger = logging.getLogger(name)
 
     logger.setLevel(logging.INFO)
