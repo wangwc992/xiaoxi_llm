@@ -19,8 +19,16 @@ logger = get_logger(__name__)
 
 def choice_method(table_name: str, data: dict):
     if table_name == 't_knowledge_info':
+        # 申请状态不为4或者启动状态不为1的数据将weaviate中的数据删除
         apply_status = data.get('apply_status')
-        if apply_status != 4:
+        startup_status = data.get('startup_status')
+        if apply_status != 4 or startup_status != 1:
+            db_id = data.get('id')
+            limit = 1
+            db_name = table_name
+            ai_mysql_weaviate_list = select_ai_mysql_weaviate({'db_id': db_id, 'db_name': db_name}, limit)
+            if ai_mysql_weaviate_list:
+                knowledge_base_weaviate.delete_data_by_uuid(ai_mysql_weaviate_list[0].get("weaviate_id"))
             return
 
     try:
