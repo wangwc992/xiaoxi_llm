@@ -5,6 +5,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 RUNNING_LOG = "running_log.txt"
+ERROR_LOG = "error_log.txt"
 
 
 class MillisecondFormatter(logging.Formatter):
@@ -59,10 +60,7 @@ def get_log_file_path() -> str:
 
 
 def get_logger(name: str) -> logging.Logger:
-    reset_logging()
     logger = logging.getLogger(name)
-    # 清空已有的handler
-    logger.handlers.clear()
 
     logger.setLevel(logging.INFO)
 
@@ -73,9 +71,9 @@ def get_logger(name: str) -> logging.Logger:
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
+    # logger.addHandler(console_handler)
 
-    # 添加文件输出处理程序
+    # 添加文件输出处理程序，
     log_file_path = get_log_file_path()
     file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
     file_formatter = MillisecondFormatter(
@@ -90,7 +88,7 @@ def get_logger(name: str) -> logging.Logger:
 def reset_logging() -> None:
     root = logging.getLogger()
     for handler in root.handlers[:]:
-        print("Removing handler",handler)
+        print("Removing handler", handler)
         root.removeHandler(handler)
 
 
