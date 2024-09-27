@@ -75,7 +75,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 将chat_completion_stream_response转换为AiChatLogModel
     await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
     output = ai_chat_log_model.output
-    logger.info(f"reanswer_classification_query：{output}", output)
+    logger.info("reanswer_classification_query： %s", output)
     # 判断output 是否可以转换为json
 
     try:
