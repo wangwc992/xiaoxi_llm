@@ -73,7 +73,7 @@ def get_logger(name: str) -> logging.Logger:
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     console_handler.setFormatter(console_formatter)
-    # logger.addHandler(console_handler)
+    logger.addHandler(console_handler)
 
     # 添加文件输出处理程序
     log_file_path = get_log_file_path()
