@@ -73,7 +73,7 @@ def sync_knowledge_base(table_name: str, data: dict):
 
 
 def start_binlog_listener():
-    print("Binlog 监听已启动")
+    logger.info("start_binlog_listener start... ")
     # MySQL 连接配置
     xxlxdb_config = settings["mysql"]["xxlxdb"]
     smart_counselor_config = settings["mysql"]["smart_counselor"]

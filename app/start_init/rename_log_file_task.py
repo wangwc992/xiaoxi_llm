@@ -3,9 +3,13 @@ import schedule
 import time
 from datetime import datetime
 
+from app.common.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 # 定义文件重命名函数
 def rename_log_file():
+    logger.info("rename_log_file running...")
     # 当前时间
     current_time = datetime.now().strftime('%Y_%m_%d:%H-%M-%S')
 
@@ -28,6 +32,7 @@ def rename_log_file():
 
 
 def run_rename_log_file_task():
+    logger.info("rename_log_file start ...")
     # 每天定时执行
     schedule.every().day.at("00:00").do(rename_log_file)
     # 每分钟执行一次

@@ -11,19 +11,16 @@ logger = get_logger(__name__)
 
 
 def run_scheduler():
+    logger.info("run_scheduler start...")
     # 每分钟 第三秒执行一次任务
     schedule.every().day.at("03:00").do(knowledge_base_cleansing)
     while True:
         schedule.run_pending()
-        time.sleep(1)
-
-
-def sync_job():
-    asyncio.run(knowledge_base_cleansing())
+        time.sleep(60)
 
 
 async def knowledge_base_cleansing():
-    logger.info("清空历史数据")
+    logger.info("knowledge_base_cleansing start...")
     method_lsit = ['platform_introduction', 'zn_school_info', 'zn_school_info_rank', 'zn_school_info_more',
                    'zn_school_selection_reason', 'zn_school_admission_undergraduate',
                    'zn_school_admission_graduate_student', 'zn_school_admission_art', 'zn_school_department_project']
