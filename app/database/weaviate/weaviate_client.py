@@ -115,7 +115,7 @@ class WeaviateClient:
         return uuid_list
 
     def update_data_by_uuid(self, uuid, update_data, vec=None):
-        logger.info(f"Updating data in collection: {self.collections_name}")
+        logger.info(f"Updating data in collection: {self.collections_name}————{update_data}")
         if vec:
             self.collection.data.update(
                 uuid=uuid,
