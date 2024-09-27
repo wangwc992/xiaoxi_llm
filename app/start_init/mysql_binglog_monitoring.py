@@ -125,7 +125,8 @@ def start_binlog_listener():
                 for row in binlogevent.rows:
                     before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
                     after_values = {column_names[i]: value for i, value in enumerate(row["after_values"].values())}
-                    logger.info(f"Update {binlogevent.schema}.{binlogevent.table}:", before_values, "to", after_values)
+                    logger.info(
+                        f"Update {binlogevent.schema}.{binlogevent.table}: before_values={before_values}, after_values={after_values}")
                     choice_method(binlogevent.table, after_values)
 
     # 关闭 stream
