@@ -49,7 +49,7 @@ class MySQLConnect:
         """执行 SQL 语句，带有自动重连功能"""
         self.check_connection()
         # 打印 执行的sql
-        logger.debug("Executing query: %s", self.__cur.mogrify(sql, params))
+        logger.info("Executing query: %s", self.__cur.mogrify(sql, params))
         try:
             self.__cur.execute(sql, params)
             self.__cur.connection.commit()

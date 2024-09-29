@@ -907,15 +907,15 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     else:
         frequency = manner_execution.frequency
         while frequency != 0:
-            frequency -= 1
             if method in method_mapping:
                 start_id, knowledge_base_model, file_url_list = method_mapping[method]()
-                if not knowledge_base_model:
+                if not knowledge_base_model or frequency == 0:
                     logger.info(f"{method} 数据清洗完成")
                     break
                 uuid_list = insert_weaviate_data_all(knowledge_base_model)
                 if insert_to_ai_mysql_weaviate:
                     insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
+                frequency -= 1
             else:
                 print("请输入正确的参数")
                 break

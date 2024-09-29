@@ -129,13 +129,13 @@ def start_binlog_listener():
                 for row in binlogevent.rows:
                     # 将 UNKNOWN_COLX 转换为实际的列名
                     record = {column_names[i]: value for i, value in enumerate(row["values"].values())}
-                    logger.debug(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
+                    logger.info(f"Insert into {binlogevent.schema}.{binlogevent.table}:", record)
                     choice_method(binlogevent.table, record)
             elif isinstance(binlogevent, UpdateRowsEvent):
                 for row in binlogevent.rows:
                     before_values = {column_names[i]: value for i, value in enumerate(row["before_values"].values())}
                     after_values = {column_names[i]: value for i, value in enumerate(row["after_values"].values())}
-                    logger.debug(
+                    logger.info(
                         f"Update {binlogevent.schema}.{binlogevent.table}: before_values={before_values}, after_values={after_values}")
                     choice_method(binlogevent.table, after_values)
 
