@@ -933,7 +933,7 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
     for i, knowledge_base_model in enumerate(knowledge_base_model_list):
         file_url = file_url_list[i] if file_url_list else None
         output = knowledge_base_model.get('output')
-
+        file_content = None
         if file_url and t_knowledge_info == db_name:
             split = output.split("该回答引用了以下文件:")
             if len(split) > 1:
