@@ -132,7 +132,9 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
             update_time = knowledge_info.get("updateTime", "").strftime("%Y-%m-%d %H:%H:%M")
             output = re.sub(r'平台顾问于.*?回复内容如下', f'平台顾问于{update_time}回复内容如下', output)
         else:
-            output = knowledge_info.get("content", "")
+            output = knowledge_info.get("content")
+            if not output:
+                output = ''
             if file_url:
                 file_content = urlToText(knowledge_info["fileurl"])
                 if file_content:
