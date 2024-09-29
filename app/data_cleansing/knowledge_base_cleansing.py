@@ -142,11 +142,11 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
                     for item in class_list:
                         if item in class_:
                             output += f"，文件链接：{file_url}"
-                output = HtmlUtils.replace_link_with_url(output)
                 update_time = knowledge_info.get("updateTime", "")
                 if update_time:
                     update_time = update_time.strftime("%Y-%m-%d %H:%H:%M")
                 output = f'平台顾问于{update_time}回复内容如下：{output}'
+        output = HtmlUtils.replace_link_with_url(output)
         db_id = str(knowledge_info["id"])
 
         type = "1" if knowledge_info.get("type") == 1 else "2"
