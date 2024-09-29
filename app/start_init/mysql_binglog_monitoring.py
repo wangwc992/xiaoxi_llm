@@ -11,7 +11,7 @@ from app.common.utils.logging import get_logger
 from app.data_cleansing.knowledge_base_cleansing import MannerExecution, \
     insert_t_knowledge_info_data, insert_mysql_weaviate, insert_institution_information_data
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_mysql_weaviate import select_ai_mysql_weaviate, \
-    insert_ai_mysql_weaviate, update_ai_mysql_weaviate
+    insert_ai_mysql_weaviate, update_ai_mysql_weaviate, delete_ai_mysql_weaviate
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
 logger = get_logger(__name__)
@@ -28,7 +28,9 @@ def choice_method(table_name: str, data: dict):
             db_name = table_name
             ai_mysql_weaviate_list = select_ai_mysql_weaviate({'db_id': db_id, 'db_name': db_name}, limit)
             if ai_mysql_weaviate_list:
-                knowledge_base_weaviate.delete_data_by_uuid(ai_mysql_weaviate_list[0].get("weaviate_id"))
+                result_bool = knowledge_base_weaviate.delete_data_by_uuid(ai_mysql_weaviate_list[0].get("weaviate_id"))
+                if result_bool:
+                    delete_ai_mysql_weaviate({'id': ai_mysql_weaviate_list[0].get("id")})
             return
 
     try:

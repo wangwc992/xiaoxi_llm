@@ -132,6 +132,22 @@ def update_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
     xxlxdb.execute(sql, tuple(values))
 
 
+def delete_ai_mysql_weaviate(ai_mysql_weaviate: Union[AiMysqlWeaviate, dict]):
+    if isinstance(ai_mysql_weaviate, AiMysqlWeaviate):
+        ai_mysql_weaviate = ai_mysql_weaviate.dict()
+    # 使用预编译的格式ai_mysql_weaviate 删除数据,数据值不为空的字段作为查询条件
+    sql = '''DELETE FROM ai_mysql_weaviate WHERE '''
+    values = []
+    for key, value in ai_mysql_weaviate.items():
+        if value is not None and value != "":
+            sql += f'{key}=%s and '
+            values.append(value)
+    if not values:
+        return
+    sql = sql[:-4]
+    xxlxdb.execute(sql, tuple(values))
+
+
 if __name__ == '__main__':
     ai_mysql_weaviate = {
         # "id": 1,
