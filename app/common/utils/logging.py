@@ -63,7 +63,7 @@ def get_logger(name: str) -> logging.Logger:
 
     logger = logging.getLogger(name)
 
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     # 添加控制台输出处理程序
     console_handler = logging.StreamHandler(sys.stdout)
@@ -72,7 +72,7 @@ def get_logger(name: str) -> logging.Logger:
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     console_handler.setFormatter(console_formatter)
-    # logger.addHandler(console_handler)
+    logger.addHandler(console_handler)
 
     # 添加文件输出处理程序，
     log_file_path = get_log_file_path()
@@ -81,6 +81,7 @@ def get_logger(name: str) -> logging.Logger:
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     file_handler.setFormatter(file_formatter)
+    file_handler.setLevel(logging.DEBUG)
     logger.addHandler(file_handler)
 
     return logger
@@ -97,4 +98,4 @@ def reset_logging() -> None:
 if __name__ == "__main__":
     logger = get_logger("MyLogger")
     logger.info("这是一个信息消息。")
-    logger.error("这是一个错误消息。")
+    logger.debug("这是一个错误消息。")
