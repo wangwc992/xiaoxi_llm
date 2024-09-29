@@ -70,7 +70,7 @@ def check_missing_data_in_weaviate(start_id: int = 0, limit: int = 100):
                 file_content = urlToText(knowledge_info["fileurl"])
                 if file_content:
                     filename = knowledge_info.get("filename", "")
-                    output += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
+                    output += f"\n该回答引用了以下文件:文件名：{filename}，文件内容:{file_content}"
 
                     class_ = knowledge_info.get("class_")
                     for item in class_list:
@@ -107,7 +107,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
 
     b、答案洗入要求： {回复顾问}于{日期}回复内容如下：{问题答案}
 
-    如果有文件，则在{问题答案}后方增加：该回答引用了以下文件，文件名：{文件名}，文件内容：{文件内容（pdf、excel、word提取信息，图片ocr信息）}
+    如果有文件，则在{问题答案}后方增加：该回答引用了以下文件:文件名：{文件名}，文件内容：{文件内容（pdf、excel、word提取信息，图片ocr信息）}
     eg：
 
     标题为： 澳洲伍伦贡大学入学要求常见问题：老师，卧龙岗新开的护理硕士学费出来了吗？
@@ -136,8 +136,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
                 file_content = urlToText(knowledge_info["fileurl"])
                 if file_content:
                     filename = knowledge_info.get("filename", "")
-                    output += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
-
+                    output += f"\n该回答引用了以下文件:文件名：{filename}，文件内容:{file_content}"
                     class_ = knowledge_info.get("class_")
                     for item in class_list:
                         if item in class_:
@@ -925,12 +924,18 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
 
 def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
     ai_mysql_weaviate_list = []
+    file_url = None
+    file_content = None
+    db_name = knowledge_base_model_list[0].get('db_name')
     for i, knowledge_base_model in enumerate(knowledge_base_model_list):
-        file_url = None
         if file_url_list:
             file_url = file_url_list[i]
+        output = knowledge_base_model.get('output')
+        if file_url and t_knowledge_info == db_name:
+            # output 截取 该回答引用了以下文件 之后的内容
+            file_content = output.split("该回答引用了以下文件:")[0]
         ai_mysql_weaviate = {
-            "db_name": knowledge_base_model.get('db_name'),
+            "db_name": db_name,
             "db_id": knowledge_base_model.get('db_id'),
             "instruction": knowledge_base_model.get('instruction'),
             "input": knowledge_base_model.get('input'),
@@ -938,6 +943,7 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
             "keyword": knowledge_base_model.get('keyword'),
             "file_content": knowledge_base_model.get('file_info'),
             "file_url": file_url,
+            "file_name": file_content,
             "weaviate_id": uuid_list[i].hex
         }
         ai_mysql_weaviate_list.append(ai_mysql_weaviate)
