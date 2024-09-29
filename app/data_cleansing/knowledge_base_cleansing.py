@@ -851,7 +851,7 @@ def insert_weaviate_data_all(knowledge_base_model: list):
 
 
 class MannerExecution(BaseModel):
-    method_name: Optional[str]
+    method_name: Optional[str] = "0"
     limit: Optional[int] = 10
     start_id: Optional[int] = 0
     frequency: Optional[int] = 1
@@ -886,8 +886,6 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
         knowledge_base_weaviate.clear_all_data(property="db_name", like_str="*")
         # 排除使用的方法
         method_mapping.pop("check_missing_data_in_weaviate")
-        method_mapping.pop("t_knowledge_info")
-        method_mapping.pop("notice_message")
 
         for method_name, method_func in method_mapping.items():
             frequency = manner_execution.frequency
@@ -899,7 +897,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
                         logger.info(f"{method_name} 数据清洗完成")
                         break
                     uuid_list = insert_weaviate_data_all(knowledge_base_model)
-                    if insert_to_ai_mysql_weaviate:
+                    if method_name != "t_knowledge_info" or method_name != "notice_message":
                         insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
                     frequency -= 1
             except Exception as e:
@@ -913,7 +911,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
                     logger.info(f"{method} 数据清洗完成")
                     break
                 uuid_list = insert_weaviate_data_all(knowledge_base_model)
-                if insert_to_ai_mysql_weaviate:
+                if method != "t_knowledge_info" or method != "notice_message":
                     insert_mysql_weaviate(knowledge_base_model, uuid_list, file_url_list)
                 frequency -= 1
             else:
