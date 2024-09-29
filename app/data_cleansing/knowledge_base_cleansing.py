@@ -925,18 +925,15 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
 
 def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
     ai_mysql_weaviate_list = []
-    file_url = None
-    file_content = None
     db_name = knowledge_base_model_list[0].get('db_name')
     for i, knowledge_base_model in enumerate(knowledge_base_model_list):
-        if file_url_list:
-            file_url = file_url_list[i]
+        file_url = file_url_list[i] if file_url_list else None
         output = knowledge_base_model.get('output')
+
         if file_url and t_knowledge_info == db_name:
             split = output.split("该回答引用了以下文件:")
             if len(split) > 1:
-                output = split[0]
-                file_content = "该回答引用了以下文件" + split[1]
+                output, file_content = split[0], "该回答引用了以下文件" + split[1]
 
         ai_mysql_weaviate = {
             "db_name": db_name,
