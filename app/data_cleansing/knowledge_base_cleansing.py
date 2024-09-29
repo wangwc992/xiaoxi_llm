@@ -125,7 +125,8 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     for knowledge_info in knowledge_info_dict_list:
         file_url = knowledge_info.get("fileurl")
         file_url_list.append(file_url)
-        output = knowledge_info.get("output")
+        # output = knowledge_info.get("output")
+        output = ""
         if output:
             # 补丁，修复之前的数据，由于文件解析太麻烦加入的补丁
             update_time = knowledge_info.get("updateTime", "").strftime("%Y-%m-%d %H:%H:%M")
@@ -932,18 +933,20 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
             file_url = file_url_list[i]
         output = knowledge_base_model.get('output')
         if file_url and t_knowledge_info == db_name:
-            # output 截取 该回答引用了以下文件 之后的内容
-            file_content = output.split("该回答引用了以下文件:")[0]
+            split = output.split("该回答引用了以下文件:")
+            if len(split) > 1:
+                output = split[0]
+                file_content = "该回答引用了以下文件" + split[1]
+
         ai_mysql_weaviate = {
             "db_name": db_name,
             "db_id": knowledge_base_model.get('db_id'),
             "instruction": knowledge_base_model.get('instruction'),
             "input": knowledge_base_model.get('input'),
-            "output": knowledge_base_model.get('output'),
+            "output": output,
             "keyword": knowledge_base_model.get('keyword'),
-            "file_content": knowledge_base_model.get('file_info'),
             "file_url": file_url,
-            "file_name": file_content,
+            "file_content": file_content,
             "weaviate_id": uuid_list[i].hex
         }
         ai_mysql_weaviate_list.append(ai_mysql_weaviate)
@@ -953,12 +956,9 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
 if __name__ == '__main__':
     manner_execution = {
         "method_name": "t_knowledge_info",
-        "limit": 6,
+        "limit": 2,
         "start_id": 0,
-        "frequency": 2,
-        "is_all": True,
-        # "is_all": False,
-        "insert_to_ai_mysql_weaviate": True
+        "frequency": 1
     }
     manner_execution = MannerExecution(**manner_execution)
     asyncio.run(cleansing_manner_execution(manner_execution))
