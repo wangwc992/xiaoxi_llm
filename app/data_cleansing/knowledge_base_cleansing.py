@@ -76,10 +76,10 @@ def check_missing_data_in_weaviate(start_id: int = 0, limit: int = 100):
                         if item in class_:
                             output += f"，文件链接：{file_url}"
                 output = HtmlUtils.replace_link_with_url(output)
-                replyer_time = knowledge_info.get("replyerTime", "")
-                if replyer_time:
-                    replyer_time = replyer_time.strftime("%Y-%m-%d %H:%H:%M")
-                output = f'平台顾问于{replyer_time}回复内容如下：{output}'
+                update_time = knowledge_info.get("updateTime", "")
+                if update_time:
+                    update_time = update_time.strftime("%Y-%m-%d %H:%H:%M")
+                output = f'平台顾问于{update_time}回复内容如下：{output}'
 
         db_id = str(knowledge_info["id"])
 
@@ -138,10 +138,10 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
                         if item in class_:
                             output += f"，文件链接：{file_url}"
                 output = HtmlUtils.replace_link_with_url(output)
-                replyer_time = knowledge_info.get("replyerTime", "")
-                if replyer_time:
-                    replyer_time = replyer_time.strftime("%Y-%m-%d %H:%H:%M")
-                output = f'平台顾问于{replyer_time}回复内容如下：{output}'
+                update_time = knowledge_info.get("updateTime", "")
+                if update_time:
+                    update_time = update_time.strftime("%Y-%m-%d %H:%H:%M")
+                output = f'平台顾问于{update_time}回复内容如下：{output}'
 
         db_id = str(knowledge_info["id"])
 
@@ -895,7 +895,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
             try:
                 while frequency != 0:
                     start_id, knowledge_base_model, file_url_list = method_func()
-                    if not knowledge_base_model:
+                    if not knowledge_base_model or frequency == 0:
                         logger.info(f"{method_name} 数据清洗完成")
                         break
                     uuid_list = insert_weaviate_data_all(knowledge_base_model)
