@@ -66,6 +66,37 @@ class KnowledgeInfo(BaseModel):
     share_num: int = Field(None, description="分享数")
 
 
+def check_missing_knowledge_data(limit: int = 100) -> list:
+    sql = '''
+        SELECT t1.id
+        FROM t_knowledge_info t1
+        WHERE t1.startup_status = 1
+            AND t1.apply_status = 4
+            AND NOT EXISTS (
+                SELECT 1
+                FROM ai_mysql_weaviate t2
+                WHERE t1.id = t2.db_id
+            )
+    '''
+    db_id_lis = xxlxdb.execute_all2dict(sql=sql, limit=limit)
+    # 提取里面的id变成一个列表
+    db_id_list = [i.get('id') for i in db_id_lis]
+    return db_id_list
+
+
+def search_missing_knowledge_info_data(db_id_list: list):
+    '''查询缺失数据'''
+    sql = f'''
+        SELECT 
+            id, type, country, school, class, name, founder,filename, replyerTime, content, fileurl,`class` as class_ 
+        FROM 
+            t_knowledge_info
+        WHERE 
+            id in {tuple(db_id_list)}
+    '''
+    return xxlxdb.execute_all2dict(sql=sql)
+
+
 def search_knowledge_info_data(id=0, limit=10):
     # 就是方便
     if limit == 1:
@@ -747,4 +778,6 @@ def search_zn_school_recruit_art(id: int = 0, limit: int = 10):
 
 
 if __name__ == '__main__':
-    print(search_school_info_basic_data(5, 6))
+    x = check_missing_knowledge_data(2)
+    c = search_missing_knowledge_info_data(x)
+    print(c)

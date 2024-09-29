@@ -25,7 +25,9 @@ from app.database.mysql.xxlxdb.knowledge_info.knowledge_info import (search_know
                                                                      search_zn_school_recruit_graduate_1,
                                                                      search_zn_school_recruit_graduate_2,
                                                                      search_zn_school_recruit_art,
-                                                                     search_zn_school_department_project)
+                                                                     search_zn_school_department_project,
+                                                                     search_missing_knowledge_info_data,
+                                                                     check_missing_knowledge_data)
 from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 
@@ -42,6 +44,59 @@ zn_school_admission_undergraduate = "zn_school_admission_undergraduate"
 zn_school_admission_graduate_student = "zn_school_admission_graduate_student"
 zn_school_admission_art = "zn_school_admission_art"
 zn_school_department_project = "zn_school_department_project"
+
+
+def check_missing_data_in_weaviate(start_id: int = 0, limit: int = 100):
+    '''查询缺失数据'''
+    class_list = ["换代理表", "授权表/接受offer缴费指导表", "申请材料模板", "院校申请表"]
+    global t_knowledge_info
+    database = t_knowledge_info
+    db_id_list = check_missing_knowledge_data(limit=limit)
+    knowledge_info_dict_list = search_missing_knowledge_info_data(db_id_list)
+    if not knowledge_info_dict_list:
+        logger.info(f"{database}知识库数据已全部洗入")
+        # 抛出异常，终止程序
+        return None, None, None
+    knowledge_base_model = []
+    file_url_list = []
+    for knowledge_info in knowledge_info_dict_list:
+        file_url = knowledge_info.get("fileurl")
+        file_url_list.append(file_url)
+        output = knowledge_info.get("output")
+        if not output:
+            output = knowledge_info.get("content", "")
+            if file_url:
+                file_content = urlToText(knowledge_info["fileurl"])
+                if file_content:
+                    filename = knowledge_info.get("filename", "")
+                    output += f"\n该回答引用了以下文件，文件名：{filename}，文件内容:{file_content}"
+
+                    class_ = knowledge_info.get("class_")
+                    for item in class_list:
+                        if item in class_:
+                            output += f"，文件链接：{file_url}"
+                output = HtmlUtils.replace_link_with_url(output)
+                replyer_time = knowledge_info.get("replyerTime", "")
+                if replyer_time:
+                    replyer_time = replyer_time.strftime("%Y-%m-%d %H:%H:%M")
+                output = f'平台顾问于{replyer_time}回复内容如下：{output}'
+
+        db_id = str(knowledge_info["id"])
+
+        type = "1" if knowledge_info.get("type") == 1 else "2"
+        name = knowledge_info.get("name" if type == "1" else "filename")
+        instruction = f'{knowledge_info["country"]}{knowledge_info["school"]}{knowledge_info["class"]}的以下问题: {name}'
+        link = f'{{"object":"json","type": {type},"title":"{name}","id":{db_id},"attachment_url":"{file_url}"}}'
+
+        knowledge_base_model.append({
+            "db_name": database,
+            "db_id": db_id,
+            "instruction": instruction,
+            "output": output,
+            "link": link,
+        })
+
+    return knowledge_info_dict_list[-1].get("id"), knowledge_base_model, file_url_list
 
 
 def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
@@ -812,6 +867,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
     insert_to_ai_mysql_weaviate = manner_execution.insert_to_ai_mysql_weaviate
 
     method_mapping = {
+        "check_missing_data_in_weaviate": lambda: check_missing_data_in_weaviate(start_id=start_id, limit=limit),
         "t_knowledge_info": lambda: insert_t_knowledge_info_data(start_id=start_id, limit=limit),
         "notice_message": lambda: insert_institution_information_data(start_id=start_id, limit=limit),
         "platform_introduction": lambda: insert_platform_introduction_data(start_id=start_id, limit=limit),
@@ -829,6 +885,7 @@ async def cleansing_manner_execution(manner_execution: MannerExecution):
         # 清空数据库
         knowledge_base_weaviate.clear_all_data(property="db_name", like_str="*")
         # 排除使用的方法
+        method_mapping.pop("check_missing_data_in_weaviate")
         method_mapping.pop("t_knowledge_info")
         method_mapping.pop("notice_message")
 
