@@ -52,7 +52,6 @@ class LoggerHandler(logging.Handler):
 
 
 def get_log_file_path() -> str:
-    current_time = datetime.now().strftime('%Y_%m_%d_%H_%M')
     log_file = f"run_log.log"
     log_dir = "/root/autodl-tmp/project/xiaoxi_llm/logs"
     os.makedirs(log_dir, exist_ok=True)
@@ -74,7 +73,7 @@ def get_logger(name: str) -> logging.Logger:
         fmt="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
     )
     console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
+    # logger.addHandler(console_handler)
 
     # 添加文件输出处理程序，
     log_file_path = get_log_file_path()
