@@ -150,7 +150,7 @@ class WeaviateClient:
 
     def delete_data_by_uuid(self, uuid):
         '''删除数据'''
-        self.collection.delete(uuid)
+        self.collection.data.delete_by_id(uuid)
         return {"message": f"{uuid} data deleted successfully"}
 
     def clear_all_data(self, property: str, like_str: str):
