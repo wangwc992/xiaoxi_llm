@@ -60,10 +60,12 @@ def get_log_file_path() -> str:
 
 
 def get_logger(name: str) -> logging.Logger:
-
     logger = logging.getLogger(name)
-
     logger.setLevel(logging.INFO)
+
+    # 移除已有的处理程序，避免重复添加
+    if logger.hasHandlers():
+        logger.handlers.clear()
 
     # 添加控制台输出处理程序
     console_handler = logging.StreamHandler(sys.stdout)
