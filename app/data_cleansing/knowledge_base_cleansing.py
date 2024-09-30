@@ -123,6 +123,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     knowledge_base_model = []
     file_url_list = []
     for knowledge_info in knowledge_info_dict_list:
+        logger.info(f"插入mysql_weaviate数据:{knowledge_info['id']}")
         file_url = knowledge_info.get("fileurl")
         file_url_list.append(file_url)
         output = knowledge_info.get("output")
@@ -929,7 +930,6 @@ def insert_mysql_weaviate(knowledge_base_model_list, uuid_list, file_url_list):
     ai_mysql_weaviate_list = []
     db_name = knowledge_base_model_list[0].get('db_name')
     for i, knowledge_base_model in enumerate(knowledge_base_model_list):
-        logger.info(f"插入mysql_weaviate数据:{knowledge_base_model.get('db_id')}")
         file_url = file_url_list[i] if file_url_list else None
         output = knowledge_base_model.get('output')
         file_content = None
