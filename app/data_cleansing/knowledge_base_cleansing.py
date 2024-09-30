@@ -125,12 +125,10 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
     for knowledge_info in knowledge_info_dict_list:
         file_url = knowledge_info.get("fileurl")
         file_url_list.append(file_url)
-        # output = knowledge_info.get("output")
-        output = ""
+        output = knowledge_info.get("output")
         if output:
             # 补丁，修复之前的数据，由于文件解析太麻烦加入的补丁
-            update_time = knowledge_info.get("updateTime", "").strftime("%Y-%m-%d %H:%H:%M")
-            output = re.sub(r'平台顾问于.*?回复内容如下', f'平台顾问于{update_time}回复内容如下', output)
+            pass
         else:
             output = knowledge_info.get("content")
             if not output:
@@ -148,7 +146,7 @@ def insert_t_knowledge_info_data(start_id: int = 0, limit: int = 10):
                 if update_time:
                     update_time = update_time.strftime("%Y-%m-%d %H:%H:%M")
                 output = f'平台顾问于{update_time}回复内容如下：{output}'
-        output = HtmlUtils.replace_link_with_url(output)
+            output = HtmlUtils.replace_link_with_url(output)
         db_id = str(knowledge_info["id"])
 
         type = "1" if knowledge_info.get("type") == 1 else "2"
