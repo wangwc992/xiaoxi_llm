@@ -67,7 +67,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 初始化历史消息列表
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
     ai_chat_log_model.conversation_id = conversation_id
-
+    # 补丁，下个版本删除
+    reanswer = True
     # 加载classificationQuery模板，进行任务分类
     chat_completion_stream_response = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
                                                            raw_request=raw_request)
