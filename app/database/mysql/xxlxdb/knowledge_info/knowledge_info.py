@@ -104,9 +104,8 @@ def search_knowledge_info_data(id=0, limit=10):
     else:
         pj = f"> {id}"
     sql = f"""
-        SELECT t1.id, type, country, school, class, name, founder,filename, updateTime, content, fileurl,`class` as class_ ,amw.output AS output
+        SELECT t1.id, type, country, school, class, name, founder,filename, updateTime, content, fileurl,`class` as class_
         FROM t_knowledge_info t1
-        LEFT JOIN ai_mysql_weaviate amw ON t1.id = amw.db_id AND amw.db_name = 't_knowledge_info'
         where startup_status = 1 and apply_status = 4 and t1.id {pj}
         """
     return xxlxdb.execute_all2dict(sql=sql, limit=limit)
