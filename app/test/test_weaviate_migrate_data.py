@@ -2,8 +2,8 @@ import weaviate
 from tqdm import tqdm
 from weaviate.classes.query import Filter
 
-weaviate_src = weaviate.connect_to_local(port=8079, grpc_port=50060)
-weaviate_tgt = weaviate.connect_to_local("192.168.0.139", 8080)
+weaviate_tgt = weaviate.connect_to_local(port=8079, grpc_port=50060)
+weaviate_src = weaviate.connect_to_local("192.168.0.139", 8080)
 collections = "Qwen_data_base"
 
 collection_tgt = weaviate_tgt.collections.get(collections)
@@ -18,6 +18,7 @@ while True:
         # dry_run=True,
         # verbose=True
     )
+    print(result)
     if result.matches < 10000:
         break
 with collection_tgt.batch.fixed_size(batch_size=100) as batch:

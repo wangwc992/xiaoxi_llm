@@ -18,7 +18,8 @@ from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
 weaviate_client = settings.get("weaviate")
 
 logger = get_logger(__name__)
-client = weaviate.connect_to_local(grpc_port=weaviate_client.get('grpc_port'), port=weaviate_client.get('port'),host=weaviate_client.get('host'), skip_init_checks=True)
+client = weaviate.connect_to_local(grpc_port=weaviate_client.get('grpc_port'), port=weaviate_client.get('port'),
+                                   host=weaviate_client.get('host'), skip_init_checks=True)
 collections_name = 'Qwen_data_base'
 ai_chat_log = 'Ai_chat_log'
 collection = client.collections.get(collections_name)
@@ -115,26 +116,22 @@ def search_hybrid(query, limit):
 
 def fetch_objects():
     response = collection.query.fetch_objects(
-        # filters=(
-        #         Filter.by_property("db_id").equal("26487")
-        #         & Filter.by_property("database").equal("t_knowledge_info")
-        # ),
-        limit=5,
-        offset=2
+        filters=(
+            # Filter.by_property("db_id").equal("26487") &
+            Filter.by_property("db_name").equal("t_knowledge_info")
+        ),
+        limit=100,
+        offset=0
     )
     for o in response.objects:
-        # {'file_content': None, 'link': '{"object":"json","type": 1,"title":"本科雅思要求多少分？","id":6589,"attachment_url":""}', 'db_id': '6589', 'db_name': 't_knowledge_info', 'instruction': '英国其他其他的以下问题: 本科雅思要求多少分？', 'input': None, 'output': '平台顾问于2023-07-21 15:15:41回复内容如下：一般是总分6.0，小分5.5', 'keyword': '英国 本科 雅思'}
-        # 将instruction和output的数据添加到excel文件中中
         print(o.properties)
-
-
 
 
 if __name__ == "__main__":
     # delete_many()
     # delete_collection_name()
-    ai_chat_log_weaviate.delete_collection_name(ai_chat_log_weaviate.collections_name)
-    ai_chat_log_weaviate.create_collection(ai_chat_log_weaviate.properties)
+    # ai_chat_log_weaviate.delete_collection_name(ai_chat_log_weaviate.collections_name)
+    # ai_chat_log_weaviate.create_collection(ai_chat_log_weaviate.properties)
     #
     # query_bm25(query_bm25_database)
     # query_bm25("notice_message")
@@ -149,3 +146,20 @@ if __name__ == "__main__":
     # search_hybrid("墨尔本大学 怎么样", 10)
     # fetch_objects()
     # 创建或加载工作簿
+    dict_data = []
+    seen_db_ids = set()
+
+    for o in collection.iterator(return_properties=["db_id", "db_name"]):
+        if o.properties.get("db_name") != "t_knowledge_info":
+            continue
+        db_id = o.properties.get("db_id")
+        uuid = o.uuid.hex
+
+        if db_id in seen_db_ids:
+            dict_data.append({"db_id": db_id, "uuid": uuid})
+            # collection.data.delete_by_id(uuid)
+            print(f"db_id: {db_id}, uuid: {uuid}")
+        else:
+            seen_db_ids.add(db_id)
+    print(f"len(dict_data): {len(dict_data)}")
+    print(f"len(seen_db_ids): {len(seen_db_ids)}")
