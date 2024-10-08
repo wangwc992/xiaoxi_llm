@@ -1,27 +1,28 @@
-from typing import Optional
+import datetime
+import threading
 
-from pydantic import BaseModel, Field
+import schedule
+import time
 
-
-class BBB(BaseModel):
-    e: Optional[str] = None
-    r: Optional[str] = None
-    pass
-
-
-class AAA(BaseModel):
-    q: Optional[str] = "None"
-    w: Optional[str]
-    bbb: Optional[BBB] = Field(default_factory=BBB)
+# 定义文件重命名函数
+def rename_log_file():
+    #  打印当前时间
+    print(f"rename_log_file running...{datetime.datetime.now()}")
 
 
-a = AAA(w="w")
-z1 = a.model_dump()
-z2 = a.dict()
-z3 = a.model_dump_json(exclude_none=True)
-z4 = a.dict()
-z5 = AAA.model_validate_json(z3)
-z6 = AAA.model_validate(z2)
-print(z1)
-# z1 变成字典类型
+def run_rename_log_file_task():
+    print("rename_log_file start ...")
+    # 每天定时执行
+    # schedule.every().day.at("00:00").do(rename_log_file)
+    # 每分钟执行一次
+    schedule.every().minute.do(rename_log_file)
 
+    while True:
+        schedule.run_pending()
+        time.sleep(60)  # 每60秒检查一次任务
+
+# 开启一个线程，运行定时任务
+threading.Thread(target=run_rename_log_file_task, daemon=True).start()
+
+while True:
+    time.sleep(1)

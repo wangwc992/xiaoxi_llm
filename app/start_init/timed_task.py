@@ -19,7 +19,7 @@ def run_scheduler():
         time.sleep(60)
 
 
-async def knowledge_base_cleansing():
+def knowledge_base_cleansing():
     logger.info("knowledge_base_cleansing start...")
     method_lsit = ['platform_introduction', 'zn_school_info', 'zn_school_info_rank', 'zn_school_info_more',
                    'zn_school_selection_reason', 'zn_school_admission_undergraduate',
@@ -36,4 +36,4 @@ async def knowledge_base_cleansing():
         is_async=True,
         insert_to_ai_mysql_weaviate=False
     )
-    await cleansing_manner_execution(manner_execution)
+    asyncio.run(cleansing_manner_execution(manner_execution))
