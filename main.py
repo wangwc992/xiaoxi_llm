@@ -82,8 +82,8 @@ def build_app(args, **uvicorn_kwargs):
     @app.on_event("startup")
     async def startup_event():
         threading.Thread(target=start_binlog_listener, daemon=True).start()
-        threading.Thread(target=run_scheduler, daemon=True).start()
-        threading.Thread(target=run_rename_log_file_task, daemon=True).start()
+        # threading.Thread(target=run_scheduler, daemon=True).start()
+        # threading.Thread(target=run_rename_log_file_task, daemon=True).start()
 
     mount_metrics(app)
 
