@@ -24,3 +24,5 @@ json_formatting = prompt_dict.get('json_formatting')
 small_talk = prompt_dict.get('small_talk')
 # 分类失败,走提示prompt
 information_cue = prompt_dict.get('information_cue')
+
+scheme_making = prompt_dict.get('scheme_making')

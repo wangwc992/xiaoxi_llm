@@ -34,8 +34,8 @@ from vllm.utils import random_uuid
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeaviateModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
 from app.http.google_search import google_search
-from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
-    reanswer_classification_query, small_talk, information_cue
+from app.prompt import (classification_query, xiao_xi_chat, matching_summary, matching_information,
+                        reanswer_classification_query, small_talk, information_cue, scheme_making)
 
 logger = get_logger(__name__)
 
@@ -67,8 +67,6 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 初始化历史消息列表
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
     ai_chat_log_model.conversation_id = conversation_id
-    # 补丁，下个版本删除
-    reanswer = True
     # 加载classificationQuery模板，进行任务分类
     chat_completion_stream_response = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
                                                            raw_request=raw_request)
@@ -76,7 +74,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 将chat_completion_stream_response转换为AiChatLogModel
     await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
     output = ai_chat_log_model.output
-    logger.info("reanswer_classification_query： %s", output)
+
     # 判断output 是否可以转换为json
 
     try:
@@ -94,14 +92,28 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     chat_completion_stream_response = ChatCompletionStreamResponse()
 
     # ------------------------------------------------------------------------------------------------------------------
-    if query_type == TASK_A or query_type == TASK_B:
-        # 留学相关的海外院校/专业/申请相关的知识
-        if query_type == TASK_A:
+    if query_type == TASK_A:
+        task = classification_model.task
+        if not task:
+            task = "2"
+        if task == "2":
             # 获取海外院校/专业/申请相关的知识
             filters = Filter.by_property("db_name").not_equal("platform_introduction")
+            # 获取参考数据
+            reference_data_dto = await load_reference_data(query=query, filters=filters, limit=10)
+            # 加载prompt模板
+            template = PromptTemplate.from_template(xiao_xi_chat)
+            prompt = template.format(input=query, reference_data=reference_data_dto.reference_data)
         else:
-            # 小希平台相关功能知识
-            filters = Filter.by_property("db_name").equal("platform_introduction")
+            chat_completion_response = await non_streaming_response(ai_chat_log_model=ai_chat_log_model,
+                                                                    template=scheme_making,
+                                                                    raw_request=raw_request)
+            await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_response)
+
+            return JSONResponse(content=chat_completion_response.model_dump(exclude_unset=True))
+
+    elif query_type == TASK_B:
+        filters = Filter.by_property("db_name").equal("platform_introduction")
         # 获取参考数据
         reference_data_dto = await load_reference_data(query=query, filters=filters, limit=10)
 
@@ -238,6 +250,23 @@ async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
     classification_query_prompt = template.format(input=ai_chat_log_model.query)
     system = Message(role="system", content="你是一个严谨的智能问题分类助手，不会提供虚假信息")
     human = Message(role="user", content=classification_query_prompt)
+    chat_request = ChatCompletionRequest(
+        messages=[system, human],
+        model=ai_chat_log_model.model_name,
+    )
+    # 创建chat_completion请求
+    result = await create_chat_completion(chat_request, raw_request)
+    # 提取消息
+    chat_completion_stream_response = await extract_message(result)
+    return chat_completion_stream_response
+
+
+async def non_streaming_response(ai_chat_log_model: AiChatLogModel, template: str,
+                                 raw_request: Request) -> ChatCompletionStreamResponse:
+    template = PromptTemplate.from_template(template)
+    classification_query_prompt = template.format(input=ai_chat_log_model.query)
+    system = Message(role="system", content="你是一个严谨的智能问题关键信息提取助手，不会提供虚假信息")
+    human = Message(role="human", content=classification_query_prompt)
     chat_request = ChatCompletionRequest(
         messages=[system, human],
         model=ai_chat_log_model.model_name,
@@ -449,6 +478,9 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
     )
     ai_chat_log_model.chat_id = chat_completion_stream_response.id
     content = chat_completion_stream_response.choices[0].delta.content
+    logger.info("非流回复提取内容： %s", content)
+    output_dict = await json_formatting(content)
+    logger.info("非流回复提取内容字典： %s", output_dict)
     if not content:
         content = chat_completion_stream_response.choices[0].message.content
     ai_chat_log_model.output = content
