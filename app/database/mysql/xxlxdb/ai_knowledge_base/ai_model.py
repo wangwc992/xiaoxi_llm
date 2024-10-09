@@ -17,6 +17,7 @@ class MyChatCompletionRequestModel(BaseModel):
 
 class ClassificationModel(BaseModel):
     """分类模型"""
+    query_rewrite: Optional[str] = Field(None, description="问题重写")
     query_type: Optional[str] = Field(None, description="问题类型")
     task: Optional[str] = Field(None, description="任务编号")
     student_name: Optional[str] = Field(None, description="学生姓名")
