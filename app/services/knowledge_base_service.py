@@ -248,7 +248,7 @@ async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
     :return: 任务分类结果 ChatCompletionStreamResponse
     """
     human_message = "\n\n".join(
-        [f"{n}. {history_message_list_human[n]}" for n in range(len(history_message_list_human))])
+        [f"{n}. {history_message_list_human[n]}" for n in range(len(history_message_list_human) - 1)])
     logger.info(f"human_message: {human_message}")
     if reanswer:
         template = PromptTemplate.from_template(reanswer_classification_query)
@@ -486,10 +486,10 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
     ai_chat_log_model.chat_id = chat_completion_stream_response.id
     content = chat_completion_stream_response.choices[0].delta.content
     logger.info("非流回复提取内容： %s", content)
-    output_dict = await json_formatting(content)
-    logger.info("非流回复提取内容字典： %s", output_dict)
     if not content:
         content = chat_completion_stream_response.choices[0].message.content
+    output_dict = await json_formatting(content)
+    logger.info("非流回复提取内容字典： %s", output_dict)
     ai_chat_log_model.output = content
 
 
