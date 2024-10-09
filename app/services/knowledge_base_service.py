@@ -115,7 +115,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                                                                     template=scheme_making,
                                                                     raw_request=raw_request)
             await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_response)
-
+            output = ai_chat_log_model.output
+            output_json = json_formatting(output)
+            logger.info(f"output_json: {output_json}")
             return JSONResponse(content=chat_completion_response.model_dump(exclude_unset=True))
 
     elif query_type == TASK_B:
@@ -488,9 +490,9 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
     )
     ai_chat_log_model.chat_id = chat_completion_stream_response.id
     content = chat_completion_stream_response.choices[0].delta.content
-    logger.info("非流回复提取内容： %s", content)
     if not content:
         content = chat_completion_stream_response.choices[0].message.content
+    logger.info("非流回复提取内容： %s", content)
     ai_chat_log_model.output = content
 
 
