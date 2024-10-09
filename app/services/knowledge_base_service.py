@@ -116,8 +116,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                                                                     raw_request=raw_request)
             await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_response)
             output = ai_chat_log_model.output
-            output_json = json_formatting(output)
-            logger.info(f"output_json: {output_json}")
+            output_json = await json_formatting(output)
+            logger.info(f"output_json: {output_json.get('intention_tudy_abroad')}")
             return JSONResponse(content=chat_completion_response.model_dump(exclude_unset=True))
 
     elif query_type == TASK_B:
