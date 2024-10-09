@@ -92,9 +92,11 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 获取任务类型
     query_type = classification_model.query_type
     message_type = query_type
+
+    query = classification_model.query_rewrite
     # 返回对象
     chat_completion_stream_response = ChatCompletionStreamResponse()
-
+    logger.info(f"ai_chat_log_model: {ai_chat_log_model.model_dump()}")
     # ------------------------------------------------------------------------------------------------------------------
     if query_type == TASK_A:
         task = classification_model.task
