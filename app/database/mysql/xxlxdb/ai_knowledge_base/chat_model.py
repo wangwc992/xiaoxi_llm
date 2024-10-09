@@ -1,6 +1,7 @@
 from typing import Optional, Literal, List, Union
 from pydantic import BaseModel, Field
-from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import ClassificationModel, ReferenceDataDto
+from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import (ClassificationModel, ReferenceDataDto,
+                                                                  IntentionStudyAbroad, EducationalBackground)
 from vllm.entrypoints.chat_utils import CustomChatCompletionMessageParam
 
 
@@ -68,6 +69,8 @@ class ChatCompletionStreamResponse(BaseModel):
     conversation_id: Optional[str] = None
     classification_model: Optional[ClassificationModel] = Field(default_factory=ClassificationModel)
     reference_data_dto: Optional[ReferenceDataDto] = Field(default_factory=ReferenceDataDto)
+    intention_study_abroad: Optional[IntentionStudyAbroad] = Field(default_factory=IntentionStudyAbroad)
+    educational_background: Optional[EducationalBackground] = Field(default_factory=EducationalBackground)
 
 
 def datat_to_chat_completion_stream_response(data_str: str) -> ChatCompletionStreamResponse:

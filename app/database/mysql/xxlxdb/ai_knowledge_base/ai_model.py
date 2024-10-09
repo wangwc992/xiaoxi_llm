@@ -1,9 +1,8 @@
-
-
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
 
 class MyChatCompletionRequestModel(BaseModel):
     """对话完成请求模型"""
@@ -50,3 +49,25 @@ class ReferenceDataDto(BaseModel):
     reference_data: str = Field(None, description="参考数据")
     knowledge_link: list = Field(None, description="知识链接")
     reference_data_count: int = Field(None, description="参考数据数量")
+
+
+class IntentionStudyAbroad(BaseModel):
+    """留学意向模型"""
+    country: Optional[str] = Field(None, description="国家")
+    school_en_name: Optional[str] = Field(None, description="学校英文名")
+    major_en_name: Optional[str] = Field(None, description="专业英文名")
+    qs: Optional[int] = Field(None, description="qs排名")
+    degree: Optional[str] = Field(None, description="学历")
+    duration: Optional[str] = Field(None, description="学制")
+    semester: Optional[str] = Field(None, description="开学日期")
+    city: Optional[str] = Field(None, description="城市")
+
+
+class EducationalBackground(BaseModel):
+    """教育背景模型"""
+    student_name: Optional[str] = Field(None, description="学生姓名")
+    study_diploma: Optional[str] = Field(None, description="学历")
+    study_school: Optional[str] = Field(None, description="学校中文名")
+    study_school_country: Optional[str] = Field(None, description="学校所在国家")
+    study_major: Optional[str] = Field(None, description="学校专业")
+    study_score: Optional[str] = Field(None, description="学校成绩")
