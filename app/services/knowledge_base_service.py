@@ -68,7 +68,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
     ai_chat_log_model.conversation_id = conversation_id
     # 获取history_message_list里面全部的human的content
-    history_message_list_human = [message.content for message in history_message_list if message.role == "human"]
+    history_message_list_human = [message.content for message in history_message_list if message.get("role") == "human"]
 
     # 加载classificationQuery模板，进行任务分类
     chat_completion_stream_response = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
