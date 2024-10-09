@@ -248,7 +248,8 @@ async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
     :return: 任务分类结果 ChatCompletionStreamResponse
     """
     human_message = "\n\n".join(
-        [f"{history_message_list_human[n]}" for n in range(len(history_message_list_human))])
+        [f"{n}. {history_message_list_human[n]}" for n in range(len(history_message_list_human))])
+    logger.info(f"human_message: {human_message}")
     if reanswer:
         template = PromptTemplate.from_template(reanswer_classification_query)
     else:
