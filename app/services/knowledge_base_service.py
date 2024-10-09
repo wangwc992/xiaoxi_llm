@@ -67,9 +67,13 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     # 初始化历史消息列表
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
     ai_chat_log_model.conversation_id = conversation_id
+    # 获取history_message_list里面全部的human的content
+    history_message_list_human = [message.content for message in history_message_list if message.role == "human"]
+
     # 加载classificationQuery模板，进行任务分类
     chat_completion_stream_response = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
-                                                           raw_request=raw_request)
+                                                           raw_request=raw_request,
+                                                           history_message_list_human=history_message_list_human)
 
     # 将chat_completion_stream_response转换为AiChatLogModel
     await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
@@ -236,18 +240,20 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
 
 async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
-                         raw_request: Request) -> ChatCompletionStreamResponse:
+                         raw_request: Request, history_message_list_human: list) -> ChatCompletionStreamResponse:
     """ 任务分类
     :param ai_chat_log_model: AiChatLogModel
     :param reanswer: 是否再次回答
     :param raw_request: 请求
     :return: 任务分类结果 ChatCompletionStreamResponse
     """
+    human_message = "\n\n".join(
+        [f"{history_message_list_human[n]}" for n in range(len(history_message_list_human))])
     if reanswer:
         template = PromptTemplate.from_template(reanswer_classification_query)
     else:
         template = PromptTemplate.from_template(classification_query)
-    classification_query_prompt = template.format(input=ai_chat_log_model.query)
+    classification_query_prompt = template.format(input=ai_chat_log_model.query, input_history=human_message)
     system = Message(role="system", content="你是一个严谨的智能问题分类助手，不会提供虚假信息")
     human = Message(role="user", content=classification_query_prompt)
     chat_request = ChatCompletionRequest(
