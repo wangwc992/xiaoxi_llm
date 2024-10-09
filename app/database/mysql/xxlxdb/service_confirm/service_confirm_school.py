@@ -43,8 +43,20 @@ def select_service_history(service_school_id_list: list):
     return service_history_dict_list
 
 
-def select_member_id_by_company_id(company_id: str):
-    sql = f"SELECT wechat_id from user_adviser where company_id = {company_id} and delete_status = 0"
+def select_member_id_by_company_id(user_id: str):
+    sql = f"""
+    SELECT wechat_id 
+    FROM user_adviser t1
+    INNER JOIN t_member t2 
+        ON t1.company_id = (
+            SELECT company_id 
+            FROM user_adviser 
+            WHERE wechat_id = {user_id} 
+              AND delete_status = 0
+        )
+        AND t1.delete_status = 0 
+        AND t2.id = t1.wechat_id
+    """
     member_id_dict_list = xxlxdb.execute_all2dict(sql)
     member_id_list = [member_id_dict['wechat_id'] for member_id_dict in member_id_dict_list]
     return member_id_list
