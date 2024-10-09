@@ -32,18 +32,27 @@ class JiebaTool:
                 self.stopwords.update(set([line.strip() for line in f]))
 
     def cut(self, text) -> list:
+        """精确模式
+        详细说明：对句子进行分词，精确模式，返回一个列表
+        """
         with self.lock:
             self.initialize()
             words = jieba.lcut(text)
             return [word for word in words if word not in self.stopwords]
 
     def cut_for_search(self, text) -> list:
+        """搜索引擎模式
+        详细说明：对句子进行分词，搜索引擎模式，返回一个列表
+        """
         with self.lock:
             self.initialize()
             words = jieba.cut_for_search(text)
             return [word for word in words if word not in self.stopwords and len(word) > 1]
 
     def lcut_for_search(self, text) -> list:
+        """搜索引擎模式
+        详细说明：对句子进行分词，搜索引擎模式，返回一个列表
+        """
         with self.lock:
             self.initialize()
             words = jieba.lcut_for_search(text)
@@ -79,3 +88,9 @@ class JiebaTool:
 
 # 使用示例
 jieba_tool = JiebaTool()
+
+if __name__ == "__main__":
+    text = "悉尼大学的免申请费活动怎么样才可以申请呢？ 有什么条件吗？"
+    print(jieba_tool.cut(text))
+    print(jieba_tool.cut_for_search(text))
+    print(jieba_tool.lcut_for_search(text))
