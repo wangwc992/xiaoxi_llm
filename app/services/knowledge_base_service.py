@@ -272,6 +272,7 @@ async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
 
 async def non_streaming_response(ai_chat_log_model: AiChatLogModel, template: str,
                                  raw_request: Request) -> ChatCompletionStreamResponse:
+    logger.info(f"template: {template}")
     template = PromptTemplate.from_template(template)
     classification_query_prompt = template.format(input=ai_chat_log_model.query)
     system = Message(role="system", content="你是一个严谨的智能问题关键信息提取助手，不会提供虚假信息")
@@ -490,8 +491,6 @@ async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_re
     logger.info("非流回复提取内容： %s", content)
     if not content:
         content = chat_completion_stream_response.choices[0].message.content
-    output_dict = await json_formatting(content)
-    logger.info("非流回复提取内容字典： %s", output_dict)
     ai_chat_log_model.output = content
 
 
