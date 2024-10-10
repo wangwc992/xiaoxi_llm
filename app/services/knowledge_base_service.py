@@ -22,7 +22,7 @@ from app.data.dictionaries import school_abbreviations
 from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keyword_dict
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_knowledge_base import insert_ai_chat_log
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import AiChatLogModel, ReferenceDataDto, \
-    MyChatCompletionRequestModel, ClassificationModel
+    MyChatCompletionRequestModel, ClassificationModel, IntentionStudyAbroad, EducationalBackground
 from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionStreamResponse, Message, \
     datat_to_chat_completion_stream_response, DeltaMessage, ChatCompletionResponseStreamChoice
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
@@ -117,7 +117,10 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_response)
             output = ai_chat_log_model.output
             output_json = await json_formatting(output)
-            logger.info(f"output_json: {output_json.get('intention_tudy_abroad')}")
+            chat_completion_stream_response.intention_study_abroad = IntentionStudyAbroad(
+                **output_json['intention_tudy_abroad'])
+            chat_completion_stream_response.educational_background = EducationalBackground(
+                **output_json['educational_background'])
             return JSONResponse(content=chat_completion_response.model_dump(exclude_unset=True))
 
     elif query_type == TASK_B:
