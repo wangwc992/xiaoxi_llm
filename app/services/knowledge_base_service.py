@@ -111,8 +111,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                                                                     raw_request=raw_request)
             await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_response)
             output_json = await json_formatting(ai_chat_log_model.output)
-
-            intention_study_abroad = IntentionStudyAbroad(**output_json['intention_tudy_abroad'])
+            intention_study_abroad = IntentionStudyAbroad(**output_json['intention_study_abroad'])
             # 专业信息不为空，且查询专业列表不为空走返回关键信息逻辑，否之走 RAG
             category_name = intention_study_abroad.category_name
             if category_name:
@@ -123,7 +122,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 department_project_list = getDepartmentProjectList(intention_study_abroad)
                 if department_project_list:
                     chat_completion_response.intention_study_abroad = IntentionStudyAbroad(
-                        **output_json['intention_tudy_abroad'])
+                        **output_json['intention_study_abroad'])
                     chat_completion_response.educational_background = EducationalBackground(
                         **output_json['educational_background'])
                     return JSONResponse(content=chat_completion_response.model_dump(exclude_unset=True))

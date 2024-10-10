@@ -9,7 +9,7 @@
 
 ## 最终输出格式：
 {
-    "intention_tudy_abroad":{
+    "intention_study_abroad":{
     "country": ["country"],约束:返回中文
     "school_en_name": ["school_en_name"],约束:返回英文,并且是全称
     "major_en_name": "major_en_name",约束:返回英文
@@ -48,7 +48,7 @@
 
 ## 最终输出格式：
 {{{
-    "intention_tudy_abroad":{{{
+    "intention_study_abroad":{{{
     "country": ["country"],约束:返回中文.
     "school_en_name": ["school_en_name"],约束:返回英文,并且是全称.
     "major_name": "major_name",描述:意向专业的关键字.
