@@ -44,6 +44,18 @@ class KnowledgeBaseWeaviate(WeaviateClient):
         Property(name='link', data_type=DataType.TEXT, description='参考数据的link')
     ]
 
+    def basth_insert_data(self, properties_list: list, vecs: list):
+        '''批量插入数据'''
+        logger.info(f"Batch inserting data into collection: {self.collections_name}")
+        uuid_list = []
+        with self.collection.batch.dynamic() as batch:
+            for properties in properties_list:
+                keyword = jieba_tool.cut_for_search(properties["instruction"])
+                properties["keyword"] = ' '.join(keyword)
+                uuid = batch.add_object(properties=properties, vector=vecs.pop(0))  # 从vecs中取出一个向量
+                uuid_list.append(uuid)
+        return uuid_list
+
     def search_id_or_database(self, db_id: Optional[str], database: Optional[str], limit: int = 10):
         '''根据id搜索Weaviate数据库中的数据'''
         if db_id:

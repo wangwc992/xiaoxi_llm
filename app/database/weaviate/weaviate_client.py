@@ -92,7 +92,7 @@ class WeaviateClient:
                 vector_index_config=Configure.VectorIndex.hnsw(),
                 properties=properties
             )
-            return {"message": f"{self.collections_name} collection created successfully"}
+            return {"message": f"{result.name} collection created successfully"}
         else:
             return {"message": f"{self.collections_name} collection already exists"}
 
@@ -108,8 +108,6 @@ class WeaviateClient:
         uuid_list = []
         with self.collection.batch.dynamic() as batch:
             for properties in properties_list:
-                keyword = jieba_tool.cut_for_search(properties["instruction"])
-                properties["keyword"] = ' '.join(keyword)
                 uuid = batch.add_object(properties=properties, vector=vecs.pop(0))  # 从vecs中取出一个向量
                 uuid_list.append(uuid)
         return uuid_list
@@ -134,13 +132,13 @@ class WeaviateClient:
         data_object = self.collection.query.fetch_object_by_id(uuid)
         return data_object
 
-    def hybrid_data(self, query, vec, limit=10):
+    def hybrid_data(self, query: str, query_properties: list, vec, limit=10):
         '''混合查询数据'''
         logger.info(f"Hybrid querying data in collection: {self.collections_name}")
         response = self.collection.query.hybrid(
             query=query,
             fusion_type=HybridFusion.RELATIVE_SCORE,
-            query_properties=["instruction"],
+            query_properties=query_properties,
             vector=vec,
             return_metadata=MetadataQuery(score=True, explain_score=True),
             limit=limit,

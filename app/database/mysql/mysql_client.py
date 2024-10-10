@@ -103,6 +103,7 @@ class MySQLConnect:
             sql += f' limit {limit}'
         self.execute(sql, params)
         return self.fetchall()
+
     def execute_all2object(self, sql: str, bean: Type, params: tuple = (), limit=None) -> List[Any]:
         """执行 SQL 语句并返回所有结果"""
         # 如果 limit 为 None，则不限制查询数量
