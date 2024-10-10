@@ -61,7 +61,7 @@ class IntentionStudyAbroad(BaseModel):
     degree: Optional[str] = Field(None, description="学历")
     duration: Optional[str] = Field(None, description="学制")
     semester: Optional[str] = Field(None, description="开学日期")
-    city: Optional[str] = Field(None, description="城市")
+    city: Optional[list] = Field(None, description="城市")
 
 
 class EducationalBackground(BaseModel):
