@@ -114,9 +114,9 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
 
             intention_study_abroad = IntentionStudyAbroad(**output_json['intention_tudy_abroad'])
             # 专业信息不为空，且查询专业列表不为空走返回关键信息逻辑，否之走 RAG
-            major_en_name = intention_study_abroad.major_en_name
-            if major_en_name:
-                doc_vecs = Embedding.embed_query(major_en_name)
+            category_name = intention_study_abroad.category_name
+            if category_name:
+                doc_vecs = Embedding.embed_query(category_name)
                 response_list = major_category_weaviate.hybrid_data(query,
                                                                     ["category_english_name", "zh_category_name"],
                                                                     doc_vecs, limit=1)
