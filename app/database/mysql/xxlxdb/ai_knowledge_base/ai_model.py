@@ -54,15 +54,15 @@ class ReferenceDataDto(BaseModel):
 
 class IntentionStudyAbroad(BaseModel):
     """留学意向模型"""
-    country: Optional[list] = Field(None, description="国家")
-    school_en_name: Optional[list] = Field(None, description="学校英文名")
+    country: Optional[str] = Field(None, description="国家")
+    school_en_name: Optional[str] = Field(None, description="学校英文名")
     category_name: Optional[str] = Field(None, description="二级分类英文名")
     category_id: Optional[str] = Field(None, description="二级分类id")
     qs: Optional[str] = Field(None, description="qs排名")
     degree: Optional[str] = Field(None, description="学历")
     duration: Optional[str] = Field(None, description="学制")
     semester: Optional[str] = Field(None, description="开学日期")
-    city: Optional[list] = Field(None, description="城市")
+    city: Optional[str] = Field(None, description="城市")
 
 
 class EducationalBackground(BaseModel):
