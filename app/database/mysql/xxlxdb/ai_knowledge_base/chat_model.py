@@ -2,10 +2,10 @@ from typing import Optional, Literal, List, Union
 from pydantic import BaseModel, Field
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import (ClassificationModel, ReferenceDataDto,
                                                                   IntentionStudyAbroad, EducationalBackground)
-from vllm.entrypoints.chat_utils import CustomChatCompletionMessageParam
+# from vllm.entrypoints.chat_utils import CustomChatCompletionMessageParam
 
 
-class Message(CustomChatCompletionMessageParam):
+class Message(BaseModel):
     """对话消息,重新方便使用"""
     pass
 
