@@ -1,6 +1,8 @@
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+from app.common.utils.object_utils import ObjectFormatter
 from app.database.weaviate.weaviate_client import WeaviateClient
 from weaviate.classes.config import Property
 from weaviate.collections.classes.config import DataType
@@ -20,6 +22,18 @@ class MajorCategoryWeaviate(WeaviateClient):
         Property(name='category_english_name', data_type=DataType.TEXT, description='专业英文名'),
     ]
 
+    def hybrid_data(self, query: str, query_properties: list, vec, limit=10):
+        '''混合查询数据'''
+        # 调用父类的hybrid_data方法
+        response = super().hybrid_data(query, query_properties, vec, limit)
+
+        response_list = []
+        for o in response.objects:
+            properties = o.properties
+            knowledge_base = ObjectFormatter.dict_to_object(properties, MajorCategoryWeaviateModel)
+            response_list.append(knowledge_base)
+
+        return response_list
 
 major_category_weaviate = MajorCategoryWeaviate(MajorCategoryWeaviate.collections_name)
 

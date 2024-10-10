@@ -25,6 +25,7 @@ from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import AiChatLogModel,
     MyChatCompletionRequestModel, ClassificationModel, IntentionStudyAbroad, EducationalBackground
 from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionStreamResponse, Message, \
     datat_to_chat_completion_stream_response, DeltaMessage, ChatCompletionResponseStreamChoice
+from app.database.mysql.xxlxdb.school.school_major_mapper import getDepartmentProjectList
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
     select_service_history, select_member_id_by_company_id, select_student_by_member_id, select_student_by_name
 from app.database.redis.redis_client import get_object, set_object
@@ -33,6 +34,7 @@ from vllm.utils import random_uuid
 
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeaviateModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
+from app.database.weaviate.major_category_weaviate import major_category_weaviate
 from app.http.google_search import google_search
 from app.prompt import (classification_query, xiao_xi_chat, matching_summary, matching_information,
                         reanswer_classification_query, small_talk, information_cue, scheme_making)
@@ -68,7 +70,8 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
     conversation_id, history_message_list = await get_history_message_list(conversation_id, query)
     ai_chat_log_model.conversation_id = conversation_id
     # 获取history_message_list里面全部的human的content
-    history_message_list_human = [message.get('content') for message in history_message_list if message.get("role") == "human"]
+    history_message_list_human = [message.get('content') for message in history_message_list if
+                                  message.get("role") == "human"]
 
     # 加载classificationQuery模板，进行任务分类
     chat_completion_stream_response = await classification(ai_chat_log_model=ai_chat_log_model, reanswer=reanswer,
@@ -102,7 +105,28 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         task = classification_model.task
         if not task:
             task = "2"
-        if task == "2":
+        if task == "1":
+            chat_completion_response = await non_streaming_response(ai_chat_log_model=ai_chat_log_model,
+                                                                    template=scheme_making,
+                                                                    raw_request=raw_request)
+            await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_response)
+            output_json = await json_formatting(ai_chat_log_model.output)
+
+            intention_study_abroad = IntentionStudyAbroad(**output_json['intention_tudy_abroad'])
+            # 专业信息不为空，且查询专业列表不为空走返回关键信息逻辑，否之走 RAG
+            major_en_name = intention_study_abroad.major_en_name
+            if major_en_name:
+                doc_vecs = Embedding.embed_query(major_en_name)
+                response_list = major_category_weaviate.hybrid_data(query,
+                                                                    ["category_english_name", "zh_category_name"],
+                                                                    doc_vecs, limit=1)
+                department_project_list = getDepartmentProjectList(intention_study_abroad)
+                if department_project_list:
+                    chat_completion_response.intention_study_abroad = IntentionStudyAbroad(
+                        **output_json['intention_tudy_abroad'])
+                    chat_completion_response.educational_background = EducationalBackground(
+                        **output_json['educational_background'])
+                    return JSONResponse(content=chat_completion_response.model_dump(exclude_unset=True))
             # 获取海外院校/专业/申请相关的知识
             filters = Filter.by_property("db_name").not_equal("platform_introduction")
             # 获取参考数据
@@ -110,18 +134,6 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
             # 加载prompt模板
             template = PromptTemplate.from_template(xiao_xi_chat)
             prompt = template.format(input=query, reference_data=reference_data_dto.reference_data)
-        else:
-            chat_completion_response = await non_streaming_response(ai_chat_log_model=ai_chat_log_model,
-                                                                    template=scheme_making,
-                                                                    raw_request=raw_request)
-            await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_response)
-            output = ai_chat_log_model.output
-            output_json = await json_formatting(output)
-            chat_completion_response.intention_study_abroad = IntentionStudyAbroad(
-                **output_json['intention_tudy_abroad'])
-            chat_completion_response.educational_background = EducationalBackground(
-                **output_json['educational_background'])
-            return JSONResponse(content=chat_completion_response.model_dump(exclude_unset=True))
 
     elif query_type == TASK_B:
         filters = Filter.by_property("db_name").equal("platform_introduction")

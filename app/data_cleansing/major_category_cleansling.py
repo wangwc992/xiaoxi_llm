@@ -14,3 +14,6 @@ def all_data_cleansing() -> list:
     doc_vecs = Embedding.embed_documents(texts)
     uuid_list = major_category_weaviate.basth_insert_data(major_category_list, doc_vecs)
     return uuid_list
+
+if __name__ == "__main__":
+    all_data_cleansing()
