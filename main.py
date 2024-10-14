@@ -149,10 +149,12 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = model_environ
+    # 设置大模型使用 GPU 0-3
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
     await build_server(args, llm_engine)
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = app_environ
+    # 在初始化模型后，将程序设置为使用 GPU 4
+    os.environ['CUDA_VISIBLE_DEVICES'] = '4'
     server = build_app(args, **uvicorn_kwargs)
 
     loop = asyncio.get_running_loop()
