@@ -44,11 +44,11 @@ TIMEOUT_KEEP_ALIVE = 5  # seconds
 
 def set_fastapi_on_gpu0():
     # 设置FastAPI在GPU 0上运行
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 
 def set_vllm_on_gpus_1_to_4():
     # 设置vLLM在GPU 1, 2, 3, 4上运行
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1,2,3,4'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4'
 
 # @asynccontextmanager
 # async def lifespan(app: fastapi.FastAPI):
