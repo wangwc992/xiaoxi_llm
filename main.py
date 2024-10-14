@@ -42,13 +42,21 @@ logger = init_logger('vllm.entrypoints.openai.api_server')
 _running_tasks: Set[asyncio.Task] = set()
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
-def set_fastapi_on_gpu0():
-    # 设置FastAPI在GPU 0上运行
-    os.environ['CUDA_VISIBLE_DEVICES'] = '4'
+gpu_count = settings.get('gpu_count', 0)
+# 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
+model_environ = ','.join(map(str, range(gpu_count)))
+app_environ = str(max(gpu_count - 1, 0))
 
-def set_vllm_on_gpus_1_to_4():
+
+def set_fastapi_gpu():
+    # 设置FastAPI在GPU 0上运行
+    os.environ['CUDA_VISIBLE_DEVICES'] = app_environ
+
+
+def set_vllm_gpus():
     # 设置vLLM在GPU 1, 2, 3, 4上运行
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,4'
+    os.environ['CUDA_VISIBLE_DEVICES'] = model_environ
+
 
 # @asynccontextmanager
 # async def lifespan(app: fastapi.FastAPI):
@@ -85,8 +93,8 @@ def build_app(args, **uvicorn_kwargs):
     @app.on_event("startup")
     async def startup_event():
         threading.Thread(target=start_binlog_listener, daemon=True).start()
-        # threading.Thread(target=run_scheduler, daemon=True).start()
-        # threading.Thread(target=run_rename_log_file_task, daemon=True).start()
+        threading.Thread(target=run_scheduler, daemon=True).start()
+        threading.Thread(target=run_rename_log_file_task, daemon=True).start()
 
     mount_metrics(app)
 
@@ -148,11 +156,11 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("args: %s", args)
 
     # 设置 FastAPI 运行在 GPU 0
-    set_fastapi_on_gpu0()
+    set_fastapi_gpu()
     server = build_app(args, **uvicorn_kwargs)
 
     # 设置 vLLM 运行在 GPU 1-4
-    set_vllm_on_gpus_1_to_4()
+    set_vllm_gpus()
     await build_server(args, llm_engine)
 
     loop = asyncio.get_running_loop()
