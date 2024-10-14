@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import threading
 
@@ -16,7 +17,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, range(gpu_count)))
 if gpu_count != 1:
     gpu_count = gpu_count - 1
 model_environ = ','.join(map(str, range(gpu_count)))
-app_environ = str(max(gpu_count-1, 0))
+app_environ = str(max(gpu_count - 1, 0))
 
 import asyncio
 import importlib
@@ -146,13 +147,22 @@ def build_app(args, **uvicorn_kwargs):
     return uvicorn.Server(config)
 
 
+def init_model_on_gpus():
+    # 设置大模型使用 GPU 0-3
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+    # 初始化大模型
+    # 假设 `initialize_model` 是初始化模型的函数
+    asyncio.run(build_server(args, None))
+
+
 async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
-    # 设置大模型使用 GPU 0-3
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,5'
-    await build_server(args, llm_engine)
+    # 模型初始化进程
+    model_process = multiprocessing.Process(target=init_model_on_gpus)
+    model_process.start()
+    model_process.join()  # 等待模型初始化完成
 
     # 在初始化模型后，将程序设置为使用 GPU 4
     os.environ['CUDA_VISIBLE_DEVICES'] = '4'
