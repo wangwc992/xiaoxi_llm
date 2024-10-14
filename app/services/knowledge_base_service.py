@@ -442,13 +442,13 @@ async def save_weaviste(ai_chat_log_model: AiChatLogModel):
 
 async def chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response):
     """ 将chat_completion_stream_response转换为AiChatLogModel"""
-
     chat_completion_stream_response.conversation_id = ai_chat_log_model.conversation_id
     usage = chat_completion_stream_response.usage
     ai_chat_log_model.prompt_tokens, ai_chat_log_model.completion_tokens, ai_chat_log_model.total_tokens = (
         usage.prompt_tokens, usage.completion_tokens, usage.total_tokens
     )
     ai_chat_log_model.chat_id = chat_completion_stream_response.id
+    logger.info("非流回复提取内容： %s", chat_completion_stream_response.model_dump_json())
     content = chat_completion_stream_response.choices[0].delta.content
     if not content:
         content = chat_completion_stream_response.choices[0].message.content
