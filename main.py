@@ -11,6 +11,7 @@ from app.start_init.timed_task import run_scheduler
 
 gpu_count = settings.get('gpu_count', 0)
 # 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
+os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, range(gpu_count)))
 
 if gpu_count != 1:
     gpu_count = gpu_count - 1
