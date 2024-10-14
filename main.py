@@ -161,7 +161,7 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
 
     # 设置 vLLM 运行在 GPU 1-4
     set_vllm_gpus()
-    await build_server(args, llm_engine)
+    # await build_server(args, llm_engine)
 
     loop = asyncio.get_running_loop()
 
