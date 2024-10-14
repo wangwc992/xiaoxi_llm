@@ -1,4 +1,3 @@
-import multiprocessing
 import os
 import threading
 
@@ -13,11 +12,6 @@ from app.start_init.timed_task import run_scheduler
 gpu_count = settings.get('gpu_count', 0)
 # 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
 os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, range(gpu_count)))
-
-if gpu_count != 1:
-    gpu_count = gpu_count - 1
-model_environ = ','.join(map(str, range(gpu_count)))
-app_environ = str(max(gpu_count - 1, 0))
 
 import asyncio
 import importlib
@@ -77,7 +71,6 @@ def mount_metrics(app: fastapi.FastAPI):
 
 
 def build_app(args, **uvicorn_kwargs):
-    os.environ['CUDA_VISIBLE_DEVICES'] = app_environ
     app = fastapi.FastAPI()
     app.include_router(api_server.router)
     app.include_router(knowledge_base.router)
@@ -147,25 +140,11 @@ def build_app(args, **uvicorn_kwargs):
     return uvicorn.Server(config)
 
 
-def init_model_on_gpus():
-    # 设置大模型使用 GPU 0-3
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
-    # 初始化大模型
-    # 假设 `initialize_model` 是初始化模型的函数
-    asyncio.run(build_server(args, None))
-
-
 async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
-    # 模型初始化进程
-    model_process = multiprocessing.Process(target=init_model_on_gpus)
-    model_process.start()
-    model_process.join()  # 等待模型初始化完成
-
-    # 在初始化模型后，将程序设置为使用 GPU 4
-    os.environ['CUDA_VISIBLE_DEVICES'] = '4'
+    await build_server(args, llm_engine)
     server = build_app(args, **uvicorn_kwargs)
 
     loop = asyncio.get_running_loop()
