@@ -11,7 +11,11 @@ from app.start_init.timed_task import run_scheduler
 
 gpu_count = settings.get('gpu_count', 0)
 # 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
-os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, range(gpu_count)))
+
+if gpu_count != 1:
+    gpu_count = gpu_count - 1
+model_environ = ','.join(map(str, range(gpu_count)))
+app_environ = str(max(gpu_count-1, 0))
 
 import asyncio
 import importlib
@@ -71,6 +75,7 @@ def mount_metrics(app: fastapi.FastAPI):
 
 
 def build_app(args, **uvicorn_kwargs):
+    os.environ['CUDA_VISIBLE_DEVICES'] = app_environ
     app = fastapi.FastAPI()
     app.include_router(api_server.router)
     app.include_router(knowledge_base.router)
@@ -144,7 +149,10 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
+    os.environ['CUDA_VISIBLE_DEVICES'] = model_environ
     await build_server(args, llm_engine)
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = app_environ
     server = build_app(args, **uvicorn_kwargs)
 
     loop = asyncio.get_running_loop()
