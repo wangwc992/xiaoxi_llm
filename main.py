@@ -150,7 +150,7 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("args: %s", args)
 
     # 设置大模型使用 GPU 0-3
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3,5'
     await build_server(args, llm_engine)
 
     # 在初始化模型后，将程序设置为使用 GPU 4
