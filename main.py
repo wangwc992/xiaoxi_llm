@@ -156,7 +156,7 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("args: %s", args)
 
     # 设置 FastAPI 运行在 GPU 0
-    set_fastapi_gpu()
+    # set_fastapi_gpu()
     server = build_app(args, **uvicorn_kwargs)
 
     # 设置 vLLM 运行在 GPU 1-4
