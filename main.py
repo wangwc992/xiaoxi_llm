@@ -9,10 +9,6 @@ from app.start_init.mysql_binglog_monitoring import start_binlog_listener
 from app.start_init.rename_log_file_task import run_rename_log_file_task
 from app.start_init.timed_task import run_scheduler
 
-gpu_count = settings.get('gpu_count', 0)
-# 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
-os.environ['CUDA_VISIBLE_DEVICES'] = ','.join(map(str, range(gpu_count)))
-
 import asyncio
 import importlib
 import inspect
@@ -46,6 +42,13 @@ logger = init_logger('vllm.entrypoints.openai.api_server')
 _running_tasks: Set[asyncio.Task] = set()
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
+def set_fastapi_on_gpu0():
+    # 设置FastAPI在GPU 0上运行
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
+def set_vllm_on_gpus_1_to_4():
+    # 设置vLLM在GPU 1, 2, 3, 4上运行
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1,2,3,4'
 
 # @asynccontextmanager
 # async def lifespan(app: fastapi.FastAPI):
@@ -144,8 +147,13 @@ async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
 
-    await build_server(args, llm_engine)
+    # 设置 FastAPI 运行在 GPU 0
+    set_fastapi_on_gpu0()
     server = build_app(args, **uvicorn_kwargs)
+
+    # 设置 vLLM 运行在 GPU 1-4
+    set_vllm_on_gpus_1_to_4()
+    await build_server(args, llm_engine)
 
     loop = asyncio.get_running_loop()
 
