@@ -1,4 +1,6 @@
 import os
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 import threading
 
 from app.common.core.config import settings
@@ -90,7 +92,7 @@ def build_app(args, **uvicorn_kwargs):
     app.root_path = args.root_path
 
     # TODO 注册启动事件
-    @app.on_event("startup")
+    # @app.on_event("startup")
     async def startup_event():
         threading.Thread(target=start_binlog_listener, daemon=True).start()
         threading.Thread(target=run_scheduler, daemon=True).start()
@@ -154,13 +156,13 @@ def build_app(args, **uvicorn_kwargs):
 async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
-    set_vllm_gpus()
+
     # 设置 FastAPI 运行在 GPU 0
-    # set_fastapi_gpu()
+    set_fastapi_gpu()
     server = build_app(args, **uvicorn_kwargs)
 
     # 设置 vLLM 运行在 GPU 1-4
-
+    # set_vllm_gpus()
     # await build_server(args, llm_engine)
 
     loop = asyncio.get_running_loop()
