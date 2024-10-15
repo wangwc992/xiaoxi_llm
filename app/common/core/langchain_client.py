@@ -12,11 +12,11 @@ class Embedding:
     device = f"cuda:{device_number}" if device_number >= 0 else "cpu"
     model_kwargs = {'device': device}
     encode_kwargs = {'normalize_embeddings': False}
-    embedding = '''HuggingFaceEmbeddings(
+    embedding = HuggingFaceEmbeddings(
         model_name=embedding_arg['embedding_path'],
         model_kwargs=model_kwargs,
         encode_kwargs=encode_kwargs
-    )'''
+    )
 
     @classmethod
     def embed_query(cls, text: str) -> List[float]:
