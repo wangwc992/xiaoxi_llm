@@ -154,13 +154,13 @@ def build_app(args, **uvicorn_kwargs):
 async def run_server(args, llm_engine=None, **uvicorn_kwargs) -> None:
     logger.info("vLLM API server version %s", VLLM_VERSION)
     logger.info("args: %s", args)
-
+    set_vllm_gpus()
     # 设置 FastAPI 运行在 GPU 0
-    set_fastapi_gpu()
+    # set_fastapi_gpu()
     server = build_app(args, **uvicorn_kwargs)
 
     # 设置 vLLM 运行在 GPU 1-4
-    # set_vllm_gpus()
+
     # await build_server(args, llm_engine)
 
     loop = asyncio.get_running_loop()
