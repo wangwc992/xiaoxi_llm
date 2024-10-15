@@ -1,6 +1,4 @@
 import os
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 import threading
 
 from app.common.core.config import settings
