@@ -1,29 +1,19 @@
-import http.client
-import json
+import aiohttp
+import requests
 
 from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionRequest
 
+url = "https://u430182-ac52-13068849.cqa1.seetacloud.com/v1/chat/completions"
+headers = {'Content-Type': 'application/json'}
+
 
 async def create_chat_completion(chat_completion_request: ChatCompletionRequest):
-    conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
-    payload = json.dumps(chat_completion_request.dict())
-    headers = {
-        'Content-Type': 'application/json'
-    }
-    conn.request("POST", "/v1/chat/completions", payload, headers)
-    res = conn.getresponse()
-    for line in res:
-        #     return StreamingResponse(content=generator, media_type="text/event-stream")
-        yield line.decode('utf-8')
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, json=chat_completion_request.dict(), headers=headers) as response:
+            async for line in response.content:
+                yield line.decode('utf-8')
 
 
 def completions(chat_completion_request: ChatCompletionRequest):
-    conn = http.client.HTTPSConnection("u430182-ac52-13068849.cqa1.seetacloud.com")
-    payload = json.dumps(chat_completion_request.dict())
-    headers = {
-        'Content-Type': 'application/json'
-    }
-    conn.request("POST", "/v1/chat/completions", payload, headers)
-    res = conn.getresponse()
-    data = res.read()
-    return data.decode('utf-8')
+    response = requests.post(url, json=chat_completion_request.dict(), headers=headers)
+    return response.text
