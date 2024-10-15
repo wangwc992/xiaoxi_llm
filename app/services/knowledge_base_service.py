@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import Optional
 
 from datetime import datetime, timezone, timedelta
@@ -10,7 +11,6 @@ from langfuse.decorators import observe, langfuse_context
 from pydantic import BaseModel, Field
 from weaviate.classes.query import Filter
 
-from app.api.openai.api_server import create_chat_completion, get_tokens, get_detokenize
 from app.common.constant.knowledge_base_constant import TASK_A, TASK_B, TASK_C, TASK_D, PLATFORM_OPERATION, ASSISTANT
 from app.common.core.langchain_client import Embedding
 from app.common.utils.google_utils import invoke, get_link_title, get_link_text
@@ -23,16 +23,16 @@ from app.database.mysql.xxlxdb.ai_knowledge_base import ai_knowledge_base_keywor
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_knowledge_base import insert_ai_chat_log
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import AiChatLogModel, ReferenceDataDto, \
     MyChatCompletionRequestModel, ClassificationModel
-from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionStreamResponse, Message, \
-    datat_to_chat_completion_stream_response, DeltaMessage, ChatCompletionResponseStreamChoice
+from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionStreamResponse, \
+    datat_to_chat_completion_stream_response, DeltaMessage, ChatCompletionResponseStreamChoice, ChatCompletionRequest, \
+    ChatCompletionMessageParam, StreamOptions
 from app.database.mysql.xxlxdb.service_confirm.service_confirm_school import select_service_school, \
     select_service_history, select_member_id_by_company_id, select_student_by_member_id, select_student_by_name
 from app.database.redis.redis_client import get_object, set_object
-from vllm.entrypoints.openai.protocol import ChatCompletionRequest, StreamOptions
-from vllm.utils import random_uuid
 
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate, AiChatWeaviateModel
 from app.database.weaviate.knowledge_base import knowledge_base_weaviate
+from app.http.ai_chat_http import create_chat_completion, completions
 from app.http.google_search import google_search
 from app.prompt import classification_query, xiao_xi_chat, matching_summary, matching_information, \
     reanswer_classification_query, small_talk, information_cue
@@ -152,14 +152,14 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 prompt = template.format(input=query, student_info=classification_model,
                                          application_information_list=service_school_dict_list)
 
-                system = Message(role="system", content="你是数据分析提取助手")
-                human = Message(role="user", content=prompt)
+                system = ChatCompletionMessageParam(role="system", content="你是数据分析提取助手")
+                human = ChatCompletionMessageParam(role="user", content=prompt)
                 chat_request = ChatCompletionRequest(
                     messages=[system, human],
                     model=model,
                 )
                 # 创建chat_completion请求
-                chat_result = await create_chat_completion(chat_request, raw_request)
+                chat_result = await create_chat_completion(chat_request)
                 # 提取消息
                 chat_completion_stream_response = await extract_message(chat_result)
 
@@ -177,7 +177,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
                 return JSONResponse(content=chat_completion_stream_response.model_dump(exclude_unset=True))
     elif query_type == TASK_D:
         # 闲聊
-        system = Message(role="system", content="你是ai闲聊助手")
+        system = ChatCompletionMessageParam(role="system", content="你是ai闲聊助手")
         template = PromptTemplate.from_template(small_talk)
         prompt = template.format(input=query)
         history_message_list.append(system)
@@ -187,7 +187,7 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         prompt = template.format(input=query)
         message_type = "Z"
 
-    human = Message(role="human", content=prompt)
+    human = ChatCompletionMessageParam(role="human", content=prompt)
     history_message_list.append(human)
     chat_request = ChatCompletionRequest(
         messages=history_message_list,
@@ -196,31 +196,29 @@ async def knowledge_base_generate(request: MyChatCompletionRequestModel, raw_req
         stream_options=stream_options
     )
     # 获取返回结果
-    result = await create_chat_completion(chat_request, raw_request)
 
     ai_chat_log_model.prompt = prompt
     ai_chat_log_model.message_type = message_type
     # ------------------------------------------------------------------------------------------------------------------
     # 将用户输入添加到消息列表，便于后续保存
-    history_message_list[-1]["content"] = query
+    # history_message_list[-1]["content"] = query
     # 判断是否为流式输出
-    if isinstance(result, StreamingResponse):
-        return StreamingResponse(
-            stream_response(result, ai_chat_log_model, reference_data_dto, classification_model),
-            media_type="text/event-stream"
-        )
-    else:
-        # 非流式输出,提取消息
-        chat_completion_stream_response = await extract_message(result)
-        # 将chat_completion_stream_response转换为AiChatLogModel
-        await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
-        # 请求结束，后续处理
-        background_tasks.add_task(process_after_response, ai_chat_log_model)
-        # 将参考数据添加到消息结果中
-        chat_completion_stream_response.reference_data_dto = reference_data_dto
-        # 返回结果
-        result = JSONResponse(content=chat_completion_stream_response.dict())
-        return result
+    return StreamingResponse(
+        stream_response(chat_request, ai_chat_log_model, reference_data_dto, classification_model),
+        media_type="text/event-stream"
+    )
+    # else:
+    #     # 非流式输出,提取消息
+    #     chat_completion_stream_response = await extract_message(result)
+    #     # 将chat_completion_stream_response转换为AiChatLogModel
+    #     await chat_responsr_to_chat_log(ai_chat_log_model, chat_completion_stream_response)
+    #     # 请求结束，后续处理
+    #     background_tasks.add_task(process_after_response, ai_chat_log_model)
+    #     # 将参考数据添加到消息结果中
+    #     chat_completion_stream_response.reference_data_dto = reference_data_dto
+    #     # 返回结果
+    #     result = JSONResponse(content=chat_completion_stream_response.dict())
+    #     return result
 
 
 async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
@@ -236,26 +234,37 @@ async def classification(ai_chat_log_model: AiChatLogModel, reanswer: bool,
     else:
         template = PromptTemplate.from_template(classification_query)
     classification_query_prompt = template.format(input=ai_chat_log_model.query)
-    system = Message(role="system", content="你是一个严谨的智能问题分类助手，不会提供虚假信息")
-    human = Message(role="user", content=classification_query_prompt)
+    system = ChatCompletionMessageParam(role="system", content="你是一个严谨的智能问题分类助手，不会提供虚假信息")
+    human = ChatCompletionMessageParam(role="user", content=classification_query_prompt)
     chat_request = ChatCompletionRequest(
         messages=[system, human],
         model=ai_chat_log_model.model_name,
     )
+
+    chat_completion_request = ChatCompletionRequest(
+        messages=[
+            ChatCompletionMessageParam(role='system', content='你是一个严谨的智能问题分类助手，不会提供虚假信息'),
+            ChatCompletionMessageParam(role='user',
+                                       content='**角色**  \r\n你是问题任务分类助手。\r\n\r\n**任务**  \r\n你需要根据用户的提问，判断问题与以下哪一项匹配，以找到对应任务的帮助用户解决问题。\r\n\r\n**分类项**：\r\n\r\n**一、咨询问题**：\r\n- **A**：询问/提问/希望了解与留学相关的海外院校/专业/申请相关的知识。\r\n  - 若是，回复 A，格式示例：{"query_type":"A"}。\r\n\r\n- **B**：询问/提问/希望了解与澳际教育/小希平台相关功能知识，或小希的业务知识。\r\n  - 若是，回复 B，格式示例：{"query_type":"B"}。\r\n\r\n**二、闲聊**：\r\n- **D**：如果识别到用户输入的问题和留学申请，或者和小希系统，或平台的操作无关，请回复 D，格式示例：{"query_type":"D"}。\r\n\r\n**约束**：\r\n1. 请严格按照格式示例进行输出。\r\n2. 格式的 `value` 为空不添加该字段,不能使用未提及，未提供等，没有value就不返回该字段\r\n3. 返回 JSON 格式。不要用md格式输出。{开头，}结尾。\r\n\r\n用户问题： {悉尼大学}'),
+        ],
+        stream=False,
+        model='/root/autodl-tmp/llm/Qwen2-72B-Instruct-GPTQ-Int4',
+        stream_options=None
+    )
     # 创建chat_completion请求
-    result = await create_chat_completion(chat_request, raw_request)
+    result = completions(chat_completion_request)
     # 提取消息
     chat_completion_stream_response = await extract_message(result)
     return chat_completion_stream_response
 
 
-async def stream_response(result: StreamingResponse,
+async def stream_response(chat_request,
                           ai_chat_log_model: AiChatLogModel,
                           reference_data_dto: ReferenceDataDto,
                           classification_model: ClassificationModel):
     """
     流式输出
-    :param result:  返回结果
+    :param chat_request:  返回结果
     :param ai_chat_log_model: AiChatLogModel
     :param reference_data_dto: 参考数据
     :param classification_model: 任务分类
@@ -268,8 +277,11 @@ async def stream_response(result: StreamingResponse,
     done = 'data: [DONE]'
     # 判断是否为第一个chunk
     first_chunk = True
-    async for chunk in result.body_iterator:
+    async for chunk in create_chat_completion(chat_request):
         # 判断是否为最后一个或者第一个chunk，如果是则跳过，不处理
+        print(chunk)
+        if chunk == "\n":
+            continue
         if chunk.strip() == done:
             yield chunk
             continue
@@ -316,16 +328,16 @@ async def stream_response(result: StreamingResponse,
     await process_after_response(ai_chat_log_model)
 
 
-async def extract_message(result: JSONResponse) -> ChatCompletionStreamResponse:
+async def extract_message(result: str) -> ChatCompletionStreamResponse:
     '''
     非流式输出 提取消息
     :param result:  返回结果
     :return:  消息
     '''
     # logger.info("*" * 50 + "非流输出")
-    result_body = result.body.decode('utf-8')
+    # result_body = result.body.decode('utf-8')
     # result_content = json.loads(result_body)
-    chat_completion_stream_response = datat_to_chat_completion_stream_response(result_body)
+    chat_completion_stream_response = datat_to_chat_completion_stream_response(result)
     return chat_completion_stream_response
 
 
@@ -377,12 +389,12 @@ async def get_history_message_list(conversation_id: str, query: str):
     :return: 会话ID, 历史消息列表
     """
     history_message_list = []
-    system = Message(role="system", content="你是小希留学顾问助手")
+    system = ChatCompletionMessageParam(role="system", content="你是小希留学顾问助手")
     history_message_list.append(system)
     if not conversation_id:
         # 会话id不存在，表示为第一次请求，生成会话id
         conversation_id = f"conversation-{random_uuid()}"
-        human = Message(role="human", content=query)
+        human = ChatCompletionMessageParam(role="human", content=query)
         history_message_list.append(human)
     else:
         # 会话id存在，获取历史记录
@@ -404,8 +416,8 @@ async def get_weaviste_history(conversation_id, query):
     # 将历史记录转换为消息列表
     message_list = []
     for ai_chat_log in ai_chat_log_list:
-        human = Message(role="human", content=ai_chat_log.instruction)
-        assistant = Message(role="assistant", content=ai_chat_log.output)
+        human = ChatCompletionMessageParam(role="human", content=ai_chat_log.instruction)
+        assistant = ChatCompletionMessageParam(role="assistant", content=ai_chat_log.output)
         message_list.append(human)
         message_list.append(assistant)
     return message_list
@@ -559,7 +571,7 @@ async def reference_networked_rag(query: str):
     await now_time("4")
     networked_reference_datas = []
     for text in text_list:
-        generator = await get_tokens(text)
+        generator = 'await get_tokens(text)'
         logger.info(f"*****************generator: {generator},type: {type(generator)}")
         tokens = generator.tokens
         count = generator.count
@@ -571,7 +583,7 @@ async def reference_networked_rag(query: str):
     await now_time("5")
     networked_reference_prompt = []
     for item in networked_reference_datas:
-        detokenize = await get_detokenize(item)
+        detokenize = 'await get_detokenize(item)'
         networked_reference_prompt.append(detokenize.prompt)
     await now_time("6")
     networked_reference_similarity_list = Embedding.similarity(query, networked_reference_prompt)
@@ -599,3 +611,6 @@ def chat_result_msg05(chat_completion_stream_response: ChatCompletionStreamRespo
     chat_completion_stream_response.classification_model.task = "-1"
     chat_completion_stream_response.classification_model.query_type = "C"
     return chat_completion_stream_response.model_dump()
+
+def random_uuid() -> str:
+    return str(uuid.uuid4().hex)

@@ -1,19 +1,14 @@
-import asyncio
 import traceback
 from fastapi import Request, APIRouter, BackgroundTasks
 from starlette.responses import StreamingResponse
 
-from app.api.openai.api_server import scheduler
-from app.common.constant.knowledge_base_constant import CHAT_CALL_OUT
 from app.common.core.context import get_chat_visits_number
 from app.common.utils.logging import get_logger
-from app.database.mysql.xxlxdb.ai_knowledge_base.chat_model import ChatCompletionStreamResponse
 from app.database.weaviate.ai_chat_log import ai_chat_log_weaviate
 from app.middleware.exception import ChatSuspendException
 
 from app.services.knowledge_base_service import (knowledge_base_generate, MyChatCompletionRequestModel,
                                                  knowledge_base_networked_generate)
-from app.test.google import reference_networked_rag
 
 router = APIRouter(prefix="/knowledge_base/chat")
 logger = get_logger(__name__)
@@ -39,7 +34,6 @@ async def generate(request: MyChatCompletionRequestModel, raw_request: Request, 
     }
     role: 1 为用户，2 chat并发数过多，3 敏感词、4 为程序异常
     '''
-    await scheduler()
     # 判断是否超过最大并发数
     if get_chat_visits_number():
         result = '''data: {"choices": [ { "index": 0, "delta": { "role": "2", "content": "chat线程数量超了" }} ]}'''

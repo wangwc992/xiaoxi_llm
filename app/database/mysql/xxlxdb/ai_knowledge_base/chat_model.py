@@ -1,12 +1,23 @@
 from typing import Optional, Literal, List, Union
 from pydantic import BaseModel, Field
 from app.database.mysql.xxlxdb.ai_knowledge_base.ai_model import ClassificationModel, ReferenceDataDto
-from vllm.entrypoints.chat_utils import CustomChatCompletionMessageParam
 
 
-class Message(CustomChatCompletionMessageParam):
-    """对话消息,重新方便使用"""
-    pass
+class StreamOptions(BaseModel):
+    include_usage: Optional[bool] = True
+    continuous_usage_stats: Optional[bool] = True
+
+
+class ChatCompletionMessageParam(BaseModel):
+    role: str
+    content: str
+
+
+class ChatCompletionRequest(BaseModel):
+    messages: List[ChatCompletionMessageParam] = Field(None, description="消息列表")
+    stream: bool = Field(False, description="是否流式输出")
+    model: str = Field(None, description="模型名称")
+    stream_options: Optional[StreamOptions] = Field(None, description="流选项")
 
 
 class DeltaFunctionCall(BaseModel):
