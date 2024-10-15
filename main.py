@@ -30,36 +30,10 @@ from app.api.text2vec_custom import text2vec_custom
 _running_tasks: Set[asyncio.Task] = set()
 TIMEOUT_KEEP_ALIVE = 5  # seconds
 
-gpu_count = settings.get('gpu_count', 0)
-# 根据配置文件中的 gpu_count 设置 CUDA_VISIBLE_DEVICES 环境变量
-model_environ = ','.join(map(str, range(gpu_count)))
-app_environ = str(max(gpu_count - 1, 0))
-
 
 def set_fastapi_gpu():
     # 设置FastAPI在GPU 0上运行
-    os.environ['CUDA_VISIBLE_DEVICES'] = app_environ
-
-
-def set_vllm_gpus():
-    # 设置vLLM在GPU 1, 2, 3, 4上运行
-    os.environ['CUDA_VISIBLE_DEVICES'] = model_environ
-
-
-# @asynccontextmanager
-# async def lifespan(app: fastapi.FastAPI):
-#     async def _force_log():
-#         while True:
-#             await asyncio.sleep(10)
-#             await engine.do_log_stats()
-#
-#     if not engine_args.disable_log_stats:
-#         task = asyncio.create_task(_force_log())
-#         _running_tasks.add(task)
-#         task.add_done_callback(_running_tasks.remove)
-#
-#     yield
-
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 def mount_metrics(app: fastapi.FastAPI):
     # Add prometheus asgi middleware to route /metrics requests
